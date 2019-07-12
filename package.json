@@ -1,0 +1,38 @@
+{
+  "name": "p5-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "build": "webpack",
+    "clean": "rm -rf dist/",
+    "prebuild": "yarn clean",
+    "start": "yarn build && webpack-dev-server --hot",
+    "test:watch": "karma start karma.conf.js",
+    "test": "karma start karma.conf.js --single-run"
+  },
+  "author": "Cameron Edwards",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "7.2.2",
+    "@babel/plugin-proposal-class-properties": "7.2.3",
+    "@babel/preset-env": "7.2.3",
+    "@babel/preset-react": "7.0.0",
+    "babel-loader": "8.0.4",
+    "chai": "4.2.0",
+    "karma": "3.1.4",
+    "karma-chrome-launcher": "2.2.0",
+    "karma-jasmine": "2.0.1",
+    "karma-webpack": "3.0.5",
+    "webpack": "4.28.2",
+    "webpack-cli": "3.1.2",
+    "webpack-dev-server": "3.1.14"
+  },
+  "engine": {
+    "node": ">=1.0"
+  },
+  "dependencies": {
+    "p5": "^0.9.0"
+  }
+}
