@@ -32,6 +32,24 @@ const colorSchemes = {
   },
 }
 
+window.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.altKey) {
+    if (e.keyCode === 83) {
+      const canvas = document.getElementById('defaultCanvas0')
+      if (canvas) {
+        canvas.toBlob(blob => {
+          const downloadLink = document.createElement('a')
+          downloadLink.href = URL.createObjectURL(blob)
+          downloadLink.download = 'chipboard.png'
+          document.body.appendChild(downloadLink)
+          downloadLink.click()
+          document.body.removeChild(downloadLink)
+        })
+      }
+    }
+  }
+})
+
 export default s => {
   const props = {
     minBlankSpace: 5,
@@ -64,7 +82,7 @@ export default s => {
     s.fill(color)
 
     // drawTriangle(minX, minY, maxX, maxY, quad)
-    drawSquare(minX, minY, maxX, maxY)
+    drawSquare(minX, minY, maxX, maxY, 1)
 
     const { randomness, color1, color2, color3, color4 } = props
     const xSplit = rir(minX, maxX, randomness)
