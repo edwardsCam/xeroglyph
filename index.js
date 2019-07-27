@@ -1,6 +1,6 @@
 import * as _p5_ from 'p5'
 
-import Chipboard from 'patterns/chipboard'
+import { board, city } from 'patterns/chipboard'
 import InfinityCycle from 'patterns/infinity-cycle'
 import Roots from 'patterns/roots'
 
