@@ -52,18 +52,21 @@ window.addEventListener('keydown', e => {
 
 export default s => {
   const props = {
-    minBlankSpace: 5,
+    minBlankSpace: 3,
     randomness: 1,
 
-    // delay: 100,
+    // delay: 2000,
     minDelay: 0,
-    maxDelay: 150,
+    maxDelay: 2000,
     interpolateDelay: false,
 
     // withStrokes: true,
 
+    // governor: 90000,
+
     ...colorSchemes.icelandSlate,
   }
+  let iterations = 0
 
   s.setup = () => {
     if (!props.withStrokes) s.noStroke()
@@ -82,7 +85,7 @@ export default s => {
     s.fill(color)
 
     // drawTriangle(minX, minY, maxX, maxY, quad)
-    drawSquare(minX, minY, maxX, maxY, 1)
+    drawSquare(minX, minY, maxX, maxY, 0)
 
     const { randomness, color1, color2, color3, color4 } = props
     const xSplit = rir(minX, maxX, randomness)
@@ -92,22 +95,24 @@ export default s => {
     const botRight = () => createChipboard(xSplit, ySplit, maxX, maxY, color2, 'br')
     const topRight = () => createChipboard(xSplit, minY, maxX, ySplit, color3, 'tr')
     const topLeft = () => createChipboard(minX, minY, xSplit, ySplit, color4, 'tl')
+    iterations++
 
-    let delay = props.delay || 0
-    if (props.interpolateDelay) {
-      delay = interpolate(
-        [ minBlankSpace, window.innerWidth * window.innerHeight ],
-        [ props.minDelay, props.maxDelay ],
-        dx * dy
-      )
+    if (props.governor == null || iterations < props.governor) {
+      let delay = props.delay || 0
+      if (props.interpolateDelay) {
+        delay = interpolate(
+          [ minBlankSpace, window.innerWidth * window.innerHeight ],
+          [ props.minDelay, props.maxDelay ],
+          dx * dy
+        )
+      }
+      setTimeout(() => {
+        botLeft()
+        botRight()
+        topRight()
+        topLeft()
+      }, delay)
     }
-
-    setTimeout(() => {
-      botLeft()
-      botRight()
-      topRight()
-      topLeft()
-    }, delay)
   }
 
   function drawSquare(x1, y1, x2, y2, radius = 0) {
