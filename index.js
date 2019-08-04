@@ -1,5 +1,5 @@
 import * as _p5_ from 'p5'
 
-import Chipboard from 'patterns/chipboard'
+import InfinityCycle from 'patterns/infinity-cycle'
 
-const p5 = new _p5_(Chipboard)
+const p5 = new _p5_(InfinityCycle)
