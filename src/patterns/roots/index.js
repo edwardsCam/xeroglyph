@@ -20,8 +20,8 @@ export default s => {
     maxBranchAngle: 120,
     radius: 200,
   }
-  let cursor = new Cursor(centerPoint(), centerCoords(), _props_.startAngle, 1)
   const unitWidth = _props_.radius * 2 / _props_.resolution
+  let cursor = new Cursor(centerPoint(), centerCoords(), _props_.startAngle, 1)
   const q = new PriorityQueue('trunkiness')
   const throttledGenerate = throttle(() => generateOne(_props_), 10)
   const platMap = new PlatMap(_props_.resolution)
