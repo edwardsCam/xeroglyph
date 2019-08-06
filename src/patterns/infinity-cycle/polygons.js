@@ -1,4 +1,4 @@
-import { interpolateSmooth, interpolate, toRadians } from 'utils/Math'
+import { interpolateSmooth, interpolate, toRadians } from 'utils/math'
 
 function interpolateColors(color1, color2, p) {
   return {

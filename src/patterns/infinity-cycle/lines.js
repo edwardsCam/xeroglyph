@@ -1,4 +1,4 @@
-import { interpolateSmooth, interpolate, toRadians } from 'utils/Math'
+import { interpolateSmooth, interpolate, toRadians } from 'utils/math'
 
 const labels = document.createElement('div')
 
