@@ -13,7 +13,7 @@ export default s => {
 
   const props = {
     lineCount: 200,
-    damp: 2,
+    damp: 6,
     period: 4,
     color1: {
       r: 159,
@@ -34,7 +34,7 @@ export default s => {
 
   const lines = []
 
-  const width = 1200
+  const width = 1400
   const height = 400
 
   const initialTime = Date.now()
