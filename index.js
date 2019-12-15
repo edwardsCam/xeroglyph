@@ -7,4 +7,4 @@ import Swirl from 'patterns/swirl'
 
 import AAA from 'patterns/exp'
 
-const p5 = new _p5_(InfinityCycle)
+new _p5_(Swirl)

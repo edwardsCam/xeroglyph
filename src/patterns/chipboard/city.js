@@ -55,9 +55,9 @@ export default s => {
     minBlankSpace: 3,
     randomness: 1,
 
-    delay: 700,
+    delay: 500,
     minDelay: 0,
-    maxDelay: 2000,
+    maxDelay: 300,
     interpolateDelay: false,
 
     // withStrokes: true,
@@ -77,8 +77,8 @@ export default s => {
 
   s.draw = () => {
     s.clear()
-    // s.rotateX(Math.sin(s.frameCount * 0.0025))
-    // s.rotateY(Math.cos(s.frameCount * 0.0025))
+    s.rotateX(Math.sin(s.frameCount * 0.0025))
+    s.rotateY(Math.cos(s.frameCount * 0.0025))
     cubes.forEach(drawCube)
   }
 

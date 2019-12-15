@@ -8,47 +8,48 @@ const interpolateColors = (color1, color2, p) => ({
   o: interpolate([0, 1], [color1.o, color2.o], p),
 })
 
-const width = 800
-const height = 250
+const width = 1000
+const height = 300
 
 const midWidth = window.innerWidth / 2
 const midHeight = window.innerHeight / 2
 
-const is3d = true
-const isColored = false
+const is3d = false
+const isFilled = false
 
 const props = {
-  isColored,
+  isFilled,
   is3d,
   cameraRotation: {
-    x: 0.005,
-    y: 0.004,
-    z: 0.003,
+    x: 0.002,
+    y: 0.003,
+    z: 0.0025,
   },
   width,
   height,
   minX: is3d ? (-width / 2) : (midWidth - width / 2),
   maxX: is3d ? (width / 2) : (midWidth + width / 2),
-  lineCount: 300,
-  damp: 358,
-  period: 4,
+  lineCount: 50,
+  damp: 0,
+  period: 10,
+  zigzag: true,
 
-  staticDampIncrease: 0.001,
+  staticDampIncrease: 0.2,
 
-  // dampCyclePeriod: 50,
-  // dampCycleExtremity: 0.5,
+  // dampCyclePeriod: 80,
+  // dampCycleExtremity: 0.8,
 
   color1: {
-    r: 56,
-    g: 81,
-    b: 112,
-    o: 1,
+    r: 0,
+    g: 0,
+    b: 0,
+    o: 0.4,
   },
   color2: {
     r: 255,
     g: 255,
     b: 255,
-    o: 0.1,
+    o: 1,
   },
 }
 
@@ -76,7 +77,7 @@ export default init({
     }
   },
   draw: (s, lines) => {
-    if (isColored) {
+    if (isFilled) {
       lines.forEach((line, i) => {
         if (i === 0) return
 
@@ -88,14 +89,54 @@ export default init({
         const fillColor = `rgba(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)}, ${o})`
         s.fill(fillColor)
         s.stroke(fillColor)
-        if (is3d) {
-          s.quad(line1[0], line1[1], line1[2], line1[3], line1[4], line1[5], line2[3], line2[4], line2[5], line2[0], line2[1], line2[2])
+        if (props.zigzag) {
+          if (is3d) {
+            if (i % 2) {
+              // s.triangle(line1[0], line1[1], line1[2], line2[0], line2[1], line2[2], line2[3], line2[4], line2[5])
+            } else {
+
+            }
+          } else {
+            if (i % 2) {
+              s.triangle(line1[2], line1[3], line2[0], line2[1], line2[2], line2[3])
+            } else {
+              s.triangle(line1[0], line1[1], line1[2], line1[3], line2[0], line2[1])
+            }
+          }
         } else {
-          s.quad(line1[0], line1[1], line1[2], line1[3], line2[2], line2[3], line2[0], line2[1])
+          if (is3d) {
+            s.quad(line1[0], line1[1], line1[2], line1[3], line1[4], line1[5], line2[3], line2[4], line2[5], line2[0], line2[1], line2[2])
+          } else {
+            s.quad(line1[0], line1[1], line1[2], line1[3], line2[2], line2[3], line2[0], line2[1])
+          }
         }
       })
     } else {
-      lines.forEach(line => s.line(...line))
+      const { r, g, b, a } = props.color1
+      s.stroke(`rgba(${r}, ${g}, ${b}, ${a})`)
+      if (props.zigzag) {
+        lines.forEach((line, i) => {
+          if (i === 0) return
+          const line1 = lines[i - 1]
+          const line2 = lines[i]
+
+          if (is3d) {
+            if (i % 2) {
+              s.line(line1[3], line1[4], line1[5], line2[0], line2[1], line1[2])
+            } else {
+              s.line(line1[0], line1[1], line1[2], line2[3], line2[4], line2[5])
+            }
+          } else {
+            if (i % 2) {
+              s.line(line1[2], line1[3], line2[0], line2[1])
+            } else {
+              s.line(line1[0], line1[1], line2[2], line2[3])
+            }
+          }
+        })
+      } else {
+        lines.forEach(line => s.line(...line))
+      }
     }
   },
   props,
