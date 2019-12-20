@@ -14,7 +14,7 @@ const height = 300
 const midWidth = window.innerWidth / 2
 const midHeight = window.innerHeight / 2
 
-const is3d = false
+const is3d = true
 const isFilled = false
 
 const props = {
@@ -29,12 +29,12 @@ const props = {
   height,
   minX: is3d ? (-width / 2) : (midWidth - width / 2),
   maxX: is3d ? (width / 2) : (midWidth + width / 2),
-  lineCount: 50,
+  lineCount: 100,
   damp: 0,
-  period: 10,
+  period: 20,
   zigzag: true,
 
-  staticDampIncrease: 0.2,
+  staticDampIncrease: 0.15,
 
   // dampCyclePeriod: 80,
   // dampCycleExtremity: 0.8,

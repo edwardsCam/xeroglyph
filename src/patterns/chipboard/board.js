@@ -52,15 +52,15 @@ window.addEventListener('keydown', e => {
 
 export default s => {
   const props = {
-    minBlankSpace: 5,
+    minBlankSpace: 3,
     randomness: 1,
 
     // delay: 2000,
-    minDelay: 0,
-    maxDelay: 500,
+    minDelay: 200,
+    maxDelay: 700,
     interpolateDelay: true,
 
-    // withStrokes: true,
+    withStrokes: false,
 
     // governor: 90000,
 

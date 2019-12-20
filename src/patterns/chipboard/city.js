@@ -52,13 +52,13 @@ window.addEventListener('keydown', e => {
 
 export default s => {
   const props = {
-    minBlankSpace: 3,
+    minBlankSpace: 4,
     randomness: 1,
 
-    delay: 500,
-    minDelay: 0,
-    maxDelay: 300,
-    interpolateDelay: false,
+    // delay: 100,
+    minDelay: 500,
+    maxDelay: 2000,
+    interpolateDelay: true,
 
     // withStrokes: true,
 
