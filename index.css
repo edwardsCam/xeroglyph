@@ -16,3 +16,23 @@ body {
   border-radius: 3px;
   border: 3px solid black;
 }
+
+.knobs {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+
+  background: #305f72;
+  color: white;
+  padding: 10px;
+  border-radius: 3px;
+  border: 3px solid black;
+}
+
+.knob {
+  display: block;
+}
+
+.knob input {
+  width: 50px;
+}

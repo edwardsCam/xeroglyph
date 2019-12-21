@@ -7,6 +7,7 @@ import InfinityCycle from 'patterns/infinity-cycle'
 import Swirl from 'patterns/swirl'
 
 import HelpModal from 'components/helpModal'
+import Knobs from 'components/knobs'
 
 const defaultPattern = 'swirl'
 
@@ -28,23 +29,31 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      isShowingHelpModal: false
+      isShowingHelpModal: false,
+      isShowingKnobs: false,
     }
   }
 
   componentDidMount() {
     window.addEventListener('keydown', e => {
-      if (e.key == 'i') {
-        this.setState(prevState => ({ isShowingHelpModal: !prevState.isShowingHelpModal }))
+      switch (e.key) {
+        case 'i':
+          this.setState(prevState => ({ isShowingHelpModal: !prevState.isShowingHelpModal, isShowingKnobs: false }))
+          break
+        case 'o':
+          this.setState(prevState => ({ isShowingKnobs: !prevState.isShowingKnobs, isShowingHelpModal: false }))
+          break
       }
     })
   }
 
   render() {
+    const pattern = getPattern()
     return (
       <div>
         <P5Wrapper sketch={getSketch()} />
-        {this.state.isShowingHelpModal && <HelpModal pattern={getPattern()} />}
+        {this.state.isShowingHelpModal && <HelpModal pattern={pattern} />}
+        {this.state.isShowingKnobs && <Knobs pattern={pattern} />}
       </div>
     )
   }

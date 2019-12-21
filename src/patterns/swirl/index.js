@@ -1,5 +1,5 @@
 import { thetaFromTwoPoints, distance, clamp, interpolate } from 'utils/math'
-import * as _p5_ from 'p5'
+import { init as initProps, getProp, setProp } from 'utils/propConfig'
 
 function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {
   const d = distance(p1.position, p2.position)
@@ -42,8 +42,8 @@ export default s => {
         this.pathHistory.push(
           s.createVector(this.position.x, this.position.y)
         )
-        if (
-          this.pathHistory.length >
+        while (
+          this.pathHistory.length - 1 >
           props.numTraceSteps
         ) {
           this.pathHistory.shift()
@@ -140,14 +140,56 @@ export default s => {
     }
   }
 
-  const props = {
-    maxSpeed: 9,
-    minGrav: 0.1,
-    maxGrav: 1.1,
-    numTraceSteps: 30,
-    traceResolution: 1,
+  initProps('swirl', {
+    numTraceSteps: {
+      type: 'number',
+      default: 20,
+      step: 1,
+      min: 0,
+    },
+    traceResolution: {
+      type: 'number',
+      default: 1,
+      step: 1,
+      min: 1,
+    },
+    maxSpeed: {
+      type: 'number',
+      default: 9,
+      step: 0.1,
+      min: 0,
+    },
+    minGrav: {
+      type: 'number',
+      default: 0.1,
+      step: 0.001,
+      min: 0,
+    },
+    maxGrav: {
+      type: 'number',
+      default: 1.1,
+      step: 0.001,
+      min: 0,
+    },
+    mouseMass: {
+      type: 'number',
+      default: 500,
+      step: 10,
+      min: 0,
+    },
+  })
+
+  const get = prop => getProp('swirl', prop)
+  const set = (prop, value) => setProp('swirl', prop, value)
+
+  const getProps = () => ({
+    maxSpeed: Number(get('maxSpeed')),
+    minGrav: Number(get('minGrav')),
+    maxGrav: Number(get('maxGrav')),
+    numTraceSteps: Number(get('numTraceSteps')),
+    traceResolution: Number(get('traceResolution')),
     ignoreOtherParticles: true,
-    mouseMass: 500,
+    mouseMass: Number(get('mouseMass')),
     dotMass: 1,
     renderDots: true,
     colorFn: (particle, historyPathIdx) => {
@@ -162,8 +204,8 @@ export default s => {
         b: tweenBetween(25, 240),
       }
     },
-  }
-  const particles = new ParticleSystem(props)
+  })
+  const particles = new ParticleSystem(getProps())
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
@@ -175,6 +217,7 @@ export default s => {
 
   s.draw = () => {
     s.clear()
+    const props = getProps()
     particles.mutate(props)
     particles.draw(props)
   }
