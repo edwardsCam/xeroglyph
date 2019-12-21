@@ -5,8 +5,8 @@ function Turtle(sketch, startPos, options) {
 
   this.move = () => {
     const newPos = {
-      x: pos.x + DISTANCE * Math.cos(theta * Math.PI / 180),
-      y: pos.y + DISTANCE * Math.sin(theta * Math.PI / 180),
+      x: pos.x + DISTANCE * Math.cos((theta * Math.PI) / 180),
+      y: pos.y + DISTANCE * Math.sin((theta * Math.PI) / 180),
     }
     sketch.line(pos.x, pos.y, newPos.x, newPos.y)
     pos = newPos

@@ -1,4 +1,3 @@
-
 const index = {}
 
 const getConfig = pattern => index[pattern]
@@ -16,9 +15,4 @@ const init = (pattern, props) => {
   }, {})
 }
 
-export {
-  getConfig,
-  getProp,
-  setProp,
-  init,
-}
+export { getConfig, getProp, setProp, init }

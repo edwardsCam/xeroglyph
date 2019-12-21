@@ -3,7 +3,9 @@ import React from 'react'
 const infoMap = {
   swirl: {
     title: 'Swirl',
-    description: ['Particles floating in space, they will gravitate toward your mouse'],
+    description: [
+      'Particles floating in space, they will gravitate toward your mouse',
+    ],
   },
   infinity: {
     title: 'Infinity Cycle',
@@ -16,7 +18,7 @@ const infoMap = {
       'You can pause/re-enable any of these three mechanisms.',
       '* Hit `q` to toggle the "twisting" effect, essentially keeping the waveform at a constant shape.',
       '* Hit `w` to toggle the sinusoidal movement. Note that even while this is paused, you can continue the twisting effect.',
-      '* Hit `e` to toggle the camera rotation.'
+      '* Hit `e` to toggle the camera rotation.',
     ],
   },
   chipboard: {
@@ -26,7 +28,7 @@ const infoMap = {
   city: {
     title: 'Cityscape',
     description: [''],
-  }
+  },
 }
 
 export default class HelpModal extends React.Component {
@@ -35,11 +37,11 @@ export default class HelpModal extends React.Component {
     const info = infoMap[pattern]
     if (!info) return null
     return (
-      <div className='helpModal'>
-        <h1>
-          {info.title}
-        </h1>
-        {info.description.map(d => <p>{d}</p>)}
+      <div className="helpModal">
+        <h1>{info.title}</h1>
+        {info.description.map(d => (
+          <p>{d}</p>
+        ))}
       </div>
     )
   }

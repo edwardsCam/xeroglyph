@@ -6,11 +6,7 @@ function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {
   const massConstant = p1.mass * p2.mass
   return {
     theta: thetaFromTwoPoints(p1.position, p2.position),
-    strength: clamp(
-      minGrav,
-      maxGrav,
-      massConstant / (d * d)
-    ),
+    strength: clamp(minGrav, maxGrav, massConstant / (d * d)),
   }
 }
 
@@ -39,29 +35,16 @@ export default s => {
     move(props) {
       if (++this.traceSteps > props.traceResolution) {
         this.traceSteps = 0
-        this.pathHistory.push(
-          s.createVector(this.position.x, this.position.y)
-        )
-        while (
-          this.pathHistory.length - 1 >
-          props.numTraceSteps
-        ) {
+        this.pathHistory.push(s.createVector(this.position.x, this.position.y))
+        while (this.pathHistory.length - 1 > props.numTraceSteps) {
           this.pathHistory.shift()
         }
       }
 
       this.velocity.add(this.acceleration)
 
-      this.velocity.x = clamp(
-        -props.maxSpeed,
-        props.maxSpeed,
-        this.velocity.x
-      )
-      this.velocity.y = clamp(
-        -props.maxSpeed,
-        props.maxSpeed,
-        this.velocity.y
-      )
+      this.velocity.x = clamp(-props.maxSpeed, props.maxSpeed, this.velocity.x)
+      this.velocity.y = clamp(-props.maxSpeed, props.maxSpeed, this.velocity.y)
 
       this.position.add(this.velocity)
     }
@@ -102,7 +85,10 @@ export default s => {
         [55, 620],
         [55, 700],
         [55, 760],
-      ].map(([x, y]) => new Particle({ position: s.createVector(x, y), mass: props.dotMass }))
+      ].map(
+        ([x, y]) =>
+          new Particle({ position: s.createVector(x, y), mass: props.dotMass })
+      )
     }
 
     mutate(props) {
@@ -120,18 +106,24 @@ export default s => {
 
     calculateGravitationalPulls(props) {
       this.particles.forEach((particle, i) => {
-        particle.calculateGravToMouse({
-          mass: props.mouseMass,
-          position: {
-            x: hasMouseMoved ? s.mouseX : window.innerWidth / 2,
-            y: hasMouseMoved ? s.mouseY : window.innerHeight / 2,
-          }
-        }, props)
+        particle.calculateGravToMouse(
+          {
+            mass: props.mouseMass,
+            position: {
+              x: hasMouseMoved ? s.mouseX : window.innerWidth / 2,
+              y: hasMouseMoved ? s.mouseY : window.innerHeight / 2,
+            },
+          },
+          props
+        )
         if (!props.ignoreOtherParticles) {
           this.particles.forEach((otherParticle, j) => {
             if (i !== j) {
               particle.acceleration.add(
-                getGravVector(particle, otherParticle, { minGrav: 0, maxGrav: 0.01 })
+                getGravVector(particle, otherParticle, {
+                  minGrav: 0,
+                  maxGrav: 0.01,
+                })
               )
             }
           })
@@ -193,11 +185,12 @@ export default s => {
     dotMass: 1,
     renderDots: true,
     colorFn: (particle, historyPathIdx) => {
-      const tweenBetween = (v1, v2) => interpolate(
-        [0, particle.pathHistory.length - 1],
-        [v1, v2],
-        historyPathIdx
-      )
+      const tweenBetween = (v1, v2) =>
+        interpolate(
+          [0, particle.pathHistory.length - 1],
+          [v1, v2],
+          historyPathIdx
+        )
       return {
         r: tweenBetween(23, 228),
         g: tweenBetween(10, 242),

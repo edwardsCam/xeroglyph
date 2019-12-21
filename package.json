@@ -8,6 +8,7 @@
     "build": "webpack",
     "clean": "rm -rf dist/",
     "prebuild": "yarn clean",
+    "prettier": "prettier 'src/**/*.js' --write",
     "start": "yarn build && webpack-dev-server --hot",
     "test:watch": "karma start karma.conf.js",
     "test": "karma start karma.conf.js --single-run"
@@ -25,6 +26,7 @@
     "karma-chrome-launcher": "2.2.0",
     "karma-jasmine": "2.0.1",
     "karma-webpack": "3.0.5",
+    "prettier": "^1.19.1",
     "webpack": "4.28.2",
     "webpack-cli": "3.1.2",
     "webpack-dev-server": "3.1.14"

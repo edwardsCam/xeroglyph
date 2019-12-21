@@ -8,7 +8,10 @@ class Drape {
     this.forces = []
     for (let i = 0; i <= res; i++) {
       this.points.push({
-        pos: createVector(x, interpolate([0, res], [10, window.innerHeight - 10], i)),
+        pos: createVector(
+          x,
+          interpolate([0, res], [10, window.innerHeight - 10], i)
+        ),
         vel: createVector(0, 0),
       })
     }
@@ -32,9 +35,7 @@ class Drape {
 }
 
 export default s => {
-  const drapes = [
-    new Drape(s, { x: 10, res: 10, damp: 1.01 })
-  ]
+  const drapes = [new Drape(s, { x: 10, res: 10, damp: 1.01 })]
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
@@ -52,12 +53,7 @@ export default s => {
         if (i === 0) continue
         const prevPoint = drape.points[i - 1]
         const point = drape.points[i]
-        s.line(
-          prevPoint.pos.x,
-          prevPoint.pos.y,
-          point.pos.x,
-          point.pos.y,
-        )
+        s.line(prevPoint.pos.x, prevPoint.pos.y, point.pos.x, point.pos.y)
       }
     })
   }

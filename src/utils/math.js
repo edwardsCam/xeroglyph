@@ -6,8 +6,8 @@
 Math.TWO_PI = Math.PI * 2
 Math.HALF_PI = Math.PI / 2
 
-const toRadians = d => d * Math.PI / 180
-const toDegrees = r => r * 180 / Math.PI
+const toRadians = d => (d * Math.PI) / 180
+const toDegrees = r => (r * 180) / Math.PI
 
 /**
   coordsFromTheta:
@@ -68,8 +68,8 @@ const normalizeScreenPos = (x, y) => ({
     Denormalizes a screen position from [-1, 1] to [0, (width or height)]
 */
 const denormalizeScreenPos = (x, y) => ({
-  x: (x + 1) * window.innerWidth / 2,
-  y: (y - 1) * window.innerHeight / 2,
+  x: ((x + 1) * window.innerWidth) / 2,
+  y: ((y - 1) * window.innerHeight) / 2,
 })
 
 /**
@@ -98,7 +98,6 @@ function interpolate(domain, range, value) {
   return clamp(min, max, result)
 }
 
-
 /**
   interpolateSmooth:
     Sinusoidal interpolation between a domain and a range.
@@ -120,7 +119,7 @@ function interpolateSmooth({ domain, range, value }) {
   if (x1 === x2) return y1
 
   const period = Math.PI / (x2 - x1)
-  const sinArg = (period * (value - x1)) - Math.HALF_PI
+  const sinArg = period * (value - x1) - Math.HALF_PI
   const result = interpolate([-1, 1], [y1, y2], Math.sin(sinArg))
   const min = Math.min(y1, y2)
   const max = Math.max(y1, y2)

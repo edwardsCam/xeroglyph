@@ -1,8 +1,4 @@
-import {
-  randomInRange,
-  interpolate,
-  diff,
-} from 'utils/math'
+import { randomInRange, interpolate, diff } from 'utils/math'
 
 const colorSchemes = {
   icelandSlate: {
@@ -28,7 +24,7 @@ const colorSchemes = {
     color2: '#ff0000',
     color3: '#af0404',
     color4: '#414141',
-    bg: '#9a9b94'
+    bg: '#9a9b94',
   },
 }
 
@@ -71,7 +67,14 @@ export default s => {
   s.setup = () => {
     if (!props.withStrokes) s.noStroke()
     s.createCanvas(window.innerWidth, window.innerHeight)
-    createChipboard(0, 0, window.innerWidth, window.innerHeight, props.bg || 'white', 'bl')
+    createChipboard(
+      0,
+      0,
+      window.innerWidth,
+      window.innerHeight,
+      props.bg || 'white',
+      'bl'
+    )
   }
 
   s.draw = () => {}
@@ -91,18 +94,22 @@ export default s => {
     const xSplit = rir(minX, maxX, randomness)
     const ySplit = rir(minY, maxY, randomness)
 
-    const botLeft = () => createChipboard(minX, ySplit, xSplit, maxY, color1, 'bl')
-    const botRight = () => createChipboard(xSplit, ySplit, maxX, maxY, color2, 'br')
-    const topRight = () => createChipboard(xSplit, minY, maxX, ySplit, color3, 'tr')
-    const topLeft = () => createChipboard(minX, minY, xSplit, ySplit, color4, 'tl')
+    const botLeft = () =>
+      createChipboard(minX, ySplit, xSplit, maxY, color1, 'bl')
+    const botRight = () =>
+      createChipboard(xSplit, ySplit, maxX, maxY, color2, 'br')
+    const topRight = () =>
+      createChipboard(xSplit, minY, maxX, ySplit, color3, 'tr')
+    const topLeft = () =>
+      createChipboard(minX, minY, xSplit, ySplit, color4, 'tl')
     iterations++
 
     if (props.governor == null || iterations < props.governor) {
       let delay = props.delay || 0
       if (props.interpolateDelay) {
         delay = interpolate(
-          [ minBlankSpace, window.innerWidth * window.innerHeight ],
-          [ props.minDelay, props.maxDelay ],
+          [minBlankSpace, window.innerWidth * window.innerHeight],
+          [props.minDelay, props.maxDelay],
           dx * dy
         )
       }
@@ -140,6 +147,6 @@ function rir(min, max, randomness) {
   const middle = (min + max) / 2
   return randomInRange(
     interpolate([0, 1], [middle, min], randomness),
-    interpolate([0, 1], [middle, max], randomness),
+    interpolate([0, 1], [middle, max], randomness)
   )
 }

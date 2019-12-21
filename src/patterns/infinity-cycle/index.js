@@ -27,8 +27,8 @@ const props = {
   },
   width,
   height,
-  minX: is3d ? (-width / 2) : (midWidth - width / 2),
-  maxX: is3d ? (width / 2) : (midWidth + width / 2),
+  minX: is3d ? -width / 2 : midWidth - width / 2,
+  maxX: is3d ? width / 2 : midWidth + width / 2,
   lineCount: 100,
   damp: 0,
   period: 20,
@@ -54,7 +54,7 @@ const props = {
 }
 
 export default init({
-  setup: x => is3d ? [ x, 0, 0, x, 100, 0 ] : [ 0, 0, x, midHeight ],
+  setup: x => (is3d ? [x, 0, 0, x, 100, 0] : [0, 0, x, midHeight]),
   mutate: (line, t) => {
     const cos = Math.cos(t)
     const sin = Math.sin(t)
@@ -86,7 +86,9 @@ export default init({
 
         const p = interpolate([1, lines.length - 1], [0, 1], i)
         const { r, g, b, o } = interpolateColors(props.color2, props.color1, p)
-        const fillColor = `rgba(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)}, ${o})`
+        const fillColor = `rgba(${Math.floor(r)}, ${Math.floor(
+          g
+        )}, ${Math.floor(b)}, ${o})`
         s.fill(fillColor)
         s.stroke(fillColor)
         if (props.zigzag) {
@@ -94,20 +96,55 @@ export default init({
             if (i % 2) {
               // s.triangle(line1[0], line1[1], line1[2], line2[0], line2[1], line2[2], line2[3], line2[4], line2[5])
             } else {
-
             }
           } else {
             if (i % 2) {
-              s.triangle(line1[2], line1[3], line2[0], line2[1], line2[2], line2[3])
+              s.triangle(
+                line1[2],
+                line1[3],
+                line2[0],
+                line2[1],
+                line2[2],
+                line2[3]
+              )
             } else {
-              s.triangle(line1[0], line1[1], line1[2], line1[3], line2[0], line2[1])
+              s.triangle(
+                line1[0],
+                line1[1],
+                line1[2],
+                line1[3],
+                line2[0],
+                line2[1]
+              )
             }
           }
         } else {
           if (is3d) {
-            s.quad(line1[0], line1[1], line1[2], line1[3], line1[4], line1[5], line2[3], line2[4], line2[5], line2[0], line2[1], line2[2])
+            s.quad(
+              line1[0],
+              line1[1],
+              line1[2],
+              line1[3],
+              line1[4],
+              line1[5],
+              line2[3],
+              line2[4],
+              line2[5],
+              line2[0],
+              line2[1],
+              line2[2]
+            )
           } else {
-            s.quad(line1[0], line1[1], line1[2], line1[3], line2[2], line2[3], line2[0], line2[1])
+            s.quad(
+              line1[0],
+              line1[1],
+              line1[2],
+              line1[3],
+              line2[2],
+              line2[3],
+              line2[0],
+              line2[1]
+            )
           }
         }
       })

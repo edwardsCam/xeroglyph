@@ -21,8 +21,4 @@ function getCenterOfTile(point, squareSize) {
   }
 }
 
-export {
-  getPixelPosition,
-  getCoordinates,
-  getCenterOfTile,
-}
+export { getPixelPosition, getCoordinates, getCenterOfTile }

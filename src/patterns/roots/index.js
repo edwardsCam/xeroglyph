@@ -20,7 +20,7 @@ export default s => {
     maxBranchAngle: 120,
     radius: 200,
   }
-  const unitWidth = _props_.radius * 2 / _props_.resolution
+  const unitWidth = (_props_.radius * 2) / _props_.resolution
   let cursor = new Cursor(centerPoint(), centerCoords(), _props_.startAngle, 1)
   const q = new PriorityQueue('trunkiness')
   const throttledGenerate = throttle(() => generateOne(_props_), 10)
@@ -57,12 +57,16 @@ export default s => {
 
     function getNextCursor() {
       const flexibility = interpolate(
-        [ 0, 1 ],
-        [ maxBranchAngle, minBranchAngle ],
+        [0, 1],
+        [maxBranchAngle, minBranchAngle],
         cursor.trunkiness
       )
       const heading = cursor.heading + randomInRange(-flexibility, flexibility)
-      let tmpPoint = coordWithAngleAndDistance(cursor.point, toRadians(heading), unitWidth)
+      let tmpPoint = coordWithAngleAndDistance(
+        cursor.point,
+        toRadians(heading),
+        unitWidth
+      )
       if (!inBounds(tmpPoint)) return null
       tmpPoint = getCenterOfTile(tmpPoint, unitWidth)
       return new Cursor(
@@ -105,18 +109,19 @@ function PlatMap(width) {
     }
   }
 
-  this.mark = ({ r, c }) => g[r][c] = true
+  this.mark = ({ r, c }) => (g[r][c] = true)
   this.isMarked = ({ r, c }) => g[r][c]
-  this.getMarked = () => (
-    g.reduce((list1, row, r) => (
-      list1.concat(
-        row.reduce((list2, square, c) => {
-          if (square) list2.push({ r, c })
-          return list2
-        }, [])
-      )
-    ), [])
-  )
+  this.getMarked = () =>
+    g.reduce(
+      (list1, row, r) =>
+        list1.concat(
+          row.reduce((list2, square, c) => {
+            if (square) list2.push({ r, c })
+            return list2
+          }, [])
+        ),
+      []
+    )
 }
 
 function Point(x, y) {
