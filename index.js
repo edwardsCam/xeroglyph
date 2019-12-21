@@ -1,4 +1,7 @@
 import * as _p5_ from 'p5'
+import React from 'react'
+import P5Wrapper from 'react-p5-wrapper'
+import ReactDOM from 'react-dom'
 
 import { board, city } from 'patterns/chipboard'
 import InfinityCycle from 'patterns/infinity-cycle'
@@ -20,4 +23,10 @@ const getPattern = () => {
   }
 }
 
-new _p5_(getPattern())
+class App extends React.Component {
+  render() {
+    return <P5Wrapper sketch={getPattern()} />
+  }
+}
+
+ReactDOM.render(<App />, document.body)
