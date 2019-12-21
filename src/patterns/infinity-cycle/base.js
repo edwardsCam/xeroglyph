@@ -44,10 +44,12 @@ export default function init(spec) {
     let dampIncrease = props.staticDampIncrease == null ? 0 : props.staticDampIncrease
 
     let pausePeriod = false
+    let periodOffset = 0
     let freezeTime = null
 
     let pauseCamera = false
     let cameraFreeze = null
+    let cameraOffset = 0
 
     s.setup = () => {
       if (props.isColored) s.noStroke()
@@ -72,12 +74,13 @@ export default function init(spec) {
           }
         } else if (e.key === 'w') {
           pausePeriod = !pausePeriod
-          if (!pausePeriod) {
-            freezeTime = null
-          }
         } else if (e.key === 'e') {
           pauseCamera = !pauseCamera
-          if (!pauseCamera) {
+          if (pauseCamera) {
+            cameraFreeze = s.frameCount - cameraOffset
+            cameraOffset = 0
+          } else {
+            cameraOffset = s.frameCount - cameraFreeze
             cameraFreeze = null
           }
         }
@@ -86,11 +89,8 @@ export default function init(spec) {
 
     s.draw = () => {
       s.clear()
-      if (pauseCamera && !cameraFreeze) {
-        cameraFreeze = s.frameCount
-      }
       if (props.is3d && props.cameraRotation) {
-        const frame = cameraFreeze || s.frameCount
+        const frame = cameraFreeze || (s.frameCount - cameraOffset)
         s.rotateX(frame * props.cameraRotation.x)
         s.rotateY(frame * props.cameraRotation.y)
         s.rotateZ(frame * props.cameraRotation.z)
@@ -127,7 +127,12 @@ export default function init(spec) {
         }
 
         if (pausePeriod && !freezeTime) {
-          freezeTime = timeAsDegrees
+          freezeTime = timeAsDegrees - periodOffset
+          periodOffset = 0
+        }
+        if (freezeTime && !pausePeriod) {
+          periodOffset = timeAsDegrees - freezeTime
+          freezeTime = null
         }
 
         setDampFactorLabel(props.damp)
@@ -137,7 +142,7 @@ export default function init(spec) {
           if (freezeTime) {
             t = toRadians(freezeTime + i * props.damp) / props.period
           } else {
-            t = toRadians(timeAsDegrees + i * props.damp) / props.period
+            t = toRadians((timeAsDegrees - periodOffset) + i * props.damp) / props.period
           }
           const mutatedLine = spec.mutate(line, t)
           for (let c = 0; c < line.length; c++) {
