@@ -1,4 +1,4 @@
-import { interpolateSmooth, interpolate, toRadians } from 'utils/math'
+import { interpolate, toRadians } from 'utils/math'
 
 const labels = document.createElement('div')
 
@@ -43,6 +43,12 @@ export default function init(spec) {
     let isStartingDampIncrease = false
     let dampIncrease = props.staticDampIncrease == null ? 0 : props.staticDampIncrease
 
+    let pausePeriod = false
+    let freezeTime = null
+
+    let pauseCamera = false
+    let cameraFreeze = null
+
     s.setup = () => {
       if (props.isColored) s.noStroke()
       s.createCanvas(window.innerWidth, window.innerHeight, props.is3d ? s.WEBGL : undefined)
@@ -52,7 +58,7 @@ export default function init(spec) {
       }
 
       window.addEventListener('keydown', e => {
-        if (e.code == 'Space') {
+        if (e.key == 'q') {
           if (isPausingDampIncrease) {
             isPausingDampIncrease = false
             isStartingDampIncrease = true
@@ -64,16 +70,30 @@ export default function init(spec) {
           } else {
             isPausingDampIncrease = true
           }
+        } else if (e.key === 'w') {
+          pausePeriod = !pausePeriod
+          if (!pausePeriod) {
+            freezeTime = null
+          }
+        } else if (e.key === 'e') {
+          pauseCamera = !pauseCamera
+          if (!pauseCamera) {
+            cameraFreeze = null
+          }
         }
       })
     }
 
     s.draw = () => {
       s.clear()
+      if (pauseCamera && !cameraFreeze) {
+        cameraFreeze = s.frameCount
+      }
       if (props.is3d && props.cameraRotation) {
-        s.rotateX(s.frameCount * props.cameraRotation.x)
-        s.rotateY(s.frameCount * props.cameraRotation.y)
-        s.rotateZ(s.frameCount * props.cameraRotation.z)
+        const frame = cameraFreeze || s.frameCount
+        s.rotateX(frame * props.cameraRotation.x)
+        s.rotateY(frame * props.cameraRotation.y)
+        s.rotateZ(frame * props.cameraRotation.z)
       }
       mutate()
       draw()
@@ -83,7 +103,6 @@ export default function init(spec) {
       withClock(() => {
         const timeAsDegrees = animateTime * 360
         if (props.staticDampIncrease != null) {
-
           if (isPausingDampIncrease) {
             dampIncrease -= props.staticDampIncrease / 80
             if (dampIncrease < 0) {
@@ -106,10 +125,20 @@ export default function init(spec) {
           dampIncrease = Math.sin(r / props.dampCyclePeriod) * props.dampCycleExtremity
           props.damp += dampIncrease
         }
+
+        if (pausePeriod && !freezeTime) {
+          freezeTime = timeAsDegrees
+        }
+
         setDampFactorLabel(props.damp)
         setPeriodProgressLabel((animateTime % props.period) / props.period)
         lines.forEach((line, i) => {
-          const t = toRadians(timeAsDegrees + i * props.damp) / props.period
+          let t
+          if (freezeTime) {
+            t = toRadians(freezeTime + i * props.damp) / props.period
+          } else {
+            t = toRadians(timeAsDegrees + i * props.damp) / props.period
+          }
           const mutatedLine = spec.mutate(line, t)
           for (let c = 0; c < line.length; c++) {
             line[c] = mutatedLine[c]
