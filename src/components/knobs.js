@@ -16,18 +16,36 @@ export default class Knobs extends React.Component {
             <input
               autoFocus={i === 0}
               key={prop}
-              value={values[prop]}
-              type="number"
-              step={step}
+              min={min}
               onChange={e => {
-                setProp(pattern, prop, e.target.value)
+                setProp(pattern, prop, Number(e.target.value))
                 this.forceUpdate()
               }}
-              min={min}
+              step={step}
+              type="number"
+              value={values[prop]}
             />
           </label>
         )
       }
+      if (propConfig.type === 'boolean') {
+        return (
+          <label className="knob">
+            {`${prop}: `}
+            <input
+              autoFocus={i === 0}
+              key={prop}
+              onClick={e => {
+                setProp(pattern, prop, Boolean(e.target.checked))
+                this.forceUpdate()
+              }}
+              type="checkbox"
+              checked={values[prop]}
+            />
+          </label>
+        )
+      }
+      return null
     })
     return <div className="knobs">{knobs}</div>
   }

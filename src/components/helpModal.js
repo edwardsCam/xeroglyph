@@ -4,7 +4,9 @@ const infoMap = {
   swirl: {
     title: 'Swirl',
     description: [
-      'Particles floating in space, they will gravitate toward your mouse',
+      'Particles floating in space, they will gravitate toward your mouse.',
+      '...',
+      'Hit `o` to open an options menu that lets you tweak the parameters.',
     ],
   },
   infinity: {

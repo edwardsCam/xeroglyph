@@ -25,7 +25,7 @@ export default s => {
   class Particle {
     constructor({ position, mass = 1 }) {
       this.position = position
-      this.velocity = s.createVector(0, 1)
+      this.velocity = s.createVector(0, 1.5)
       this.acceleration = s.createVector(0, 0)
       this.pathHistory = []
       this.mass = mass
@@ -33,7 +33,7 @@ export default s => {
     }
 
     move(props) {
-      if (++this.traceSteps > props.traceResolution) {
+      if (++this.traceSteps > props.traceDelay) {
         this.traceSteps = 0
         this.pathHistory.push(s.createVector(this.position.x, this.position.y))
         while (this.pathHistory.length - 1 > props.numTraceSteps) {
@@ -135,11 +135,11 @@ export default s => {
   initProps('swirl', {
     numTraceSteps: {
       type: 'number',
-      default: 20,
+      default: 40,
       step: 1,
       min: 0,
     },
-    traceResolution: {
+    traceDelay: {
       type: 'number',
       default: 1,
       step: 1,
@@ -153,7 +153,7 @@ export default s => {
     },
     minGrav: {
       type: 'number',
-      default: 0.1,
+      default: 0.12,
       step: 0.001,
       min: 0,
     },
@@ -169,21 +169,35 @@ export default s => {
       step: 10,
       min: 0,
     },
+    dotMass: {
+      type: 'number',
+      default: 1,
+      step: 1,
+      min: 0,
+    },
+    renderDots: {
+      type: 'boolean',
+      default: true,
+    },
+    ignoreOtherParticles: {
+      type: 'boolean',
+      default: true,
+    },
   })
 
   const get = prop => getProp('swirl', prop)
   const set = (prop, value) => setProp('swirl', prop, value)
 
   const getProps = () => ({
-    maxSpeed: Number(get('maxSpeed')),
-    minGrav: Number(get('minGrav')),
-    maxGrav: Number(get('maxGrav')),
-    numTraceSteps: Number(get('numTraceSteps')),
-    traceResolution: Number(get('traceResolution')),
-    ignoreOtherParticles: true,
-    mouseMass: Number(get('mouseMass')),
-    dotMass: 1,
-    renderDots: true,
+    maxSpeed: get('maxSpeed'),
+    minGrav: get('minGrav'),
+    maxGrav: get('maxGrav'),
+    numTraceSteps: get('numTraceSteps'),
+    traceDelay: get('traceDelay'),
+    ignoreOtherParticles: get('ignoreOtherParticles'),
+    mouseMass: get('mouseMass'),
+    dotMass: get('dotMass'),
+    renderDots: get('renderDots'),
     colorFn: (particle, historyPathIdx) => {
       const tweenBetween = (v1, v2) =>
         interpolate(
