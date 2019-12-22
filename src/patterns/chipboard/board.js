@@ -1,5 +1,5 @@
-import { randomInRange, interpolate, diff } from 'utils/math'
-import { init as initProps, getProp, setProp } from 'utils/propConfig'
+import { interpolate, diff } from 'utils/math'
+import { init as initProps, getProp } from 'utils/propConfig'
 import { rir, colorSchemes } from './common'
 
 export default s => {
@@ -72,7 +72,6 @@ export default s => {
   let isPaused = false
   let lastKnowns = []
   let timeouts = []
-  let iterations = 0
 
   s.setup = () => {
     const canvas = document.getElementById('defaultCanvas0')
@@ -166,7 +165,6 @@ export default s => {
       topRight()
       topLeft()
     }
-    iterations++
 
     const delay = props.interpolateDelay
       ? interpolate(

@@ -1,5 +1,5 @@
 import { thetaFromTwoPoints, distance, clamp, interpolate } from 'utils/math'
-import { init as initProps, getProp, setProp } from 'utils/propConfig'
+import { init as initProps, getProp } from 'utils/propConfig'
 
 function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {
   const d = distance(p1.position, p2.position)

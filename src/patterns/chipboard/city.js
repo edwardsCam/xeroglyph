@@ -1,9 +1,8 @@
-import { randomInRange, interpolate, diff } from 'utils/math'
+import { interpolate, diff } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 import { rir, colorSchemes } from './common'
 
 export default s => {
-  let iterations = 0
   let isPaused = false
   let lastKnowns = []
   let timeouts = []
@@ -121,7 +120,7 @@ export default s => {
     )
   }
 
-  function createChipboard(minX, minY, maxX, maxY, maxZ, color, quad) {
+  function createChipboard(minX, minY, maxX, maxY, maxZ, color) {
     if (isPaused) {
       lastKnowns.push(arguments)
       return
@@ -155,7 +154,6 @@ export default s => {
       topRight()
       topLeft()
     }
-    iterations++
 
     const delay = props.interpolateDelay
       ? interpolate(
@@ -167,7 +165,7 @@ export default s => {
     timeouts.push(setTimeout(doWork, delay))
   }
 
-  function drawCube({ color, coords }) {
+  function drawCube({ /* color, */ coords }) {
     const [x1, y1, x2, y2, z] = coords
     const dx = x2 - x1
     const dy = y2 - y1

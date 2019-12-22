@@ -37,11 +37,11 @@ function thetaFromTwoPoints(p1, p2) {
 function clamp(min, max, value) {
   if (value <= min) {
     return min
-  } else if (value >= max) {
-    return max
-  } else {
-    return value
   }
+  if (value >= max) {
+    return max
+  }
+  return value
 }
 
 /**

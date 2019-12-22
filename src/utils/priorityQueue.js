@@ -17,6 +17,18 @@ export default function PriorityQueue(priorityProp = '') {
     return dat.length > 0
   }
 
+  /**
+    Fitness function
+  */
+  const isHigherPriority = (i1, i2) => {
+    const prop1 = dat[i1][priorityProp]
+    const prop2 = dat[i2][priorityProp]
+    if (prop1 != null && prop2 != null) {
+      return prop1 > prop2
+    }
+    return false
+  }
+
   function bubbleUp() {
     let i = dat.length - 1
     while (i > 0) {
@@ -54,17 +66,5 @@ export default function PriorityQueue(priorityProp = '') {
     const tmp = dat[i1]
     dat[i1] = dat[i2]
     dat[i2] = tmp
-  }
-
-  /**
-    Fitness function
-  */
-  const isHigherPriority = (i1, i2) => {
-    const prop1 = dat[i1][priorityProp]
-    const prop2 = dat[i2][priorityProp]
-    if (prop1 != null && prop2 != null) {
-      return prop1 > prop2
-    }
-    return false
   }
 }

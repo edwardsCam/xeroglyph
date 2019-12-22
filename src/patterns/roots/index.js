@@ -1,6 +1,4 @@
 import PriorityQueue from 'utils/priorityQueue'
-import drawGrid from './utils/drawGrid'
-import { getCenterOfTile, getCoordinates } from './utils/gridUtils'
 import {
   randomInRange,
   coordWithAngleAndDistance,
@@ -9,10 +7,12 @@ import {
   toRadians,
 } from 'utils/math'
 import throttle from 'lodash.throttle'
+import drawGrid from './utils/drawGrid'
+import { getCenterOfTile, getCoordinates } from './utils/gridUtils'
 
 export default s => {
-  let lines = []
-  let _props_ = {
+  const lines = []
+  const _props_ = {
     resolution: 21,
     startAngle: 0,
     decayRate: 0.01,
@@ -39,7 +39,7 @@ export default s => {
   }
 
   function generateOne({
-    startAngle,
+    /* startAngle, */
     decayRate,
     minBranchAngle,
     maxBranchAngle,
@@ -100,7 +100,6 @@ export default s => {
 }
 
 function PlatMap(width) {
-  let count = 0
   const g = []
   for (let i = 0; i < width; i++) {
     g.push([])

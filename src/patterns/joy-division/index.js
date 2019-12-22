@@ -122,6 +122,8 @@ export default s => {
       label: 'Restart!',
       callback: () => {
         s.clear()
+
+        /* eslint-disable-next-line no-use-before-define */
         particles = new Particles(getProps())
       },
     },

@@ -311,12 +311,7 @@ export default s => {
         s.fill(fillColor)
         s.stroke(fillColor)
         if (props.zigzag) {
-          if (props.is3d) {
-            if (i % 2) {
-              // s.triangle(line1[0], line1[1], line1[2], line2[0], line2[1], line2[2], line2[3], line2[4], line2[5])
-            } else {
-            }
-          } else {
+          if (!props.is3d) {
             if (i % 2) {
               s.triangle(
                 line1[2],
@@ -337,34 +332,19 @@ export default s => {
               )
             }
           }
+        } else if (props.is3d) {
+          s.quad(
+            line1[0],
+            line1[1],
+            line1[2],
+            line1[3],
+            line2[0],
+            line2[1],
+            line2[2],
+            line2[3]
+          )
         } else {
-          if (props.is3d) {
-            s.quad(
-              line1[0],
-              line1[1],
-              line1[2],
-              line1[3],
-              line1[4],
-              line1[5],
-              line2[3],
-              line2[4],
-              line2[5],
-              line2[0],
-              line2[1],
-              line2[2]
-            )
-          } else {
-            s.quad(
-              line1[0],
-              line1[1],
-              line1[2],
-              line1[3],
-              line2[2],
-              line2[3],
-              line2[0],
-              line2[1]
-            )
-          }
+          s.triangle(line1[0], line1[1], line1[2], line1[3], line2[0], line2[1])
         }
       })
     } else {
@@ -382,12 +362,10 @@ export default s => {
             } else {
               s.line(line1[0], line1[1], line1[2], line2[3], line2[4], line2[5])
             }
+          } else if (i % 2) {
+            s.line(line1[2], line1[3], line2[0], line2[1])
           } else {
-            if (i % 2) {
-              s.line(line1[2], line1[3], line2[0], line2[1])
-            } else {
-              s.line(line1[0], line1[1], line2[2], line2[3])
-            }
+            s.line(line1[0], line1[1], line2[2], line2[3])
           }
         })
       } else {

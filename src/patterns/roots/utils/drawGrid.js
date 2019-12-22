@@ -1,7 +1,6 @@
 import { getPixelPosition } from './gridUtils'
 
 export default function drawGrid(s, platMap, width, resolution, squareSize) {
-  const { innerWidth, innerHeight } = window
   for (let i = 0; i <= resolution; i++) {
     const { x, y } = getPixelPosition(i, i, squareSize)
     s.line(x, 0, x, width)

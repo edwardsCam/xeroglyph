@@ -14,7 +14,7 @@ function Turtle(sketch, startPos, options) {
 
   this.turn = angle => {
     theta += angle
-    theta = theta % 360
+    theta %= 360
   }
 }
 

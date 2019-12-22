@@ -17,7 +17,7 @@ class Drape {
     }
   }
 
-  pushPoint(idx, vector, damp = 1) {
+  pushPoint(idx, vector) {
     this.forces.push({ idx, vector })
   }
 
@@ -27,7 +27,7 @@ class Drape {
     })
     this.forces = []
 
-    this.points.forEach((point, i) => {
+    this.points.forEach(point => {
       point.vel.div(this.damp)
       point.pos.add(point.vel)
     })

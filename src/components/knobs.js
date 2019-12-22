@@ -1,5 +1,5 @@
 import React from 'react'
-import { getConfig, getValues, getProp, setProp } from 'utils/propConfig'
+import { getConfig, setProp } from 'utils/propConfig'
 
 export default class Knobs extends React.Component {
   render() {
