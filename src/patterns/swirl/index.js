@@ -110,8 +110,8 @@ export default s => {
           {
             mass: props.mouseMass,
             position: {
-              x: hasMouseMoved ? s.mouseX : window.innerWidth / 2,
-              y: hasMouseMoved ? s.mouseY : window.innerHeight / 2,
+              x: (!props.disableMouse && hasMouseMoved) ? s.mouseX : window.innerWidth / 2,
+              y: (!props.disableMouse && hasMouseMoved) ? s.mouseY : window.innerHeight / 2,
             },
           },
           props
@@ -183,10 +183,13 @@ export default s => {
       type: 'boolean',
       default: true,
     },
+    disableMouse: {
+      type: 'boolean',
+      default: false,
+    },
   })
 
   const get = prop => getProp('swirl', prop)
-  const set = (prop, value) => setProp('swirl', prop, value)
 
   const getProps = () => ({
     maxSpeed: get('maxSpeed'),
@@ -198,6 +201,7 @@ export default s => {
     mouseMass: get('mouseMass'),
     dotMass: get('dotMass'),
     renderDots: get('renderDots'),
+    disableMouse: get('disableMouse'),
     colorFn: (particle, historyPathIdx) => {
       const tweenBetween = (v1, v2) =>
         interpolate(

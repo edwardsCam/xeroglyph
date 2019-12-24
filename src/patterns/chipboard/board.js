@@ -1,4 +1,5 @@
 import { randomInRange, interpolate, diff } from 'utils/math'
+import { init as initProps, getProp, setProp } from 'utils/propConfig'
 
 const colorSchemes = {
   icelandSlate: {
@@ -47,24 +48,34 @@ window.addEventListener('keydown', e => {
 })
 
 export default s => {
-  const props = {
+  initProps('chipboard', {
+    delay: {
+      type: 'number',
+      default: 200,
+      min: 0,
+      step: 100,
+    }
+  })
+  const get = prop => getProp('chipboard', prop)
+  const getProps = () => ({
     minBlankSpace: 3,
     randomness: 1,
 
-    // delay: 2000,
-    minDelay: 200,
-    maxDelay: 700,
-    interpolateDelay: true,
+    delay: get('delay'),
+    // minDelay: 200,
+    // maxDelay: 700,
+    // interpolateDelay: true,
 
     withStrokes: false,
 
     // governor: 90000,
 
     ...colorSchemes.icelandSlate,
-  }
+  })
   let iterations = 0
 
   s.setup = () => {
+    const props = getProps()
     if (!props.withStrokes) s.noStroke()
     s.createCanvas(window.innerWidth, window.innerHeight)
     createChipboard(
@@ -80,6 +91,7 @@ export default s => {
   s.draw = () => {}
 
   function createChipboard(minX, minY, maxX, maxY, color, quad) {
+    const props = getProps()
     const dx = diff(minX, maxX)
     const dy = diff(minY, maxY)
     const { minBlankSpace } = props
