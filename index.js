@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom'
 import { board, city } from 'patterns/chipboard'
 import InfinityCycle from 'patterns/infinity-cycle'
 import Swirl from 'patterns/swirl'
+import JoyDivision from 'patterns/joy-division'
 
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
@@ -15,7 +16,8 @@ const patternMap = {
   infinity: InfinityCycle,
   swirl: Swirl,
   chipboard: board,
-  city: city
+  city: city,
+  joyDivision: JoyDivision,
 }
 
 const getPattern = () => {

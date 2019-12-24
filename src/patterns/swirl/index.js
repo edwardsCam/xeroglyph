@@ -110,8 +110,14 @@ export default s => {
           {
             mass: props.mouseMass,
             position: {
-              x: (!props.disableMouse && hasMouseMoved) ? s.mouseX : window.innerWidth / 2,
-              y: (!props.disableMouse && hasMouseMoved) ? s.mouseY : window.innerHeight / 2,
+              x:
+                !props.disableMouse && hasMouseMoved
+                  ? s.mouseX
+                  : window.innerWidth / 2,
+              y:
+                !props.disableMouse && hasMouseMoved
+                  ? s.mouseY
+                  : window.innerHeight / 2,
             },
           },
           props

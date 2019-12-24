@@ -54,7 +54,7 @@ export default s => {
       default: 200,
       min: 0,
       step: 100,
-    }
+    },
   })
   const get = prop => getProp('chipboard', prop)
   const getProps = () => ({
