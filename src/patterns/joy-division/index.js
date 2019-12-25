@@ -55,7 +55,7 @@ export default s => {
         )
       }
 
-      const maxRow = props.resolution - 1
+      const maxRow = props.lineCount - 1
       const r = interpolate([0, maxRow], [0, 255], row)
       const g = interpolate([0, maxRow], [255, 0], row)
       const b = interpolate([0, maxRow], [255, 0], row)
@@ -68,11 +68,14 @@ export default s => {
   class Particles {
     constructor(props) {
       this.particles = []
-      for (let i = 0; i < props.resolution; i++) {
+      const numSpaces = props.lineCount - 1
+      const totalHeight = numSpaces * props.lineSpacing
+      const y1 = window.innerHeight / 2 - totalHeight / 2
+      for (let i = 0; i < props.lineCount; i++) {
         this.particles.push(
           new Particle({
             ...props,
-            position: s.createVector(20, i * 7 + 250),
+            position: s.createVector(20, i * props.lineSpacing + y1),
           })
         )
       }
@@ -95,14 +98,15 @@ export default s => {
 
   const get = prop => getProp('joyDivision', prop)
   const getProps = () => ({
-    resolution: 70,
-    pathDelay: 1,
+    lineCount: 150,
+    lineSpacing: 2,
+    pathDelay: 2,
     fillBehind: true,
-    xSpeed: 0.8,
-    randomnessDamp: 100,
-    yAccelDamp: 50,
+    xSpeed: 0.65,
+    randomnessDamp: 70,
+    yAccelDamp: 70,
     maxAccel: 0.02,
-    splitDistance: 2,
+    splitDistance: 1.5,
   })
 
   const props = getProps()
