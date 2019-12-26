@@ -25,7 +25,16 @@ const infoMap = {
   },
   chipboard: {
     title: 'Chipboard',
-    description: [''],
+    description: [
+      'Start with a rectangle.',
+      'At random locations, draw a verticle line and a horizontal line, chopping it into four smaller rectangles.',
+      'Each quadrant (e.g. top-left, top-right, bottom-right, bottom-left), has a corresponding fill color.',
+      'On each of these quadrants, repeat the same process.',
+      'Continue this until each quadrant is smaller than the width defined by minBlankSpace.',
+      '...',
+      'Pause with spacebar.',
+      'ctrl+alt+s to save the image.',
+    ],
   },
   city: {
     title: 'Cityscape',

@@ -29,54 +29,64 @@ const colorSchemes = {
   },
 }
 
-window.addEventListener('keydown', e => {
-  if (e.ctrlKey && e.altKey) {
-    if (e.keyCode === 83) {
-      const canvas = document.getElementById('defaultCanvas0')
-      if (canvas) {
-        canvas.toBlob(blob => {
-          const downloadLink = document.createElement('a')
-          downloadLink.href = URL.createObjectURL(blob)
-          downloadLink.download = 'chipboard.png'
-          document.body.appendChild(downloadLink)
-          downloadLink.click()
-          document.body.removeChild(downloadLink)
-        })
-      }
-    }
-  }
-})
-
 export default s => {
   initProps('chipboard', {
     delay: {
       type: 'number',
-      default: 0,
+      default: 1,
       min: 0,
       step: 100,
     },
   })
   const get = prop => getProp('chipboard', prop)
   const getProps = () => ({
-    minBlankSpace: 3,
+    minBlankSpace: 1,
     randomness: 1,
 
     type: 'chip',
 
-    delay: get('delay'),
-    // minDelay: 200,
-    // maxDelay: 700,
-    // interpolateDelay: true,
+    // delay: get('delay'),
+    minDelay: 50,
+    maxDelay: 1000,
+    interpolateDelay: true,
 
     withStrokes: false,
 
-    // governor: 90000,
+    // governor: 105000,
 
     ...colorSchemes.icelandSlate,
   })
+  let isPaused = false
+  let lastKnowns = []
   let iterations = 0
 
   s.setup = () => {
+    window.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.altKey) {
+        if (e.key === 's') {
+          const canvas = document.getElementById('defaultCanvas0')
+          if (canvas) {
+            canvas.toBlob(blob => {
+              const downloadLink = document.createElement('a')
+              downloadLink.href = URL.createObjectURL(blob)
+              downloadLink.download = 'chipboard.png'
+              document.body.appendChild(downloadLink)
+              downloadLink.click()
+              document.body.removeChild(downloadLink)
+            })
+          }
+        }
+      }
+
+      if (e.code === 'Space') {
+        isPaused = !isPaused
+        if (!isPaused) {
+          lastKnowns.forEach(lastKnown => createChipboard(...lastKnown))
+          lastKnowns = []
+        }
+      }
+    })
+
     const props = getProps()
     if (!props.withStrokes) s.noStroke()
     s.createCanvas(window.innerWidth, window.innerHeight)
@@ -93,6 +103,10 @@ export default s => {
   s.draw = () => {}
 
   function createChipboard(minX, minY, maxX, maxY, color, quad) {
+    if (isPaused) {
+      lastKnowns.push(arguments)
+      return
+    }
     const props = getProps()
     const dx = diff(minX, maxX)
     const dy = diff(minY, maxY)
@@ -133,12 +147,19 @@ export default s => {
           dx * dy
         )
       }
-      setTimeout(() => {
+      if (delay) {
+        setTimeout(() => {
+          botLeft()
+          botRight()
+          topRight()
+          topLeft()
+        }, delay)
+      } else {
         botLeft()
         botRight()
         topRight()
         topLeft()
-      }, delay)
+      }
     }
   }
 
