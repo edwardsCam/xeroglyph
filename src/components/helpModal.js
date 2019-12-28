@@ -42,6 +42,11 @@ const infoMap = {
   city: {
     title: 'Cityscape',
     instructions: [],
+    description: [],
+  },
+  joyDivision: {
+    title: 'Joy Division',
+    instructions: [],
     description: [''],
   },
 }

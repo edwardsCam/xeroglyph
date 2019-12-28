@@ -10,7 +10,7 @@ import JoyDivision from 'patterns/joy-division'
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
 
-const defaultPattern = 'swirl'
+const defaultPattern = 'chipboard'
 
 const patternMap = {
   infinity: InfinityCycle,
@@ -22,7 +22,7 @@ const patternMap = {
 
 const getPattern = () => {
   const patternParam = window.location.search.split('pattern=')
-  return patternParam.length > 1 ? patternParam[1] : 'swirl'
+  return patternParam.length > 1 ? patternParam[1] : defaultPattern
 }
 
 const getSketch = () => patternMap[getPattern()]

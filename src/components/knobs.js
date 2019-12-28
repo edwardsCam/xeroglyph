@@ -15,11 +15,10 @@ export default class Knobs extends React.Component {
         const min = propConfig.min == null ? 1 : propConfig.min
         const max = propConfig.max == null ? undefined : propConfig.max
         return (
-          <label className="knob">
+          <label key={prop} className="knob">
             {`${prop}: `}
             <input
               autoFocus={i === 0}
-              key={prop}
               min={min}
               max={max}
               onChange={e => {
@@ -35,11 +34,10 @@ export default class Knobs extends React.Component {
       }
       if (propConfig.type === 'boolean') {
         return (
-          <label className="knob">
+          <label key={prop} className="knob">
             {`${prop}: `}
             <input
               autoFocus={i === 0}
-              key={prop}
               onChange={e => {
                 setProp(pattern, prop, Boolean(e.target.checked))
                 this.forceUpdate()

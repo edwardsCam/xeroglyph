@@ -45,13 +45,11 @@ export default s => {
       const p2 = this.history[this.history.length - 1]
       if (props.fillBehind) {
         const [r1, g1, b1, r2, g2, b2] = [157, 171, 134, 235, 130, 66]
-        const [fillR, fillG, fillB] = props.colorTween
-          ? [
-              interpolate([0, maxRow], [r1, r2], row),
-              interpolate([0, maxRow], [g1, g2], row),
-              interpolate([0, maxRow], [b1, b2], row),
-            ]
-          : [0, 0, 0]
+        const [fillR, fillG, fillB] = [
+          interpolate([0, maxRow], [r1, r2], row),
+          interpolate([0, maxRow], [g1, g2], row),
+          interpolate([0, maxRow], [b1, b2], row),
+        ]
         s.fill(fillR, fillG, fillB)
         s.stroke(fillR, fillG, fillB)
         s.quad(
@@ -66,7 +64,7 @@ export default s => {
         )
       }
 
-      if (props.colorTween) {
+      if (props.fillBehind) {
         s.stroke(0, 0, 0)
       } else {
         s.stroke(255, 255, 255)
@@ -104,27 +102,90 @@ export default s => {
     }
   }
 
-  initProps('joyDivision', {})
-
   const get = prop => getProp('joyDivision', prop)
   const getProps = () => ({
-    initialDistance: 70,
-    lineCount: 100,
-    lineSpacing: 5,
-    pathDelay: 1,
-    fillBehind: true,
-    xSpeed: 0.8,
-    randomnessDamp: 70,
-    yAccelDamp: 70,
-    maxAccel: 0.02,
-    splitDistance: 1.8,
-
-    colorTween: true,
+    initialDistance: get('initialDistance'),
+    lineCount: get('lineCount'),
+    lineSpacing: get('lineSpacing'),
+    pathDelay: get('pathDelay'),
+    fillBehind: get('fillBehind'),
+    xSpeed: get('xSpeed'),
+    randomnessDamp: get('randomnessDamp'),
+    yAccelDamp: get('yAccelDamp'),
+    maxAccel: get('maxAccel'),
+    splitDistance: get('splitDistance'),
   })
 
-  const props = getProps()
+  initProps('joyDivision', {
+    draw: {
+      type: 'func',
+      label: 'Restart!',
+      callback: () => {
+        s.clear()
+        particles = new Particles(getProps())
+      },
+    },
+    lineCount: {
+      type: 'number',
+      default: 100,
+      min: 1,
+      step: 1,
+    },
+    lineSpacing: {
+      type: 'number',
+      default: 5,
+      min: 1,
+      step: 1,
+    },
+    pathDelay: {
+      type: 'number',
+      default: 1,
+      min: 1,
+      step: 1,
+    },
+    xSpeed: {
+      type: 'number',
+      default: 0.8,
+      min: 0.1,
+      step: 0.05,
+    },
+    randomnessDamp: {
+      type: 'number',
+      default: 70,
+      min: 5,
+      step: 5,
+    },
+    yAccelDamp: {
+      type: 'number',
+      default: 70,
+      min: 5,
+      step: 5,
+    },
+    maxAccel: {
+      type: 'number',
+      default: 0.02,
+      min: 0.005,
+      step: 0.005,
+    },
+    initialDistance: {
+      type: 'number',
+      default: 70,
+      min: 0,
+      step: 5,
+    },
+    splitDistance: {
+      type: 'number',
+      default: 1.8,
+      min: 0.1,
+      step: 0.1,
+    },
+    fillBehind: {
+      type: 'boolean',
+      default: true,
+    },
+  })
 
-  const particles = new Particles(props)
+  let particles = new Particles(getProps())
 
   let isPaused = false
 

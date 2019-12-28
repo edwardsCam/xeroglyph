@@ -32,6 +32,13 @@ const colorSchemes = {
 export default s => {
   const get = prop => getProp('chipboard', prop)
   initProps('chipboard', {
+    draw: {
+      type: 'func',
+      label: 'Redraw!',
+      callback: () => {
+        draw(getProps())
+      },
+    },
     minBlankSpace: {
       type: 'number',
       default: 1.5,
@@ -80,13 +87,6 @@ export default s => {
     //   min: 0,
     //   step: 1,
     // },
-    draw: {
-      type: 'func',
-      label: 'Redraw!',
-      callback: () => {
-        draw(getProps())
-      },
-    },
   })
   const getProps = () => ({
     minBlankSpace: get('minBlankSpace'),
