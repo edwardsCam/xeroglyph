@@ -30,66 +30,122 @@ const colorSchemes = {
 }
 
 export default s => {
+  const get = prop => getProp('chipboard', prop)
   initProps('chipboard', {
-    delay: {
+    minBlankSpace: {
+      type: 'number',
+      default: 1.5,
+      min: 0.1,
+      step: 0.1,
+    },
+    randomness: {
       type: 'number',
       default: 1,
       min: 0,
-      step: 100,
+      max: 1,
+      step: 0.025,
+    },
+    delay: {
+      when: () => !get('interpolateDelay'),
+      type: 'number',
+      default: 1,
+      min: -1,
+      step: 1,
+    },
+    minDelay: {
+      when: () => get('interpolateDelay'),
+      type: 'number',
+      default: 1,
+      min: 0,
+      step: 1,
+    },
+    maxDelay: {
+      when: () => get('interpolateDelay'),
+      type: 'number',
+      default: 500,
+      min: 0,
+      step: 1,
+    },
+    interpolateDelay: {
+      type: 'boolean',
+      default: true,
+    },
+    withStrokes: {
+      type: 'boolean',
+      default: false,
+    },
+    // governor: {
+    //   type: 'number',
+    //   default: 999999,
+    //   min: 0,
+    //   step: 1,
+    // },
+    draw: {
+      type: 'func',
+      label: 'Redraw!',
+      callback: () => {
+        draw(getProps())
+      },
     },
   })
-  const get = prop => getProp('chipboard', prop)
   const getProps = () => ({
-    minBlankSpace: 1,
-    randomness: 1,
-
+    minBlankSpace: get('minBlankSpace'),
+    randomness: get('randomness'),
     type: 'chip',
-
-    // delay: get('delay'),
-    minDelay: 50,
-    maxDelay: 1000,
-    interpolateDelay: true,
-
-    withStrokes: false,
-
-    // governor: 105000,
-
+    delay: get('delay'),
+    minDelay: get('minDelay'),
+    maxDelay: get('maxDelay'),
+    interpolateDelay: get('interpolateDelay'),
+    withStrokes: get('withStrokes'),
+    // governor: get('governor'),
     ...colorSchemes.icelandSlate,
   })
   let isPaused = false
   let lastKnowns = []
+  let timeouts = []
   let iterations = 0
 
   s.setup = () => {
+    const canvas = document.getElementById('defaultCanvas0')
     window.addEventListener('keydown', e => {
-      if (e.ctrlKey && e.altKey) {
-        if (e.key === 's') {
-          const canvas = document.getElementById('defaultCanvas0')
-          if (canvas) {
-            canvas.toBlob(blob => {
-              const downloadLink = document.createElement('a')
-              downloadLink.href = URL.createObjectURL(blob)
-              downloadLink.download = 'chipboard.png'
-              document.body.appendChild(downloadLink)
-              downloadLink.click()
-              document.body.removeChild(downloadLink)
-            })
-          }
-        }
-      }
-
-      if (e.code === 'Space') {
-        isPaused = !isPaused
-        if (!isPaused) {
-          lastKnowns.forEach(lastKnown => createChipboard(...lastKnown))
-          lastKnowns = []
-        }
+      if (e.ctrlKey && e.altKey && e.key === 's') {
+        canvas.toBlob(blob => {
+          const downloadLink = document.createElement('a')
+          downloadLink.href = URL.createObjectURL(blob)
+          downloadLink.download = 'chipboard.png'
+          document.body.appendChild(downloadLink)
+          downloadLink.click()
+          document.body.removeChild(downloadLink)
+        })
+      } else if (e.code === 'Space') {
+        togglePause()
       }
     })
 
+    canvas.addEventListener('click', togglePause)
+
     const props = getProps()
-    if (!props.withStrokes) s.noStroke()
     s.createCanvas(window.innerWidth, window.innerHeight)
+    draw(props)
+
+    function togglePause() {
+      isPaused = !isPaused
+      if (!isPaused) {
+        lastKnowns.forEach(lastKnown => createChipboard(...lastKnown))
+        lastKnowns = []
+      }
+    }
+  }
+
+  s.draw = () => {}
+
+  function draw(props) {
+    timeouts.forEach(timeout => clearTimeout(timeout))
+    if (props.withStrokes) {
+      s.stroke(0, 0, 0)
+    } else {
+      s.noStroke()
+    }
     createChipboard(
       0,
       0,
@@ -100,8 +156,6 @@ export default s => {
     )
   }
 
-  s.draw = () => {}
-
   function createChipboard(minX, minY, maxX, maxY, color, quad) {
     if (isPaused) {
       lastKnowns.push(arguments)
@@ -110,8 +164,7 @@ export default s => {
     const props = getProps()
     const dx = diff(minX, maxX)
     const dy = diff(minY, maxY)
-    const { minBlankSpace } = props
-    if (dx < minBlankSpace || dy < minBlankSpace) return
+    if (dx < props.minBlankSpace || dy < props.minBlankSpace) return
 
     s.fill(color)
 
@@ -124,41 +177,37 @@ export default s => {
         break
     }
 
-    const { randomness, color1, color2, color3, color4 } = props
-    const xSplit = rir(minX, maxX, randomness)
-    const ySplit = rir(minY, maxY, randomness)
+    const xSplit = rir(minX, maxX, props.randomness)
+    const ySplit = rir(minY, maxY, props.randomness)
 
     const botLeft = () =>
-      createChipboard(minX, ySplit, xSplit, maxY, color1, 'bl')
+      createChipboard(minX, ySplit, xSplit, maxY, props.color1, 'bl')
     const botRight = () =>
-      createChipboard(xSplit, ySplit, maxX, maxY, color2, 'br')
+      createChipboard(xSplit, ySplit, maxX, maxY, props.color2, 'br')
     const topRight = () =>
-      createChipboard(xSplit, minY, maxX, ySplit, color3, 'tr')
+      createChipboard(xSplit, minY, maxX, ySplit, props.color3, 'tr')
     const topLeft = () =>
-      createChipboard(minX, minY, xSplit, ySplit, color4, 'tl')
+      createChipboard(minX, minY, xSplit, ySplit, props.color4, 'tl')
+    const doWork = () => {
+      botLeft()
+      botRight()
+      topRight()
+      topLeft()
+    }
     iterations++
 
     if (props.governor == null || iterations < props.governor) {
-      let delay = props.delay || 0
-      if (props.interpolateDelay) {
-        delay = interpolate(
-          [minBlankSpace, window.innerWidth * window.innerHeight],
-          [props.minDelay, props.maxDelay],
-          dx * dy
-        )
-      }
-      if (delay) {
-        setTimeout(() => {
-          botLeft()
-          botRight()
-          topRight()
-          topLeft()
-        }, delay)
+      const delay = props.interpolateDelay
+        ? interpolate(
+            [props.minBlankSpace, window.innerWidth * window.innerHeight],
+            [props.minDelay, props.maxDelay],
+            dx * dy
+          )
+        : props.delay || 0
+      if (delay >= 0) {
+        timeouts.push(setTimeout(doWork, delay))
       } else {
-        botLeft()
-        botRight()
-        topRight()
-        topLeft()
+        doWork()
       }
     }
   }

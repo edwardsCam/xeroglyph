@@ -7,9 +7,13 @@ export default class Knobs extends React.Component {
     const { config, values } = getConfig(pattern)
 
     const knobs = Object.entries(config).map(([prop, propConfig], i) => {
+      if (typeof propConfig.when === 'function' && !propConfig.when()) {
+        return null
+      }
       if (propConfig.type === 'number') {
         const step = propConfig.step == null ? 1 : propConfig.step
         const min = propConfig.min == null ? 1 : propConfig.min
+        const max = propConfig.max == null ? undefined : propConfig.max
         return (
           <label className="knob">
             {`${prop}: `}
@@ -17,6 +21,7 @@ export default class Knobs extends React.Component {
               autoFocus={i === 0}
               key={prop}
               min={min}
+              max={max}
               onChange={e => {
                 setProp(pattern, prop, Number(e.target.value))
                 this.forceUpdate()
@@ -35,7 +40,7 @@ export default class Knobs extends React.Component {
             <input
               autoFocus={i === 0}
               key={prop}
-              onClick={e => {
+              onChange={e => {
                 setProp(pattern, prop, Boolean(e.target.checked))
                 this.forceUpdate()
               }}
@@ -43,6 +48,16 @@ export default class Knobs extends React.Component {
               checked={values[prop]}
             />
           </label>
+        )
+      }
+      if (propConfig.type === 'func') {
+        return (
+          <button
+            autoFocus={i === 0}
+            key={prop}
+            onClick={propConfig.callback}
+            children={propConfig.label}
+          />
         )
       }
       return null

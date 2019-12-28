@@ -31,19 +31,35 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      init: true,
       isShowingHelpModal: false,
       isShowingKnobs: false,
     }
+    document.title = getPattern()
   }
 
   componentDidMount() {
+    const begin = () => {
+      this.setState(prevState => ({ isShowingHelpModal: false, isShowingKnobs: false, init: false }))
+      window.removeEventListener('click', clickToStart)
+    }
+
+    const clickToStart = () => begin()
+    window.addEventListener('click', clickToStart)
     window.addEventListener('keydown', e => {
       switch (e.key) {
         case 'i':
-          this.setState(prevState => ({ isShowingHelpModal: !prevState.isShowingHelpModal, isShowingKnobs: false }))
+        case 'Escape':
+          if (this.state.init) {
+            begin()
+          } else {
+            this.setState(prevState => ({ isShowingHelpModal: !prevState.isShowingHelpModal, isShowingKnobs: false }))
+          }
           break
         case 'o':
-          this.setState(prevState => ({ isShowingKnobs: !prevState.isShowingKnobs, isShowingHelpModal: false }))
+          if (!this.state.init) {
+            this.setState(prevState => ({ isShowingKnobs: !prevState.isShowingKnobs, isShowingHelpModal: false }))
+          }
           break
       }
     })
@@ -51,11 +67,12 @@ class App extends React.Component {
 
   render() {
     const pattern = getPattern()
+    const { init, isShowingHelpModal, isShowingKnobs } = this.state
     return (
       <div>
-        <P5Wrapper sketch={getSketch()} />
-        {this.state.isShowingHelpModal && <HelpModal pattern={pattern} />}
-        {this.state.isShowingKnobs && <Knobs pattern={pattern} />}
+        {!init && <P5Wrapper sketch={getSketch()} />}
+        {(isShowingHelpModal || init) && <HelpModal pattern={pattern} initial={init} />}
+        {isShowingKnobs && <Knobs pattern={pattern} />}
       </div>
     )
   }
