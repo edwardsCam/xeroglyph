@@ -51,7 +51,7 @@ export default s => {
   initProps('chipboard', {
     delay: {
       type: 'number',
-      default: 200,
+      default: 0,
       min: 0,
       step: 100,
     },
@@ -60,6 +60,8 @@ export default s => {
   const getProps = () => ({
     minBlankSpace: 3,
     randomness: 1,
+
+    type: 'chip',
 
     delay: get('delay'),
     // minDelay: 200,
@@ -99,8 +101,14 @@ export default s => {
 
     s.fill(color)
 
-    // drawTriangle(minX, minY, maxX, maxY, quad)
-    drawSquare(minX, minY, maxX, maxY, 0)
+    switch (props.type) {
+      case 'chip':
+        drawSquare(minX, minY, maxX, maxY, 0)
+        break
+      case 'triangle':
+        drawTriangle(minX, minY, maxX, maxY, quad)
+        break
+    }
 
     const { randomness, color1, color2, color3, color4 } = props
     const xSplit = rir(minX, maxX, randomness)
