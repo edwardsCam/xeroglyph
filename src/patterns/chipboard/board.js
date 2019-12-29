@@ -141,6 +141,8 @@ export default s => {
 
   function draw(props) {
     timeouts.forEach(timeout => clearTimeout(timeout))
+    timeouts = []
+    lastKnowns = []
     if (props.withStrokes) {
       s.stroke(0, 0, 0)
     } else {

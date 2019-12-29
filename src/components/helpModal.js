@@ -6,8 +6,6 @@ const infoMap = {
     instructions: [],
     description: [
       'Particles floating in space, they will gravitate toward your mouse.',
-      '...',
-      'Hit `o` to open an options menu that lets you tweak the parameters.',
     ],
   },
   infinity: {
@@ -42,7 +40,9 @@ const infoMap = {
   city: {
     title: 'Cityscape',
     instructions: [],
-    description: [],
+    description: [
+      'Randomly generate a cityscape!'
+    ],
   },
   joyDivision: {
     title: 'Joy Division',
