@@ -41,11 +41,10 @@ class App extends React.Component {
   componentDidMount() {
     const begin = () => {
       this.setState(prevState => ({ isShowingHelpModal: false, isShowingKnobs: false, init: false }))
-      window.removeEventListener('click', clickToStart)
+      window.removeEventListener('click', begin)
     }
 
-    const clickToStart = () => begin()
-    window.addEventListener('click', clickToStart)
+    window.addEventListener('click', begin)
     window.addEventListener('keydown', e => {
       switch (e.key) {
         case 'i':

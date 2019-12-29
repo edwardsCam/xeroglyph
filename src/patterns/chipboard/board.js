@@ -3,10 +3,10 @@ import { init as initProps, getProp, setProp } from 'utils/propConfig'
 
 const colorSchemes = {
   icelandSlate: {
-    color1: 'rgba(236, 236, 236, 0.85)',
-    color2: 'rgba(159, 211, 199, 0.85)',
-    color3: 'rgba(56, 81, 112, 0.85)',
-    color4: 'rgba(20, 45, 76, 0.85)',
+    color1: 'rgba(236, 236, 236, 0.5)',
+    color2: 'rgba(159, 211, 199, 0.5)',
+    color3: 'rgba(56, 81, 112, 0.5)',
+    color4: 'rgba(20, 45, 76, 0.5)',
   },
   duskyForest: {
     color1: '#587850',

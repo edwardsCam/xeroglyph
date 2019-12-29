@@ -40,9 +40,7 @@ const infoMap = {
   city: {
     title: 'Cityscape',
     instructions: [],
-    description: [
-      'Randomly generate a cityscape!'
-    ],
+    description: ['Randomly generate a cityscape!'],
   },
   joyDivision: {
     title: 'Joy Division',

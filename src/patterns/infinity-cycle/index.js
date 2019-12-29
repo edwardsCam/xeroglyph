@@ -1,5 +1,34 @@
-import init from './base'
-import { interpolate } from 'utils/math'
+import { interpolate, toRadians } from 'utils/math'
+import { init as initProps, getProp } from 'utils/propConfig'
+
+const labels = document.createElement('div')
+
+labels.style.position = 'absolute'
+labels.style.left = '10px'
+labels.style.top = '10px'
+
+const lineCountLabel = document.createElement('div')
+const periodLabel = document.createElement('div')
+const periodProgressLabel = document.createElement('div')
+const dampFactorLabel = document.createElement('div')
+
+labels.appendChild(lineCountLabel)
+labels.appendChild(periodLabel)
+labels.appendChild(periodProgressLabel)
+labels.appendChild(dampFactorLabel)
+
+document.body.appendChild(labels)
+
+const setLineCountLabel = count =>
+  (lineCountLabel.innerHTML = `line count: ${count}`)
+const setPeriodLabel = period =>
+  (periodLabel.innerHTML = `period: ${period * 1000}ms`)
+const setPeriodProgressLabel = progress =>
+  (periodProgressLabel.innerHTML = `cycle progress: ${(progress * 100).toFixed(
+    0
+  )}%`)
+const setDampFactorLabel = damp =>
+  (dampFactorLabel.innerHTML = `dampening factor: ${damp.toFixed(1)}`)
 
 const interpolateColors = (color1, color2, p) => ({
   r: interpolate([0, 1], [color1.r, color2.r], p),
@@ -8,76 +37,266 @@ const interpolateColors = (color1, color2, p) => ({
   o: interpolate([0, 1], [color1.o, color2.o], p),
 })
 
-const width = 1000
-const height = 300
+export default s => {
+  const get = prop => getProp('infinity', prop)
+  const getProps = () => ({
+    isFilled: false,
+    is3d: true,
+    cameraRotation: {
+      x: 0.002,
+      y: 0.003,
+      z: 0.0025,
+    },
+    width: get('width'),
+    height: get('height'),
+    lineCount: get('lineCount'),
+    damp: 0,
+    period: get('period'),
+    zigzag: get('zigzag'),
 
-const midWidth = window.innerWidth / 2
-const midHeight = window.innerHeight / 2
+    staticDampIncrease: get('staticDampIncrease'),
 
-const is3d = true
-const isFilled = false
+    // dampCyclePeriod: 80,
+    // dampCycleExtremity: 0.8,
 
-const props = {
-  isFilled,
-  is3d,
-  cameraRotation: {
-    x: 0.002,
-    y: 0.003,
-    z: 0.0025,
-  },
-  width,
-  height,
-  minX: is3d ? -width / 2 : midWidth - width / 2,
-  maxX: is3d ? width / 2 : midWidth + width / 2,
-  lineCount: 100,
-  damp: 0,
-  period: 20,
-  zigzag: true,
+    color1: {
+      r: 0,
+      g: 0,
+      b: 0,
+      o: 0.4,
+    },
+    color2: {
+      r: 255,
+      g: 255,
+      b: 255,
+      o: 1,
+    },
+  })
 
-  staticDampIncrease: 0.15,
+  initProps('infinity', {
+    restart: {
+      type: 'func',
+      label: 'Restart',
+      callback: initialize,
+    },
+    lineCount: {
+      type: 'number',
+      default: 100,
+      min: 1,
+      step: 1,
+    },
+    width: {
+      type: 'number',
+      default: 1000,
+      min: 50,
+      step: 10,
+    },
+    height: {
+      type: 'number',
+      default: 300,
+      min: 50,
+      step: 10,
+    },
+    period: {
+      type: 'number',
+      default: 20,
+      min: 1,
+      step: 1,
+    },
+    zigzag: {
+      type: 'boolean',
+      default: true,
+    },
+    staticDampIncrease: {
+      type: 'number',
+      default: 0.15,
+      min: 0,
+      step: 0.05,
+    },
+  })
 
-  // dampCyclePeriod: 80,
-  // dampCycleExtremity: 0.8,
+  let lines,
+    initialTime,
+    time,
+    animateTime,
+    pauseDampIncrease,
+    isPausingDampIncrease,
+    isStartingDampIncrease,
+    pausePeriod,
+    periodOffset,
+    freezeTime,
+    pauseCamera,
+    cameraFreeze,
+    cameraOffset,
+    damp
 
-  color1: {
-    r: 0,
-    g: 0,
-    b: 0,
-    o: 0.4,
-  },
-  color2: {
-    r: 255,
-    g: 255,
-    b: 255,
-    o: 1,
-  },
-}
+  function initialize() {
+    const props = getProps()
+    lines = []
 
-export default init({
-  setup: x => (is3d ? [x, 0, 0, x, 100, 0] : [0, 0, x, midHeight]),
-  mutate: (line, t) => {
-    const cos = Math.cos(t)
-    const sin = Math.sin(t)
-    if (is3d) {
-      return [
-        line[0],
-        line[1],
-        line[2],
-        height * cos,
-        height * sin,
-        height * (cos + sin),
-      ]
-    } else {
-      return [
-        height * cos + midWidth,
-        height * sin + midHeight,
-        line[2],
-        line[3],
-      ]
+    initialTime = Date.now()
+    time = initialTime
+    animateTime = 0
+
+    pauseDampIncrease = false
+    isPausingDampIncrease = false
+    isStartingDampIncrease = false
+
+    pausePeriod = false
+    periodOffset = 0
+    freezeTime = null
+
+    pauseCamera = false
+    cameraFreeze = null
+    cameraOffset = 0
+
+    damp = props.damp
+
+    setLineCountLabel(props.lineCount)
+    setPeriodLabel(props.period)
+
+    if (props.isColored) s.noStroke()
+
+    s.createCanvas(
+      window.innerWidth,
+      window.innerHeight,
+      props.is3d ? s.WEBGL : undefined
+    )
+
+    const halfWidth = props.width / 2
+    const halfScreenWidth = window.innerWidth / 2
+    const minX = props.is3d ? -halfWidth : halfScreenWidth - halfWidth
+    const maxX = props.is3d ? halfWidth : halfScreenWidth + halfWidth
+    for (let i = 0; i < props.lineCount; i++) {
+      const x = interpolate([0, props.lineCount - 1], [minX, maxX], i)
+      lines.push(
+        props.is3d ? [x, 0, 0, x, 100, 0] : [0, 0, x, window.innerHeight / 2]
+      )
     }
-  },
-  draw: (s, lines) => {
-    if (isFilled) {
+  }
+
+  s.setup = () => {
+    initialize()
+    window.addEventListener('keydown', e => {
+      if (e.key == 'q') {
+        if (isPausingDampIncrease) {
+          isPausingDampIncrease = false
+          isStartingDampIncrease = true
+        } else if (isStartingDampIncrease) {
+          isStartingDampIncrease = false
+          isPausingDampIncrease = true
+        } else if (pauseDampIncrease) {
+          isStartingDampIncrease = true
+        } else {
+          isPausingDampIncrease = true
+        }
+      } else if (e.key === 'w') {
+        pausePeriod = !pausePeriod
+      } else if (e.key === 'e') {
+        pauseCamera = !pauseCamera
+        if (pauseCamera) {
+          cameraFreeze = s.frameCount - cameraOffset
+          cameraOffset = 0
+        } else {
+          cameraOffset = s.frameCount - cameraFreeze
+          cameraFreeze = null
+        }
+      }
+    })
+  }
+
+  s.draw = () => {
+    const props = getProps()
+    s.clear()
+    if (props.is3d && props.cameraRotation) {
+      const frame = cameraFreeze || s.frameCount - cameraOffset
+      s.rotateX(frame * props.cameraRotation.x)
+      s.rotateY(frame * props.cameraRotation.y)
+      s.rotateZ(frame * props.cameraRotation.z)
+    }
+    mutate(props)
+    draw(props)
+  }
+
+  function mutate(props) {
+    withClock(() => {
+      const timeAsDegrees = animateTime * 360
+      let dampIncrease =
+        props.staticDampIncrease == null ? 0 : props.staticDampIncrease
+      if (props.staticDampIncrease != null) {
+        if (isPausingDampIncrease) {
+          dampIncrease -= props.staticDampIncrease / 80
+          if (dampIncrease < 0) {
+            dampIncrease = 0
+            isPausingDampIncrease = false
+            pauseDampIncrease = true
+          }
+        } else if (isStartingDampIncrease) {
+          dampIncrease += props.staticDampIncrease / 80
+          if (dampIncrease > props.staticDampIncrease) {
+            dampIncrease = props.staticDampIncrease
+            isStartingDampIncrease = false
+            pauseDampIncrease = false
+          }
+        }
+
+        damp += dampIncrease
+      } else if (
+        props.dampCyclePeriod != null &&
+        props.dampCycleExtremity != null
+      ) {
+        const r = toRadians(timeAsDegrees)
+        dampIncrease =
+          Math.sin(r / props.dampCyclePeriod) * props.dampCycleExtremity
+        damp += dampIncrease
+      }
+
+      if (pausePeriod && !freezeTime) {
+        freezeTime = timeAsDegrees - periodOffset
+        periodOffset = 0
+      }
+      if (freezeTime && !pausePeriod) {
+        periodOffset = timeAsDegrees - freezeTime
+        freezeTime = null
+      }
+
+      setDampFactorLabel(damp)
+      setPeriodProgressLabel((animateTime % props.period) / props.period)
+      lines.forEach((line, i) => {
+        let t
+        if (freezeTime) {
+          t = toRadians(freezeTime + i * damp) / props.period
+        } else {
+          t = toRadians(timeAsDegrees - periodOffset + i * damp) / props.period
+        }
+        const cos = Math.cos(t)
+        const sin = Math.sin(t)
+        const { height } = props
+        const mutatedLine = props.is3d
+          ? [
+              line[0],
+              line[1],
+              line[2],
+              height * cos,
+              height * sin,
+              height * (cos + sin),
+            ]
+          : [
+              height * cos + window.innerWidth / 2,
+              height * sin + window.innerHeight / 2,
+              line[2],
+              line[3],
+            ]
+        for (let c = 0; c < line.length; c++) {
+          line[c] = mutatedLine[c]
+        }
+      })
+    })
+  }
+
+  function draw(props) {
+    // spec.draw(s, lines)
+    if (props.isFilled) {
       lines.forEach((line, i) => {
         if (i === 0) return
 
@@ -92,7 +311,7 @@ export default init({
         s.fill(fillColor)
         s.stroke(fillColor)
         if (props.zigzag) {
-          if (is3d) {
+          if (props.is3d) {
             if (i % 2) {
               // s.triangle(line1[0], line1[1], line1[2], line2[0], line2[1], line2[2], line2[3], line2[4], line2[5])
             } else {
@@ -119,7 +338,7 @@ export default init({
             }
           }
         } else {
-          if (is3d) {
+          if (props.is3d) {
             s.quad(
               line1[0],
               line1[1],
@@ -157,7 +376,7 @@ export default init({
           const line1 = lines[i - 1]
           const line2 = lines[i]
 
-          if (is3d) {
+          if (props.is3d) {
             if (i % 2) {
               s.line(line1[3], line1[4], line1[5], line2[0], line2[1], line1[2])
             } else {
@@ -175,6 +394,12 @@ export default init({
         lines.forEach(line => s.line(...line))
       }
     }
-  },
-  props,
-})
+  }
+
+  function withClock(callback) {
+    const delta = Date.now() - time
+    time += delta
+    animateTime += delta / 1000
+    callback()
+  }
+}
