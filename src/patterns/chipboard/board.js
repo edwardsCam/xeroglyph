@@ -13,8 +13,8 @@ export default s => {
     minBlankSpace: {
       type: 'number',
       default: 1.5,
-      min: 0.1,
-      step: 0.1,
+      min: 0.5,
+      step: 0.5,
     },
     randomness: {
       type: 'number',
