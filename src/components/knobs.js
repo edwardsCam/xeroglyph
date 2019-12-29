@@ -10,55 +10,76 @@ export default class Knobs extends React.Component {
       if (typeof propConfig.when === 'function' && !propConfig.when()) {
         return null
       }
-      if (propConfig.type === 'number') {
-        const step = propConfig.step == null ? 1 : propConfig.step
-        const min = propConfig.min == null ? 1 : propConfig.min
-        const max = propConfig.max == null ? undefined : propConfig.max
-        return (
-          <label key={prop} className="knob">
-            {`${prop}: `}
-            <input
+
+      switch (propConfig.type) {
+        case 'number': {
+          const step = propConfig.step == null ? 1 : propConfig.step
+          const min = propConfig.min == null ? 1 : propConfig.min
+          const max = propConfig.max == null ? undefined : propConfig.max
+          return (
+            <label key={prop} className="knob">
+              {`${prop}: `}
+              <input
+                autoFocus={i === 0}
+                min={min}
+                max={max}
+                onChange={e => {
+                  setProp(pattern, prop, Number(e.target.value))
+                  this.forceUpdate()
+                }}
+                step={step}
+                type="number"
+                value={values[prop]}
+              />
+            </label>
+          )
+        }
+        case 'boolean':
+          return (
+            <label key={prop} className="knob">
+              {`${prop}: `}
+              <input
+                autoFocus={i === 0}
+                onChange={e => {
+                  setProp(pattern, prop, Boolean(e.target.checked))
+                  this.forceUpdate()
+                }}
+                type="checkbox"
+                checked={values[prop]}
+              />
+            </label>
+          )
+        case 'func':
+          return (
+            <button
               autoFocus={i === 0}
-              min={min}
-              max={max}
-              onChange={e => {
-                setProp(pattern, prop, Number(e.target.value))
-                this.forceUpdate()
-              }}
-              step={step}
-              type="number"
-              value={values[prop]}
+              key={prop}
+              onClick={propConfig.callback}
+              children={propConfig.label}
             />
-          </label>
-        )
+          )
+
+        case 'dropdown':
+          return (
+            <label key={prop}>
+              {`${prop}: `}
+              <select
+                name={prop}
+                onChange={e => {
+                  setProp(pattern, prop, e.target.value)
+                  this.forceUpdate()
+                }}
+              >
+                {propConfig.options.map(opt => (
+                  <option key={opt} value={opt} children={opt} />
+                ))}
+              </select>
+            </label>
+          )
+
+        default:
+          return null
       }
-      if (propConfig.type === 'boolean') {
-        return (
-          <label key={prop} className="knob">
-            {`${prop}: `}
-            <input
-              autoFocus={i === 0}
-              onChange={e => {
-                setProp(pattern, prop, Boolean(e.target.checked))
-                this.forceUpdate()
-              }}
-              type="checkbox"
-              checked={values[prop]}
-            />
-          </label>
-        )
-      }
-      if (propConfig.type === 'func') {
-        return (
-          <button
-            autoFocus={i === 0}
-            key={prop}
-            onClick={propConfig.callback}
-            children={propConfig.label}
-          />
-        )
-      }
-      return null
     })
     return <div className="knobs">{knobs}</div>
   }

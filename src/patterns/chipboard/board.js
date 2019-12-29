@@ -81,6 +81,11 @@ export default s => {
       type: 'boolean',
       default: false,
     },
+    pattern: {
+      type: 'dropdown',
+      default: 'square',
+      options: ['square', 'triangle'],
+    },
     // governor: {
     //   type: 'number',
     //   default: 999999,
@@ -91,7 +96,7 @@ export default s => {
   const getProps = () => ({
     minBlankSpace: get('minBlankSpace'),
     randomness: get('randomness'),
-    type: 'chip',
+    pattern: get('pattern'),
     delay: get('delay'),
     minDelay: get('minDelay'),
     maxDelay: get('maxDelay'),
@@ -170,8 +175,8 @@ export default s => {
 
     s.fill(color)
 
-    switch (props.type) {
-      case 'chip':
+    switch (props.pattern) {
+      case 'square':
         drawSquare(minX, minY, maxX, maxY, 0)
         break
       case 'triangle':
