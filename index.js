@@ -6,6 +6,7 @@ import { board, city } from 'patterns/chipboard'
 import InfinityCycle from 'patterns/infinity-cycle'
 import Swirl from 'patterns/swirl'
 import JoyDivision from 'patterns/joy-division'
+import Coral from 'patterns/coral'
 
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
@@ -18,6 +19,7 @@ const patternMap = {
   chipboard: board,
   city: city,
   joyDivision: JoyDivision,
+  coral: Coral,
 }
 
 const getPattern = () => {

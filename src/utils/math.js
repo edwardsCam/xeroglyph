@@ -1,7 +1,7 @@
 /**
   mathUtil:
     Extensions to the Math class.
-*/
+* */
 
 Math.TWO_PI = Math.PI * 2
 Math.HALF_PI = Math.PI / 2
@@ -12,7 +12,7 @@ const toDegrees = r => (r * 180) / Math.PI
 /**
   coordsFromTheta:
     Given an angle (from origin), return the coordinate at the given radius.
-*/
+* */
 function coordsFromTheta(theta, radius) {
   return {
     x: Math.cos(theta) * radius,
@@ -23,7 +23,7 @@ function coordsFromTheta(theta, radius) {
 /**
     thetaFromTwoPoints:
         Given two points, get the angle they make from x-axis.
-*/
+* */
 function thetaFromTwoPoints(p1, p2) {
   const dy = p2.y - p1.y
   const dx = p2.x - p1.x
@@ -33,7 +33,7 @@ function thetaFromTwoPoints(p1, p2) {
 /**
   clamp:
     Return the given value, constrained by a min and max.
-*/
+* */
 function clamp(min, max, value) {
   if (value <= min) {
     return min
@@ -47,7 +47,7 @@ function clamp(min, max, value) {
 /**
     distance:
         Gets the distance between two points.
-*/
+* */
 function distance(p1, p2) {
   const dy = p2.y - p1.y
   const dx = p2.x - p1.x
@@ -57,7 +57,7 @@ function distance(p1, p2) {
 /**
   normalizeScreenPos:
     Normalizes a screen position to [-1, 1]
-*/
+* */
 const normalizeScreenPos = (x, y) => ({
   x: (x / window.innerWidth) * 2 - 1,
   y: -(y / window.innerHeight) * 2 + 1,
@@ -66,7 +66,7 @@ const normalizeScreenPos = (x, y) => ({
 /**
   denormalizeScreenPos:
     Denormalizes a screen position from [-1, 1] to [0, (width or height)]
-*/
+* */
 const denormalizeScreenPos = (x, y) => ({
   x: ((x + 1) * window.innerWidth) / 2,
   y: ((y - 1) * window.innerHeight) / 2,
@@ -108,7 +108,7 @@ function interpolate(domain, range, value) {
                /                  /
              /                   /
         ___/                    /
-*/
+* */
 function interpolateSmooth({ domain, range, value }) {
   const x1 = domain[0]
   const x2 = domain[1]
@@ -131,7 +131,7 @@ function interpolateSmooth({ domain, range, value }) {
     Given a min and max, return a random within that range.
 
   @param {boolean} round - if true, return an integer (truncated)
-*/
+* */
 function randomInRange(min, max, round) {
   const result = min + Math.random() * (max - min)
   return round ? Math.floor(result) : result
@@ -147,7 +147,7 @@ function randomInRange(min, max, round) {
         theta (radians): pi / 2
         distance: 3
         output: (0, 3)
-*/
+* */
 function coordWithAngleAndDistance(start, theta, distanceFromCenter) {
   const xdist = distanceFromCenter * Math.cos(theta)
   const ydist = distanceFromCenter * Math.sin(theta)
@@ -160,13 +160,13 @@ function coordWithAngleAndDistance(start, theta, distanceFromCenter) {
 /**
   coinToss:
     50% chance of returning true
-*/
+* */
 const coinToss = () => Math.random() > 0.5
 
 /**
   diff:
     Returns the absolute difference between two numbers.
-*/
+* */
 const diff = (x, y) => Math.abs(x - y)
 
 function percentWithinRange(min, max, value) {

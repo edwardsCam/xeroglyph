@@ -47,14 +47,18 @@ const infoMap = {
     instructions: [],
     description: [''],
   },
+  coral: {
+    title: 'Coral',
+    instructions: [],
+    description: [],
+  },
 }
 
 export default class HelpModal extends React.Component {
   render() {
     const { initial, pattern } = this.props
     const info = infoMap[pattern]
-    if (!info) return null
-    return (
+    return info ? (
       <div className="helpModal">
         <h1>{info.title}</h1>
         <br />
@@ -77,6 +81,8 @@ export default class HelpModal extends React.Component {
           line === '' ? <hr key={i} /> : <p key={i}>{line}</p>
         )}
       </div>
+    ) : (
+      <div className="helpModal">{`Unknown pattern ${pattern}!`}</div>
     )
   }
 }
