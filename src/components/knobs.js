@@ -69,6 +69,7 @@ export default class Knobs extends React.Component {
                   setProp(pattern, prop, e.target.value)
                   this.forceUpdate()
                 }}
+                value={values[prop]}
               >
                 {propConfig.options.map(opt => (
                   <option key={opt} value={opt} children={opt} />

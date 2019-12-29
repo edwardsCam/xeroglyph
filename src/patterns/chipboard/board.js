@@ -106,6 +106,7 @@ export default s => {
   s.draw = Function.prototype
 
   function initialize() {
+    s.clear()
     const props = getProps()
 
     timeouts.forEach(timeout => clearTimeout(timeout))
