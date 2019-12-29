@@ -1,14 +1,6 @@
 import { randomInRange, interpolate, diff } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
-
-const colorSchemes = {
-  icelandSlate: {
-    color1: 'rgba(236, 236, 236, 0.85)',
-    color2: 'rgba(159, 211, 199, 0.85)',
-    color3: 'rgba(56, 81, 112, 0.85)',
-    color4: 'rgba(20, 45, 76, 0.85)',
-  },
-}
+import { rir, colorSchemes } from './common'
 
 export default s => {
   let iterations = 0
@@ -25,10 +17,7 @@ export default s => {
     minDelay: get('minDelay'),
     maxDelay: get('maxDelay'),
     interpolateDelay: get('interpolateDelay'),
-
-    // withStrokes: true,
-
-    // governor: 90000,
+    withStrokes: true,
 
     ...colorSchemes.icelandSlate,
   })
@@ -36,7 +25,7 @@ export default s => {
     draw: {
       type: 'func',
       label: 'Redraw!',
-      callback: () => initialize(getProps()),
+      callback: initialize,
     },
     minBlankSpace: {
       type: 'number',
@@ -98,10 +87,8 @@ export default s => {
         }
       }
     })
-    const props = getProps()
-    if (!props.withStrokes) s.noStroke()
     s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
-    initialize(props)
+    initialize()
   }
 
   s.draw = () => {
@@ -111,12 +98,18 @@ export default s => {
     cubes.forEach(drawCube)
   }
 
-  function initialize(props) {
+  function initialize() {
+    const props = getProps()
     timeouts.forEach(timeout => clearTimeout(timeout))
     timeouts = []
     lastKnowns = []
     cubes = []
     s.clear()
+    if (props.withStrokes) {
+      s.stroke(0, 0, 0)
+    } else {
+      s.noStroke()
+    }
     createChipboard(
       -window.innerWidth / 5,
       -window.innerHeight / 5,
@@ -136,8 +129,7 @@ export default s => {
     const props = getProps()
     const dx = diff(minX, maxX)
     const dy = diff(minY, maxY)
-    const { minBlankSpace } = props
-    if (dx < minBlankSpace || dy < minBlankSpace) return
+    if (dx < props.minBlankSpace || dy < props.minBlankSpace) return
 
     const { randomness, color1, color2, color3, color4 } = props
     const xSplit = rir(minX, maxX, randomness)
@@ -157,26 +149,22 @@ export default s => {
       createChipboard(xSplit, minY, maxX, ySplit, maxZ, color3, 'tr')
     const topLeft = () =>
       createChipboard(minX, minY, xSplit, ySplit, maxZ, color4, 'tl')
+    const doWork = () => {
+      botLeft()
+      botRight()
+      topRight()
+      topLeft()
+    }
     iterations++
 
-    if (props.governor == null || iterations < props.governor) {
-      let delay = props.delay || 0
-      if (props.interpolateDelay) {
-        delay = interpolate(
-          [minBlankSpace, window.innerWidth * window.innerHeight],
+    const delay = props.interpolateDelay
+      ? interpolate(
+          [props.minBlankSpace, window.innerWidth * window.innerHeight],
           [props.minDelay, props.maxDelay],
           dx * dy
         )
-      }
-      timeouts.push(
-        setTimeout(() => {
-          botLeft()
-          botRight()
-          topRight()
-          topLeft()
-        }, delay)
-      )
-    }
+      : props.delay || 0
+    timeouts.push(setTimeout(doWork, delay))
   }
 
   function drawCube({ color, coords }) {
@@ -189,12 +177,4 @@ export default s => {
     s.box(dx, dy, z)
     s.pop()
   }
-}
-
-function rir(min, max, randomness) {
-  const middle = (min + max) / 2
-  return randomInRange(
-    interpolate([0, 1], [middle, min], randomness),
-    interpolate([0, 1], [middle, max], randomness)
-  )
 }

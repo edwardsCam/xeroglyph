@@ -1,33 +1,6 @@
 import { randomInRange, interpolate, diff } from 'utils/math'
 import { init as initProps, getProp, setProp } from 'utils/propConfig'
-
-const colorSchemes = {
-  icelandSlate: {
-    color1: 'rgba(236, 236, 236, 0.5)',
-    color2: 'rgba(159, 211, 199, 0.5)',
-    color3: 'rgba(56, 81, 112, 0.5)',
-    color4: 'rgba(20, 45, 76, 0.5)',
-  },
-  duskyForest: {
-    color1: '#587850',
-    color2: '#709078',
-    color3: '#78b0a0',
-    color4: '#f8d0b0',
-  },
-  greySlate: {
-    color1: '#e9e9e5',
-    color2: '#d4d6c8',
-    color3: '#9a9b94',
-    color4: '#52524e',
-  },
-  blackVelvet: {
-    color1: '#252525',
-    color2: '#ff0000',
-    color3: '#af0404',
-    color4: '#414141',
-    bg: '#9a9b94',
-  },
-}
+import { rir, colorSchemes } from './common'
 
 export default s => {
   const get = prop => getProp('chipboard', prop)
@@ -35,9 +8,7 @@ export default s => {
     draw: {
       type: 'func',
       label: 'Redraw!',
-      callback: () => {
-        draw(getProps())
-      },
+      callback: initialize,
     },
     minBlankSpace: {
       type: 'number',
@@ -86,12 +57,6 @@ export default s => {
       default: 'square',
       options: ['square', 'triangle'],
     },
-    // governor: {
-    //   type: 'number',
-    //   default: 999999,
-    //   min: 0,
-    //   step: 1,
-    // },
   })
   const getProps = () => ({
     minBlankSpace: get('minBlankSpace'),
@@ -102,7 +67,6 @@ export default s => {
     maxDelay: get('maxDelay'),
     interpolateDelay: get('interpolateDelay'),
     withStrokes: get('withStrokes'),
-    // governor: get('governor'),
     ...colorSchemes.icelandSlate,
   })
   let isPaused = false
@@ -128,10 +92,8 @@ export default s => {
     })
 
     canvas.addEventListener('click', togglePause)
-
-    const props = getProps()
     s.createCanvas(window.innerWidth, window.innerHeight)
-    draw(props)
+    initialize()
 
     function togglePause() {
       isPaused = !isPaused
@@ -142,12 +104,15 @@ export default s => {
     }
   }
 
-  s.draw = () => {}
+  s.draw = Function.prototype
 
-  function draw(props) {
+  function initialize() {
+    const props = getProps()
+
     timeouts.forEach(timeout => clearTimeout(timeout))
     timeouts = []
     lastKnowns = []
+    isPaused = false
     if (props.withStrokes) {
       s.stroke(0, 0, 0)
     } else {
@@ -203,19 +168,17 @@ export default s => {
     }
     iterations++
 
-    if (props.governor == null || iterations < props.governor) {
-      const delay = props.interpolateDelay
-        ? interpolate(
-            [props.minBlankSpace, window.innerWidth * window.innerHeight],
-            [props.minDelay, props.maxDelay],
-            dx * dy
-          )
-        : props.delay || 0
-      if (delay >= 0) {
-        timeouts.push(setTimeout(doWork, delay))
-      } else {
-        doWork()
-      }
+    const delay = props.interpolateDelay
+      ? interpolate(
+          [props.minBlankSpace, window.innerWidth * window.innerHeight],
+          [props.minDelay, props.maxDelay],
+          dx * dy
+        )
+      : props.delay || 0
+    if (delay >= 0) {
+      timeouts.push(setTimeout(doWork, delay))
+    } else {
+      doWork()
     }
   }
 
@@ -238,12 +201,4 @@ export default s => {
       s.triangle(x1 + stretchX, y1 + stretchY, x2, y1, x1, y2)
     }
   }
-}
-
-function rir(min, max, randomness) {
-  const middle = (min + max) / 2
-  return randomInRange(
-    interpolate([0, 1], [middle, min], randomness),
-    interpolate([0, 1], [middle, max], randomness)
-  )
 }
