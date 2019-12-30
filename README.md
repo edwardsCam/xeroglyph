@@ -1,6 +1,7 @@
 Just doing some experimentation with the p5.js library.
 
 ## Patterns
+* Coral: https://edwardscam.github.io/p5?pattern=coral
 * Swirl: https://edwardscam.github.io/p5?pattern=swirl
 * Infinity Cycle: https://edwardscam.github.io/p5?pattern=infinity
 * Chipboard: https://edwardscam.github.io/p5?pattern=chipboard
