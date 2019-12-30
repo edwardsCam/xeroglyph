@@ -2,6 +2,18 @@ import { interpolate, distance, thetaFromTwoPoints } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 
 export default s => {
+  const get = prop => getProp('coral', prop)
+  const getProps = () => ({
+    damp: get('damp'),
+    preferredProximity: get('preferredProximity'),
+    maxNodes: get('maxNodes'),
+    nodeAdditionTimer: get('nodeAdditionTimer'),
+    collisionBuffer: get('collisionBuffer'),
+    collisionAvoidanceForce: get('collisionAvoidanceForce'),
+    foldiness: get('foldiness'),
+    stretchiness: get('stretchiness'),
+  })
+
   class Node {
     constructor(x, y) {
       this.position = s.createVector(x, y)
@@ -15,16 +27,24 @@ export default s => {
   }
 
   class Coral {
-    constructor(props) {
+    constructor() {
       this.createNodes()
 
-      const interval = setInterval(() => {
-        if (this.nodes.length < props.maxNodes) {
+      let alerted = false
+      const insert = () => {
+        const maxNodes = get('maxNodes')
+        if (this.nodes.length < maxNodes) {
           this.insertNode(Math.floor(Math.random() * this.nodes.length))
-        } else {
-          clearTimeout(interval)
+          alerted = false
+        } else if (!alerted) {
+          /* eslint-disable-next-line no-console */
+          console.info(`Reached the max node count of ${maxNodes}`)
+          alerted = true
         }
-      }, 40)
+        setTimeout(insert, get('nodeAdditionTimer'))
+      }
+
+      setTimeout(insert, get('nodeAdditionTimer'))
     }
 
     createNodes() {
@@ -46,85 +66,84 @@ export default s => {
       this.nodes = arr.reverse()
     }
 
-    insertNode(_position = 0) {
+    insertNode(_position) {
       const { nodes } = this
-      const position = _position % nodes.length
-      const nextPosition = position === nodes.length - 1 ? 0 : position + 1
-      const n1 = nodes[position].position
-      const n2 = nodes[nextPosition].position
+      const p1 = _position % nodes.length
+      const p2 = p1 === nodes.length - 1 ? 0 : p1 + 1
+      const n1 = nodes[p1].position
+      const n2 = nodes[p2].position
 
       const avgX = (n1.x + n2.x) / 2
       const avgY = (n1.y + n2.y) / 2
 
-      nodes.splice(nextPosition, 0, new Node(avgX, avgY))
+      nodes.splice(p2, 0, new Node(avgX, avgY))
     }
 
     mutate(props) {
       const { nodes } = this
-      const len = nodes.length
       nodes.forEach(node => {
         node.velocity = s.createVector(0, 0)
       })
-      for (let i = 0; i < len; i++) {
-        const n1 = nodes[i]
-        for (let j = 0; j < len; j++) {
+      for (let i = 0; i < nodes.length; i++) {
+        const n1 = nodes[i].position
+        const { velocity } = nodes[i]
+        for (let j = 0; j < nodes.length; j++) {
           if (i === j) continue
-          const n2 = nodes[j]
+          const n2 = nodes[j].position
+          const d12 = distance(n1, n2)
+          const theta = thetaFromTwoPoints(n1, n2)
 
-          const d12 = distance(n1.position, n2.position)
-          const theta = thetaFromTwoPoints(n1.position, n2.position)
-
-          let strength = 0
           if (this.isWithinRange(i, j, 1)) {
+            // immediate neighbor, attract!
             const delta = d12 - props.preferredProximity
-            strength = (d12 * delta) / (props.damp * 1000)
-          } else if (this.isWithinRange(i, j, 3)) {
-            strength = -props.foldiness / d12
+            const strength = (d12 * delta) / (props.damp * 1000)
+            const xAccel = Math.cos(theta) * strength
+            const yAccel = Math.sin(theta) * strength
+            velocity.add(s.createVector(xAccel, yAccel))
+          } else if (this.isWithinRange(i, j, props.stretchiness)) {
+            // within a certain range but not an immediate neighbor, repel!
+            const strength = -props.foldiness / d12
+            const xAccel = Math.cos(theta) * strength
+            const yAccel = Math.sin(theta) * strength
+            velocity.add(s.createVector(xAccel, yAccel))
           }
-          const xAccel = Math.cos(theta) * strength
-          const yAccel = Math.sin(theta) * strength
-          n1.velocity.add(s.createVector(xAccel, yAccel))
 
           // avoid collisions
-          const k = (j + 1) % len
+          const k = (j + 1) % nodes.length
           if (k !== i) {
-            const n3 = nodes[k]
-
-            const d13 = distance(n1.position, n3.position)
-            const d23 = distance(n2.position, n3.position)
+            const n3 = nodes[k].position
+            const d13 = distance(n1, n3)
+            const d23 = distance(n2, n3)
+            const d12Squar = d12 * d12
+            const d13Squar = d13 * d13
+            const d23Squar = d23 * d23
 
             const a12 = Math.acos(
-              (d13 * d13 + d23 * d23 - d12 * d12) / (2 * d13 * d23)
+              (d13Squar + d23Squar - d12Squar) / (2 * d13 * d23)
             )
             const a13 = Math.acos(
-              (d23 * d23 + d12 * d12 - d13 * d13) / (2 * d12 * d23)
+              (d23Squar + d12Squar - d13Squar) / (2 * d12 * d23)
             )
 
             if (a13 > Math.PI / 2 || a12 > Math.PI / 2) {
               // obtuse by n1, no danger of collision in this triangle
             } else {
-              const area = (d13 * d23 * Math.sin(a12)) / 2
-              const height = (2 * area) / d23
-              if (height < props.collisionBuffer) {
-                const collisionDelta = props.collisionBuffer - height
-                const collisionPushStrength = Math.min(
+              const { sin, cos } = Math
+              const height = d13 * sin(a12)
+              if (height < props.collisionBuffer * 1.1) {
+                const collisionPushStr = Math.min(
                   props.collisionAvoidanceForce,
-                  collisionDelta / height
+                  (props.collisionBuffer - height) / height
                 )
 
                 const midpoint = {
-                  x: (n2.position.x + n3.position.x) / 2,
-                  y: (n2.position.y + n3.position.y) / 2,
+                  x: (n2.x + n3.x) / 2,
+                  y: (n2.y + n3.y) / 2,
                 }
-                const collisionPushDirection = thetaFromTwoPoints(
-                  n1.position,
-                  midpoint
-                )
-                const pushAccelX =
-                  -Math.cos(collisionPushDirection) * collisionPushStrength
-                const pushAccelY =
-                  -Math.sin(collisionPushDirection) * collisionPushStrength
-                n1.velocity.add(s.createVector(pushAccelX, pushAccelY))
+                const collisionPushDir = thetaFromTwoPoints(midpoint, n1)
+                const pushAccelX = cos(collisionPushDir) * collisionPushStr
+                const pushAccelY = sin(collisionPushDir) * collisionPushStr
+                velocity.add(s.createVector(pushAccelX, pushAccelY))
               }
             }
           }
@@ -175,26 +194,32 @@ export default s => {
     },
     damp: {
       type: 'number',
-      default: 1,
-      min: 1,
-      step: 1,
+      default: 0.3,
+      min: 0.1,
+      step: 0.1,
     },
     preferredProximity: {
       type: 'number',
-      default: 1,
-      min: 1,
-      step: 1,
+      default: 0.1,
+      min: 0.1,
+      step: 0.1,
     },
     maxNodes: {
       type: 'number',
-      default: 300,
+      default: 400,
       min: 3,
       step: 1,
     },
+    nodeAdditionTimer: {
+      type: 'number',
+      default: 20,
+      min: 5,
+      step: 5,
+    },
     collisionBuffer: {
       type: 'number',
-      default: 60,
-      min: 1,
+      default: 50,
+      min: 0,
       step: 5,
     },
     collisionAvoidanceForce: {
@@ -205,28 +230,23 @@ export default s => {
     },
     foldiness: {
       type: 'number',
-      default: 2,
+      default: 1,
       min: 0.2,
       step: 0.2,
     },
-  })
-
-  const get = prop => getProp('coral', prop)
-  const getProps = () => ({
-    damp: get('damp'),
-    preferredProximity: get('preferredProximity'),
-    maxNodes: get('maxNodes'),
-    collisionBuffer: get('collisionBuffer'),
-    collisionAvoidanceForce: get('collisionAvoidanceForce'),
-    foldiness: get('foldiness'),
+    stretchiness: {
+      type: 'number',
+      default: 20,
+      min: 2,
+      step: 1,
+    },
   })
 
   let coral
   let isPaused
 
   function initialize() {
-    const props = getProps()
-    coral = new Coral(props)
+    coral = new Coral()
     isPaused = false
   }
 
