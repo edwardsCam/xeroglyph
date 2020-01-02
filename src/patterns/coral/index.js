@@ -7,11 +7,12 @@ export default s => {
     damp: get('damp'),
     preferredProximity: get('preferredProximity'),
     maxNodes: get('maxNodes'),
-    nodeAdditionTimer: get('nodeAdditionTimer'),
+    nodeChangeTimer: get('nodeChangeTimer'),
     collisionBuffer: get('collisionBuffer'),
     collisionAvoidanceForce: get('collisionAvoidanceForce'),
     foldiness: get('foldiness'),
     stretchiness: get('stretchiness'),
+    randomMode: get('randomMode'),
   })
 
   class Node {
@@ -22,6 +23,7 @@ export default s => {
     }
 
     move() {
+      this.velocity.add(this.acceleration)
       this.position.add(this.velocity)
     }
   }
@@ -30,21 +32,18 @@ export default s => {
     constructor() {
       this.createNodes()
 
-      let alerted = false
-      const insert = () => {
+      const wat = () => {
         const maxNodes = get('maxNodes')
-        if (this.nodes.length < maxNodes) {
-          this.insertNode(Math.floor(Math.random() * this.nodes.length))
-          alerted = false
-        } else if (!alerted) {
-          /* eslint-disable-next-line no-console */
-          console.info(`Reached the max node count of ${maxNodes}`)
-          alerted = true
+        const { length } = this.nodes
+        if (length < maxNodes) {
+          this.insertNode(Math.floor(Math.random() * length))
+        } else if (length > maxNodes) {
+          this.removeNode(Math.floor(Math.random() * length))
         }
-        setTimeout(insert, get('nodeAdditionTimer'))
+        setTimeout(wat, get('nodeChangeTimer'))
       }
 
-      setTimeout(insert, get('nodeAdditionTimer'))
+      setTimeout(wat, get('nodeChangeTimer'))
     }
 
     createNodes() {
@@ -79,14 +78,22 @@ export default s => {
       nodes.splice(p2, 0, new Node(avgX, avgY))
     }
 
+    removeNode(position) {
+      this.nodes.splice(position, 1)
+    }
+
     mutate(props) {
       const { nodes } = this
       nodes.forEach(node => {
-        node.velocity = s.createVector(0, 0)
+        if (props.randomMode) {
+          node.acceleration = s.createVector(0, 0)
+        } else {
+          node.velocity = s.createVector(0, 0)
+        }
       })
       for (let i = 0; i < nodes.length; i++) {
         const n1 = nodes[i].position
-        const { velocity } = nodes[i]
+        const { acceleration, velocity } = nodes[i]
         for (let j = 0; j < nodes.length; j++) {
           if (i === j) continue
           const n2 = nodes[j].position
@@ -99,13 +106,17 @@ export default s => {
             const strength = (d12 * delta) / (props.damp * 1000)
             const xAccel = Math.cos(theta) * strength
             const yAccel = Math.sin(theta) * strength
-            velocity.add(s.createVector(xAccel, yAccel))
+            ;(props.randomMode ? acceleration : velocity).add(
+              s.createVector(xAccel, yAccel)
+            )
           } else if (this.isWithinRange(i, j, props.stretchiness)) {
             // within a certain range but not an immediate neighbor, repel!
             const strength = -props.foldiness / d12
             const xAccel = Math.cos(theta) * strength
             const yAccel = Math.sin(theta) * strength
-            velocity.add(s.createVector(xAccel, yAccel))
+            ;(props.randomMode ? acceleration : velocity).add(
+              s.createVector(xAccel, yAccel)
+            )
           }
 
           // avoid collisions
@@ -143,7 +154,9 @@ export default s => {
                 const collisionPushDir = thetaFromTwoPoints(midpoint, n1)
                 const pushAccelX = cos(collisionPushDir) * collisionPushStr
                 const pushAccelY = sin(collisionPushDir) * collisionPushStr
-                velocity.add(s.createVector(pushAccelX, pushAccelY))
+                ;(props.randomMode ? acceleration : velocity).add(
+                  s.createVector(pushAccelX, pushAccelY)
+                )
               }
             }
           }
@@ -200,17 +213,17 @@ export default s => {
     },
     preferredProximity: {
       type: 'number',
-      default: 0.1,
+      default: 1,
       min: 0.1,
       step: 0.1,
     },
     maxNodes: {
       type: 'number',
       default: 400,
-      min: 3,
-      step: 1,
+      min: 10,
+      step: 10,
     },
-    nodeAdditionTimer: {
+    nodeChangeTimer: {
       type: 'number',
       default: 20,
       min: 5,
@@ -239,6 +252,10 @@ export default s => {
       default: 20,
       min: 2,
       step: 1,
+    },
+    randomMode: {
+      type: 'boolean',
+      default: false,
     },
   })
 
