@@ -1,6 +1,6 @@
-Just doing some experimentation with the p5.js library.
+Algorithmically generated artworks.
 
-## Patterns
+## Index
 * Coral: https://edwardscam.github.io/p5?pattern=coral
 * Swirl: https://edwardscam.github.io/p5?pattern=swirl
 * Infinity Cycle: https://edwardscam.github.io/p5?pattern=infinity
@@ -9,5 +9,5 @@ Just doing some experimentation with the p5.js library.
 * Joy Division: https://edwardscam.github.io/p5?pattern=joyDivision
 
 ## Help
-* Hit `i` to toggle an info panel.
-* Coming soon - knobs and tweakable parameters!
+* Hit `Esc` or `i` to toggle an info panel.
+* Hit `o` to open an options panel where you can tweak parameters or restart the drawing.
