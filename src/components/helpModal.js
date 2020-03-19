@@ -52,6 +52,11 @@ const infoMap = {
     instructions: [],
     description: [],
   },
+  cubes: {
+    title: 'Cubes',
+    instructions: [],
+    description: [],
+  },
 }
 
 export default class HelpModal extends React.Component {

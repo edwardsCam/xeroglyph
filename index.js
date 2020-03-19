@@ -7,6 +7,7 @@ import InfinityCycle from 'patterns/infinity-cycle'
 import Swirl from 'patterns/swirl'
 import JoyDivision from 'patterns/joy-division'
 import Coral from 'patterns/coral'
+import Cubes from 'patterns/cubes'
 
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
@@ -20,6 +21,7 @@ const patternMap = {
   city: city,
   joyDivision: JoyDivision,
   coral: Coral,
+  cubes: Cubes,
 }
 
 const getPattern = () => {
