@@ -31,19 +31,18 @@ export default s => {
   class Coral {
     constructor() {
       this.createNodes()
+      this.checkNodeCount()
+    }
 
-      const wat = () => {
-        const maxNodes = get('maxNodes')
-        const { length } = this.nodes
-        if (length < maxNodes) {
-          this.insertNode(Math.floor(Math.random() * length))
-        } else if (length > maxNodes) {
-          this.removeNode(Math.floor(Math.random() * length))
-        }
-        setTimeout(wat, get('nodeChangeTimer'))
+    checkNodeCount() {
+      const maxNodes = get('maxNodes')
+      const { length } = this.nodes
+      if (length < maxNodes) {
+        this.insertNode(Math.floor(Math.random() * length))
+      } else if (length > maxNodes) {
+        this.removeNode(Math.floor(Math.random() * length))
       }
-
-      setTimeout(wat, get('nodeChangeTimer'))
+      setTimeout(() => this.checkNodeCount(), get('nodeChangeTimer'))
     }
 
     createNodes() {
@@ -220,7 +219,7 @@ export default s => {
     maxNodes: {
       type: 'number',
       default: 400,
-      min: 10,
+      min: 3,
       step: 10,
     },
     nodeChangeTimer: {

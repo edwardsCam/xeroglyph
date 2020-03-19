@@ -76,7 +76,7 @@ export default s => {
   s.setup = () => {
     const canvas = document.getElementById('defaultCanvas0')
     window.addEventListener('keydown', e => {
-      if (e.ctrlKey && e.altKey && e.key === 's') {
+      if (e.ctrlKey && e.altKey && e.code === 'KeyS') {
         canvas.toBlob(blob => {
           const downloadLink = document.createElement('a')
           downloadLink.href = URL.createObjectURL(blob)
