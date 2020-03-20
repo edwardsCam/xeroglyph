@@ -7,6 +7,7 @@ Algorithmically generated artworks.
 * Chipboard: https://edwardscam.github.io/p5?pattern=chipboard
 * Cityscape: https://edwardscam.github.io/p5?pattern=city
 * Joy Division: https://edwardscam.github.io/p5?pattern=joyDivision
+* Cubes: https://edwardscam.github.io/p5?pattern=cubes
 
 ## Help
 * Hit `Esc` or `i` to toggle an info panel.
