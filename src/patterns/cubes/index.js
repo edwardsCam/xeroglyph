@@ -3,12 +3,18 @@ import { init as initProps, getProp } from 'utils/propConfig'
 
 export default s => {
   const get = prop => getProp('cubes', prop)
-  const getProps = () => ({})
+  const getProps = () => ({
+    n: get('Cube Count'),
+    distance: get('Distance'),
+    cubeSize: get('Cube Size'),
+    baseRate: get('Base Rotation Rate'),
+    increaseRate: get('Rotation Acceleration'),
+  })
 
   class Cube {
     constructor(props) {
       const { size } = props
-      const min = - size / 2
+      const min = -size / 2
       const max = size / 2
       this.points = [
         { x: min, y: min, z: min },
@@ -26,8 +32,12 @@ export default s => {
       }
     }
 
-    draw() {
-      s.stroke(255, 255, 255)
+    draw(parentProps) {
+      s.stroke(
+        interpolate([0, parentProps.n], [0, 255], this.props.r),
+        interpolate([0, parentProps.n], [0, 255], this.props.c),
+        255
+      )
       s.strokeWeight(3)
       s.push()
       s.translate(
@@ -52,10 +62,10 @@ export default s => {
   class Cubes {
     constructor(props) {
       this.props = {
-        ...props
+        ...props,
       }
       const { n, distance, cubeSize, baseRate, increaseRate } = this.props
-      const offset = (distance * n / 2)
+      const offset = (distance * n) / 2
       this.cubes = []
 
       for (let r = 0; r < n; r++) {
@@ -63,6 +73,8 @@ export default s => {
           const order = r + c
           this.cubes.push(
             new Cube({
+              r,
+              c,
               size: cubeSize,
               initialPoint: {
                 x: r * distance - offset,
@@ -76,28 +88,49 @@ export default s => {
       }
     }
 
-    draw() {
-      this.cubes.forEach(cube => cube.draw())
+    draw(props) {
+      this.cubes.forEach(cube => cube.draw(props))
     }
   }
 
   initProps('cubes', {
-    restart: {
-      type: 'func',
-      label: 'Restart',
-      callback: initialize,
+    'Cube Count': {
+      type: 'number',
+      default: 5,
+      min: 1,
+      onChange: initialize,
+    },
+    Distance: {
+      type: 'number',
+      default: 100,
+      min: 1,
+      onChange: initialize,
+    },
+    'Cube Size': {
+      type: 'number',
+      default: 80,
+      min: 1,
+      onChange: initialize,
+    },
+    'Base Rotation Rate': {
+      type: 'number',
+      default: 0.0075,
+      min: 0,
+      step: 0.0005,
+      onChange: initialize,
+    },
+    'Rotation Acceleration': {
+      type: 'number',
+      default: 0.0002,
+      min: 0,
+      step: 0.00001,
+      onChange: initialize,
     },
   })
 
   let cubes
   function initialize() {
-    cubes = new Cubes({
-      distance: 125,
-      cubeSize: 100,
-      n: 6,
-      baseRate: 0.0075,
-      increaseRate: 0.0005
-    })
+    cubes = new Cubes(getProps())
   }
 
   s.setup = () => {

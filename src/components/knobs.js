@@ -25,6 +25,9 @@ export default class Knobs extends React.Component {
                 max={max}
                 onChange={e => {
                   setProp(pattern, prop, Number(e.target.value))
+                  if (propConfig.onChange) {
+                    propConfig.onChange(e.target.value)
+                  }
                   this.forceUpdate()
                 }}
                 step={step}
