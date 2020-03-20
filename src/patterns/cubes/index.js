@@ -9,11 +9,12 @@ export default s => {
     cubeSize: get('Cube Size'),
     baseRate: get('Base Rotation Rate'),
     increaseRate: get('Rotation Acceleration'),
+    linesPerCube: get('Lines per cube'),
   })
 
   class Cube {
     constructor(props) {
-      const { size } = props
+      const { size, numLines } = props
       const min = -size / 2
       const max = size / 2
       this.points = [
@@ -26,7 +27,20 @@ export default s => {
         { x: max, y: max, z: min },
         { x: min, y: max, z: min },
         { x: min, y: min, z: min },
-      ]
+        { x: max, y: min, z: min },
+
+        { x: max, y: min, z: max }, //skip
+
+        { x: min, y: min, z: max },
+
+        { x: min, y: max, z: max }, //skip
+
+        { x: min, y: max, z: min },
+
+        { x: max, y: max, z: min }, //skip
+
+        { x: max, y: max, z: max },
+      ].filter((p, i) => i < numLines + 1)
       this.props = {
         ...props,
       }
@@ -57,7 +71,14 @@ export default s => {
 
   class Cubes {
     constructor(props) {
-      const { n, distance, cubeSize, baseRate, increaseRate } = props
+      const {
+        n,
+        distance,
+        cubeSize,
+        baseRate,
+        increaseRate,
+        linesPerCube,
+      } = props
       const offset = (distance * n) / 2
       this.cubes = []
 
@@ -75,6 +96,7 @@ export default s => {
                 z: -offset,
               },
               rotationRate: baseRate + order * increaseRate,
+              numLines: linesPerCube,
             })
           )
         }
@@ -107,7 +129,7 @@ export default s => {
     },
     'Base Rotation Rate': {
       type: 'number',
-      default: 0.0075,
+      default: 0.001,
       min: 0,
       step: 0.0005,
       onChange: initialize,
@@ -117,6 +139,12 @@ export default s => {
       default: 0.0002,
       min: 0,
       step: 0.00001,
+      onChange: initialize,
+    },
+    'Lines per cube': {
+      type: 'number',
+      default: 8,
+      min: 1,
       onChange: initialize,
     },
   })
