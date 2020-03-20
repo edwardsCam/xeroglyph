@@ -32,21 +32,17 @@ export default s => {
       }
     }
 
-    draw(parentProps) {
+    draw({ n }) {
+      const { r, c, initialPoint, rotationRate } = this.props
       s.stroke(
-        interpolate([0, parentProps.n], [0, 255], this.props.r),
-        interpolate([0, parentProps.n], [0, 255], this.props.c),
+        interpolate([0, n], [0, 255], r),
+        interpolate([0, n], [0, 255], c),
         255
       )
       s.strokeWeight(3)
       s.push()
-      s.translate(
-        this.props.initialPoint.x,
-        this.props.initialPoint.y,
-        this.props.initialPoint.z
-      )
-      const rate = s.frameCount * this.props.rotationRate
-
+      s.translate(initialPoint.x, initialPoint.y, initialPoint.z)
+      const rate = s.frameCount * rotationRate
       s.rotateX(rate)
       s.rotateY(rate)
 
@@ -61,10 +57,7 @@ export default s => {
 
   class Cubes {
     constructor(props) {
-      this.props = {
-        ...props,
-      }
-      const { n, distance, cubeSize, baseRate, increaseRate } = this.props
+      const { n, distance, cubeSize, baseRate, increaseRate } = props
       const offset = (distance * n) / 2
       this.cubes = []
 
