@@ -8,6 +8,7 @@ import Swirl from 'patterns/swirl'
 import JoyDivision from 'patterns/joy-division'
 import Coral from 'patterns/coral'
 import Cubes from 'patterns/cubes'
+import Checkers from 'patterns/checkers'
 
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
@@ -22,6 +23,7 @@ const patternMap = {
   joyDivision: JoyDivision,
   coral: Coral,
   cubes: Cubes,
+  checkers: Checkers,
 }
 
 const getPattern = () => {
