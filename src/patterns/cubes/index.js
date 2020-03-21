@@ -1,4 +1,4 @@
-import { interpolate, distance, thetaFromTwoPoints } from 'utils/math'
+import { interpolate } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 
 export default s => {
@@ -29,15 +29,15 @@ export default s => {
         { x: min, y: min, z: min },
         { x: max, y: min, z: min },
 
-        { x: max, y: min, z: max }, //skip
+        { x: max, y: min, z: max }, // skip
 
         { x: min, y: min, z: max },
 
-        { x: min, y: max, z: max }, //skip
+        { x: min, y: max, z: max }, // skip
 
         { x: min, y: max, z: min },
 
-        { x: max, y: max, z: min }, //skip
+        { x: max, y: max, z: min }, // skip
 
         { x: max, y: max, z: max },
       ].filter((p, i) => i < numLines + 1)
