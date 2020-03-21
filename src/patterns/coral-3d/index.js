@@ -1,8 +1,13 @@
-import { interpolate, distance, thetaFromTwoPoints } from 'utils/math'
+import {
+  interpolate,
+  distance,
+  thetaFromTwoPoints,
+  thetaFromTwoPoints3d,
+} from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 
 export default s => {
-  const get = prop => getProp('coral', prop)
+  const get = prop => getProp('coral3d', prop)
   const getProps = () => ({
     damp: get('damp'),
     preferredProximity: get('preferredProximity'),
@@ -16,8 +21,8 @@ export default s => {
   })
 
   class Node {
-    constructor(x, y) {
-      this.position = s.createVector(x, y)
+    constructor(x, y, z) {
+      this.position = s.createVector(x, y, z)
       this.velocity = s.createVector()
       this.acceleration = s.createVector()
     }
@@ -49,8 +54,9 @@ export default s => {
       this.nodes = []
 
       const center = {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
+        x: 0,
+        y: 0,
+        z: 0,
       }
 
       const arr = []
@@ -59,7 +65,7 @@ export default s => {
         const theta = interpolate([0, initialResolution], [0, Math.PI * 2], i)
         const x = Math.sin(theta) * 30 + center.x
         const y = Math.cos(theta) * 30 + center.y
-        arr.push(new Node(x, y))
+        arr.push(new Node(x, y, (Math.random() - 0.5) * 20))
       }
       this.nodes = arr.reverse()
     }
@@ -73,8 +79,9 @@ export default s => {
 
       const avgX = (n1.x + n2.x) / 2
       const avgY = (n1.y + n2.y) / 2
+      const avgZ = (n1.z + n2.z) / 2
 
-      nodes.splice(p2, 0, new Node(avgX, avgY))
+      nodes.splice(p2, 0, new Node(avgX, avgY, avgZ))
     }
 
     removeNode(position) {
@@ -95,26 +102,32 @@ export default s => {
         const { acceleration, velocity } = nodes[i]
         for (let j = 0; j < nodes.length; j++) {
           if (i === j) continue
+
           const n2 = nodes[j].position
+
           const d12 = distance(n1, n2)
-          const theta = thetaFromTwoPoints(n1, n2)
+          const { phi, theta } = thetaFromTwoPoints3d(n1, n2)
 
           if (this.isWithinRange(i, j, 1)) {
             // immediate neighbor, attract!
             const delta = d12 - props.preferredProximity
             const strength = (d12 * delta) / (props.damp * 1000)
-            const xAccel = Math.cos(theta) * strength
-            const yAccel = Math.sin(theta) * strength
+            const xAccel = Math.cos(phi) * strength
+            const yAccel = Math.sin(phi) * strength
+            const zAccel = Math.sin(theta) * strength
+
+            // const testX     =
             ;(props.randomMode ? acceleration : velocity).add(
-              s.createVector(xAccel, yAccel)
+              s.createVector(xAccel, yAccel, zAccel)
             )
           } else if (this.isWithinRange(i, j, props.stretchiness)) {
             // within a certain range but not an immediate neighbor, repel!
             const strength = -props.foldiness / d12
-            const xAccel = Math.cos(theta) * strength
-            const yAccel = Math.sin(theta) * strength
+            const xAccel = Math.cos(phi) * strength
+            const yAccel = Math.sin(phi) * strength
+            const zAccel = Math.sin(theta) * strength
             ;(props.randomMode ? acceleration : velocity).add(
-              s.createVector(xAccel, yAccel)
+              s.createVector(xAccel, yAccel, zAccel)
             )
           }
 
@@ -149,12 +162,14 @@ export default s => {
                 const midpoint = {
                   x: (n2.x + n3.x) / 2,
                   y: (n2.y + n3.y) / 2,
+                  // z: (n2.z + n3.z) / 2,
                 }
                 const collisionPushDir = thetaFromTwoPoints(midpoint, n1)
-                const pushAccelX = cos(collisionPushDir) * collisionPushStr
-                const pushAccelY = sin(collisionPushDir) * collisionPushStr
+                const pushAccelX = cos(collisionPushDir.phi) * collisionPushStr
+                const pushAccelY = sin(collisionPushDir.phi) * collisionPushStr
+                // const pushAccelZ = sin(collisionPushDir.theta) * collisionPushStr
                 ;(props.randomMode ? acceleration : velocity).add(
-                  s.createVector(pushAccelX, pushAccelY)
+                  s.createVector(pushAccelX, pushAccelY, 0)
                 )
               }
             }
@@ -193,12 +208,12 @@ export default s => {
       for (let i = 0; i < nodes.length; i++) {
         const n1 = nodes[i].position
         const n2 = nodes[i === nodes.length - 1 ? 0 : i + 1].position
-        s.line(n1.x, n1.y, n2.x, n2.y)
+        s.line(n1.x, n1.y, n1.z, n2.x, n2.y, n2.z)
       }
     }
   }
 
-  initProps('coral', {
+  initProps('coral3d', {
     restart: {
       type: 'func',
       label: 'Restart',
@@ -218,7 +233,7 @@ export default s => {
     },
     maxNodes: {
       type: 'number',
-      default: 400,
+      default: 300,
       min: 3,
       step: 10,
     },
@@ -267,7 +282,7 @@ export default s => {
   }
 
   s.setup = () => {
-    s.createCanvas(window.innerWidth, window.innerHeight)
+    s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
     window.addEventListener('keydown', function(e) {
       if (e.code === 'Space') {
         isPaused = !isPaused
@@ -280,6 +295,9 @@ export default s => {
     if (isPaused) return
     s.clear()
     const props = getProps()
+    s.rotateY(s.frameCount * 0.005)
+    s.rotateX(s.frameCount * 0.0025)
+    s.rotateZ(s.frameCount * 0.002)
     coral.mutate(props)
     coral.draw(props)
   }

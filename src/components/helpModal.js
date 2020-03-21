@@ -52,6 +52,11 @@ const infoMap = {
     instructions: [],
     description: [],
   },
+  coral3d: {
+    title: 'Coral 3D',
+    instructions: [],
+    description: [],
+  },
   cubes: {
     title: 'Cubes',
     instructions: [],

@@ -30,6 +30,15 @@ function thetaFromTwoPoints(p1, p2) {
   return Math.atan2(dy, dx)
 }
 
+function thetaFromTwoPoints3d(p1, p2) {
+  const r = distance(p1, p2)
+  const dz = p2.z - p1.z
+  return {
+    phi: thetaFromTwoPoints(p1, p2),
+    theta: Math.asin(dz / r),
+  }
+}
+
 /**
   clamp:
     Return the given value, constrained by a min and max.
@@ -51,7 +60,8 @@ function clamp(min, max, value) {
 function distance(p1, p2) {
   const dy = p2.y - p1.y
   const dx = p2.x - p1.x
-  return Math.sqrt(dy * dy + dx * dx)
+  const dz = p1.z !== null && p2.z !== null ? p2.z - p1.z : 0
+  return Math.sqrt(dy * dy + dx * dx + dz * dz)
 }
 
 /**
@@ -194,6 +204,7 @@ export {
   denormalizeScreenPos,
   coordsFromTheta,
   thetaFromTwoPoints,
+  thetaFromTwoPoints3d,
   interpolate,
   interpolateSmooth,
   randomInRange,

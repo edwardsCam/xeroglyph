@@ -7,6 +7,7 @@ import InfinityCycle from 'patterns/infinity-cycle'
 import Swirl from 'patterns/swirl'
 import JoyDivision from 'patterns/joy-division'
 import Coral from 'patterns/coral'
+import Coral3D from 'patterns/coral-3d'
 import Cubes from 'patterns/cubes'
 import Checkers from 'patterns/checkers'
 
@@ -22,6 +23,7 @@ const patternMap = {
   city: city,
   joyDivision: JoyDivision,
   coral: Coral,
+  coral3d: Coral3D,
   cubes: Cubes,
   checkers: Checkers,
 }
