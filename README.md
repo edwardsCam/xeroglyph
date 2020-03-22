@@ -2,12 +2,15 @@ Algorithmically generated artworks.
 
 ## Index
 * Coral: https://edwardscam.github.io/p5?pattern=coral
+* Coral 3D (experimental): https://edwardscam.github.io/p5?pattern=coral3d
 * Swirl: https://edwardscam.github.io/p5?pattern=swirl
 * Infinity Cycle: https://edwardscam.github.io/p5?pattern=infinity
 * Chipboard: https://edwardscam.github.io/p5?pattern=chipboard
 * Cityscape: https://edwardscam.github.io/p5?pattern=city
 * Joy Division: https://edwardscam.github.io/p5?pattern=joyDivision
 * Cubes: https://edwardscam.github.io/p5?pattern=cubes
+* Checkers: https://edwardscam.github.io/p5?pattern=checkers
+* Eye: https://edwardscam.github.io/p5?pattern=eye
 
 ## Help
 * Hit `Esc` or `i` to toggle an info panel.
