@@ -1,4 +1,4 @@
-import { init as initProps, getProp } from 'utils/propConfig'
+import { init as initProps, getProp /* setProp */ } from 'utils/propConfig'
 
 export default s => {
   const get = prop => getProp('eye', prop)
@@ -9,21 +9,21 @@ export default s => {
     circleSize: get('Circle Size'),
     pulseDelay: get('Pulse Delay'),
     pulseIntensity: get('Pulse Intensity'),
+    showStrokes: get('Show Strokes?'),
+    pulseInward: get('Pulse Inward?'),
   })
 
   class Dot {
-    constructor({ position, r }) {
+    constructor(position) {
       this.position = position
-      this.r = r
     }
 
-    draw({ pulseIntensity }, pulseProgress) {
-      const { position, r } = this
+    draw({ pulseIntensity, circleSize }, pulseProgress) {
+      const { position } = this
       s.circle(
         position.x,
         position.y,
-
-        r + pulseProgress * pulseIntensity
+        circleSize + pulseProgress * pulseIntensity
 
         // random mode
         // r + (Math.random() - 0.5) * randomness * 10
@@ -40,50 +40,38 @@ export default s => {
       const xLen = Math.cos(theta) * len
       const yLen = Math.sin(theta) * len
       const n = Math.floor(len / circleSize)
-
       for (let i = 0; i < n; i++) {
         const progress = i / n
         this.dots.push(
           new Dot({
-            position: {
-              x: startingPosition.x + xLen * progress,
-              y: startingPosition.y + yLen * progress,
-            },
-            r: circleSize,
+            x: startingPosition.x + xLen * progress,
+            y: startingPosition.y + yLen * progress,
           })
         )
       }
     }
 
     draw(props) {
-      this.dots.forEach((dot, i) => {
-        const distanceFromPulse =
-          (this.dots.length + this.pulse - i) % this.dots.length
-        const pulseProgress =
-          (this.dots.length - Math.abs(distanceFromPulse)) / this.dots.length
+      const dots = props.pulseInward ? [...this.dots].reverse() : this.dots
+      const { length } = dots
+      dots.forEach((dot, i) => {
+        const distanceFromPulse = (length + this.pulse - i) % length
+        const pulseProgress = (length - distanceFromPulse) / length
         dot.draw(props, pulseProgress)
       })
 
-      if (props.pulseDelay === 0) this.resetPulse()
-      else if (++this.stopper > props.pulseDelay) {
-        this.resetPulse()
-      }
-    }
-
-    resetPulse() {
-      this.stopper = 0
-      if (++this.pulse >= this.dots.length) {
-        this.pulse = 0
+      if (props.pulseDelay === 0 || ++this.stopper > props.pulseDelay) {
+        this.stopper = 0
+        if (++this.pulse >= length) {
+          this.pulse = 0
+          // return true
+        }
       }
     }
   }
 
   class Eye {
     constructor({ innerRadius, circleSize, lineCount, lineLength }) {
-      const mid = {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
-      }
       this.eyeLines = []
       for (let i = 0; i < lineCount; i++) {
         const progress = i / lineCount
@@ -94,31 +82,38 @@ export default s => {
             theta,
             circleSize,
             startingPosition: {
-              x: mid.x + Math.cos(theta) * innerRadius,
-              y: mid.y + Math.sin(theta) * innerRadius,
+              x: window.innerWidth / 2 + Math.cos(theta) * innerRadius,
+              y: window.innerHeight / 2 + Math.sin(theta) * innerRadius,
             },
           })
         )
       }
     }
 
-    mutate() {}
-
     draw(props) {
-      this.eyeLines.forEach(eyeLine => eyeLine.draw(props))
+      // let finishedPulse = false
+      this.eyeLines.forEach(eyeLine => {
+        eyeLine.draw(props)
+        // const didFinish = eyeLine.draw(props)
+        // if (!finishedPulse && didFinish) {
+        //   finishedPulse = true
+        //   setProp('eye', 'Line Count', props.lineCount + 1)
+        //   initialize()
+        // }
+      })
     }
   }
 
   initProps('eye', {
     'Line Count': {
       type: 'number',
-      default: 10,
+      default: 8,
       min: 1,
       onChange: initialize,
     },
     'Line Length': {
       type: 'number',
-      default: 400,
+      default: 300,
       min: 15,
       onChange: initialize,
     },
@@ -130,7 +125,7 @@ export default s => {
     },
     'Circle Size': {
       type: 'number',
-      default: 10,
+      default: 8,
       min: 1,
       onChange: initialize,
     },
@@ -141,8 +136,15 @@ export default s => {
     },
     'Pulse Intensity': {
       type: 'number',
-      default: 40,
+      default: 50,
       min: 0,
+    },
+    'Show Strokes?': {
+      type: 'boolean',
+      default: true,
+    },
+    'Pulse Inward?': {
+      type: 'boolean',
     },
   })
 
@@ -158,8 +160,9 @@ export default s => {
 
   s.draw = () => {
     s.clear()
-    // s.noStroke()
     const props = getProps()
+    if (props.showStrokes) s.stroke(0, 0, 0)
+    else s.noStroke()
     eye.draw(props)
   }
 }

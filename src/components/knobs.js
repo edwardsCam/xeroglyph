@@ -45,6 +45,9 @@ export default class Knobs extends React.Component {
                 autoFocus={i === 0}
                 onChange={e => {
                   setProp(pattern, prop, Boolean(e.target.checked))
+                  if (propConfig.onChange) {
+                    propConfig.onChange(e.target.value)
+                  }
                   this.forceUpdate()
                 }}
                 type="checkbox"
@@ -70,6 +73,9 @@ export default class Knobs extends React.Component {
                 name={prop}
                 onChange={e => {
                   setProp(pattern, prop, e.target.value)
+                  if (propConfig.onChange) {
+                    propConfig.onChange(e.target.value)
+                  }
                   this.forceUpdate()
                 }}
                 value={values[prop]}
