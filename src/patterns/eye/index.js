@@ -6,7 +6,9 @@ export default s => {
     lineLength: get('Line Length'),
     innerRadius: get('Inner Radius'),
     lineCount: get('Line Count'),
-    randomness: get('Randomness'),
+    circleSize: get('Circle Size'),
+    pulseDelay: get('Pulse Delay'),
+    pulseIntensity: get('Pulse Intensity'),
   })
 
   class Dot {
@@ -15,23 +17,29 @@ export default s => {
       this.r = r
     }
 
-    draw({ randomness }) {
+    draw({ pulseIntensity }, pulseProgress) {
       const { position, r } = this
       s.circle(
         position.x,
         position.y,
-        r + (Math.random() - 0.5) * randomness * 10
+
+        r + pulseProgress * pulseIntensity
+
+        // random mode
+        // r + (Math.random() - 0.5) * randomness * 10
       )
     }
   }
 
   class EyeLine {
-    constructor({ len, circleRadius, theta, startingPosition }) {
+    constructor({ len, circleSize, theta, startingPosition }) {
       this.dots = []
+      this.pulse = 0
+      this.stopper = 0
 
       const xLen = Math.cos(theta) * len
       const yLen = Math.sin(theta) * len
-      const n = Math.floor(len / circleRadius)
+      const n = Math.floor(len / circleSize)
 
       for (let i = 0; i < n; i++) {
         const progress = i / n
@@ -41,19 +49,37 @@ export default s => {
               x: startingPosition.x + xLen * progress,
               y: startingPosition.y + yLen * progress,
             },
-            r: circleRadius,
+            r: circleSize,
           })
         )
       }
     }
 
     draw(props) {
-      this.dots.forEach(dot => dot.draw(props))
+      this.dots.forEach((dot, i) => {
+        const distanceFromPulse =
+          (this.dots.length + this.pulse - i) % this.dots.length
+        const pulseProgress =
+          (this.dots.length - Math.abs(distanceFromPulse)) / this.dots.length
+        dot.draw(props, pulseProgress)
+      })
+
+      if (props.pulseDelay === 0) this.resetPulse()
+      else if (++this.stopper > props.pulseDelay) {
+        this.resetPulse()
+      }
+    }
+
+    resetPulse() {
+      this.stopper = 0
+      if (++this.pulse >= this.dots.length) {
+        this.pulse = 0
+      }
     }
   }
 
   class Eye {
-    constructor({ innerRadius, lineCount, lineLength }) {
+    constructor({ innerRadius, circleSize, lineCount, lineLength }) {
       const mid = {
         x: window.innerWidth / 2,
         y: window.innerHeight / 2,
@@ -66,7 +92,7 @@ export default s => {
           new EyeLine({
             len: lineLength,
             theta,
-            circleRadius: 10,
+            circleSize,
             startingPosition: {
               x: mid.x + Math.cos(theta) * innerRadius,
               y: mid.y + Math.sin(theta) * innerRadius,
@@ -86,29 +112,37 @@ export default s => {
   initProps('eye', {
     'Line Count': {
       type: 'number',
-      default: 8,
+      default: 10,
       min: 1,
       onChange: initialize,
     },
     'Line Length': {
       type: 'number',
-      default: 200,
+      default: 400,
       min: 15,
       onChange: initialize,
     },
     'Inner Radius': {
       type: 'number',
-      default: 20,
+      default: 50,
       min: 0,
       onChange: initialize,
     },
-    Randomness: {
+    'Circle Size': {
       type: 'number',
-      default: 0.5,
-      min: 0,
-      max: 1,
-      step: 0.1,
+      default: 10,
+      min: 1,
       onChange: initialize,
+    },
+    'Pulse Delay': {
+      type: 'number',
+      default: 1,
+      min: 0,
+    },
+    'Pulse Intensity': {
+      type: 'number',
+      default: 40,
+      min: 0,
     },
   })
 
@@ -124,6 +158,7 @@ export default s => {
 
   s.draw = () => {
     s.clear()
+    // s.noStroke()
     const props = getProps()
     eye.draw(props)
   }
