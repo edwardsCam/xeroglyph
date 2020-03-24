@@ -55,6 +55,7 @@ module.exports = {
       'max-classes-per-file',
       'max-params',
       'no-bitwise',
+      'no-multi-assign',
       'no-confusing-arrow',
       'no-continue',
       'no-plusplus',

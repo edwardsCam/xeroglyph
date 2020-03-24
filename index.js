@@ -11,6 +11,7 @@ import Coral3D from 'patterns/coral-3d'
 import Cubes from 'patterns/cubes'
 import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
+import ISpy from 'patterns/i-spy'
 
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
@@ -28,6 +29,7 @@ const patternMap = {
   cubes: Cubes,
   checkers: Checkers,
   eye: Eye,
+  iSpy: ISpy,
 }
 
 const getPattern = () => {
