@@ -1,4 +1,4 @@
-const zigzag = s => {
+const zigzag = (s) => {
   const drawZig = (height, padding, start, isInverted, isBookend, dir) => {
     const { x: x0, y: y0 } = start
     const xp0 = x0 + padding
@@ -116,7 +116,6 @@ const zigzag = s => {
       const padding = _p * height
       s.stroke(...color)
 
-      debugger
       switch (dir) {
         case 0: // west
           const startX = (n - 1) * height + start.x

@@ -1,8 +1,8 @@
 import { interpolate } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 
-export default s => {
-  const get = prop => getProp('cubes', prop)
+export default (s) => {
+  const get = (prop) => getProp('cubes', prop)
   const getProps = () => ({
     n: get('Cube Count'),
     distance: get('Distance'),
@@ -104,7 +104,7 @@ export default s => {
     }
 
     draw(props) {
-      this.cubes.forEach(cube => cube.draw(props))
+      this.cubes.forEach((cube) => cube.draw(props))
     }
   }
 

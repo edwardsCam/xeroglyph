@@ -82,7 +82,6 @@ module.exports = {
     ...error([
       'array-callback-return',
       'arrow-spacing',
-      ['arrow-parens', 'as-needed'],
       'block-spacing',
       'brace-style',
       'comma-style',
@@ -130,7 +129,6 @@ module.exports = {
       }],
       'rest-spread-spacing',
       ['semi', 'never'],
-      ['space-before-function-paren', 'never'],
       'wrap-iife',
     ]),
   },

@@ -1,7 +1,7 @@
 import { generate, drawRules } from '../l-system/dragon-curve'
 import Turtle from '../utils/turtle'
 
-export default s => {
+export default (s) => {
   let drawn = false
 
   s.setup = () => {
@@ -22,7 +22,7 @@ export default s => {
       )
       generate(10)
         .split('')
-        .forEach(c => {
+        .forEach((c) => {
           const rule = drawRules[c]
           if (rule) {
             if (rule === 'DRAW') {

@@ -1,7 +1,7 @@
 import { interpolate, clamp } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 
-export default s => {
+export default (s) => {
   class Particle {
     constructor(props) {
       this.position = props.position
@@ -90,7 +90,7 @@ export default s => {
     }
 
     move(props) {
-      this.particles.forEach(particle => {
+      this.particles.forEach((particle) => {
         particle.move(props)
       })
     }
@@ -102,7 +102,7 @@ export default s => {
     }
   }
 
-  const get = prop => getProp('joyDivision', prop)
+  const get = (prop) => getProp('joyDivision', prop)
   const getProps = () => ({
     initialDistance: get('initialDistance'),
     lineCount: get('lineCount'),
@@ -193,7 +193,7 @@ export default s => {
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
-    window.addEventListener('keydown', function(e) {
+    window.addEventListener('keydown', function (e) {
       if (e.code === 'Space') {
         isPaused = !isPaused
       }

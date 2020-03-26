@@ -23,7 +23,7 @@ export default class Knobs extends React.Component {
                 autoFocus={i === 0}
                 min={min}
                 max={max}
-                onChange={e => {
+                onChange={(e) => {
                   setProp(pattern, prop, Number(e.target.value))
                   if (propConfig.onChange) {
                     propConfig.onChange(e.target.value)
@@ -43,7 +43,7 @@ export default class Knobs extends React.Component {
               {`${prop}: `}
               <input
                 autoFocus={i === 0}
-                onChange={e => {
+                onChange={(e) => {
                   setProp(pattern, prop, Boolean(e.target.checked))
                   if (propConfig.onChange) {
                     propConfig.onChange(e.target.value)
@@ -71,7 +71,7 @@ export default class Knobs extends React.Component {
               {`${prop}: `}
               <select
                 name={prop}
-                onChange={e => {
+                onChange={(e) => {
                   setProp(pattern, prop, e.target.value)
                   if (propConfig.onChange) {
                     propConfig.onChange(e.target.value)
@@ -80,7 +80,7 @@ export default class Knobs extends React.Component {
                 }}
                 value={values[prop]}
               >
-                {propConfig.options.map(opt => (
+                {propConfig.options.map((opt) => (
                   <option key={opt} value={opt} children={opt} />
                 ))}
               </select>

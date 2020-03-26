@@ -1,7 +1,7 @@
 import { init as initProps, getProp /* setProp */ } from 'utils/propConfig'
 
-export default s => {
-  const get = prop => getProp('eye', prop)
+export default (s) => {
+  const get = (prop) => getProp('eye', prop)
   const getProps = () => ({
     lineLength: get('Line Length'),
     innerRadius: get('Inner Radius'),
@@ -92,7 +92,7 @@ export default s => {
 
     draw(props) {
       // let finishedPulse = false
-      this.eyeLines.forEach(eyeLine => {
+      this.eyeLines.forEach((eyeLine) => {
         eyeLine.draw(props)
         // const didFinish = eyeLine.draw(props)
         // if (!finishedPulse && didFinish) {

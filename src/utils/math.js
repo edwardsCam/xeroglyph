@@ -6,8 +6,8 @@
 Math.TWO_PI = Math.PI * 2
 Math.HALF_PI = Math.PI / 2
 
-const toRadians = d => (d * Math.PI) / 180
-const toDegrees = r => (r * 180) / Math.PI
+const toRadians = (d) => (d * Math.PI) / 180
+const toDegrees = (r) => (r * 180) / Math.PI
 
 /**
   coordsFromTheta:

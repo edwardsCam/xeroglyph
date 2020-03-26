@@ -27,14 +27,14 @@ class Drape {
     })
     this.forces = []
 
-    this.points.forEach(point => {
+    this.points.forEach((point) => {
       point.vel.div(this.damp)
       point.pos.add(point.vel)
     })
   }
 }
 
-export default s => {
+export default (s) => {
   const drapes = [new Drape(s, { x: 10, res: 10, damp: 1.01 })]
 
   s.setup = () => {
@@ -47,7 +47,7 @@ export default s => {
 
   s.draw = () => {
     s.clear()
-    drapes.forEach(drape => {
+    drapes.forEach((drape) => {
       drape.mutate()
       for (let i = 0; i < drape.points.length; i++) {
         if (i === 0) continue

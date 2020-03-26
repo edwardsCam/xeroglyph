@@ -10,7 +10,7 @@ import throttle from 'lodash.throttle'
 import drawGrid from './utils/drawGrid'
 import { getCenterOfTile, getCoordinates } from './utils/gridUtils'
 
-export default s => {
+export default (s) => {
   const lines = []
   const _props_ = {
     resolution: 21,

@@ -5,7 +5,7 @@ const productionRules = {
   a: 'b-a-b',
   b: 'a+b+a',
 }
-const generate = n => baseGenerate(axiom, productionRules, n)
+const generate = (n) => baseGenerate(axiom, productionRules, n)
 const drawRules = {
   a: 'DRAW',
   b: 'DRAW',

@@ -58,7 +58,7 @@ class Set {
   }
 
   merge(otherSet) {
-    otherSet.items.forEach(item => this.add(item))
+    otherSet.items.forEach((item) => this.add(item))
   }
 }
 

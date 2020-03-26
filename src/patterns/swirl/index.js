@@ -10,7 +10,7 @@ function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {
   }
 }
 
-export default s => {
+export default (s) => {
   let hasMouseMoved = false
 
   function getGravVector(p1, p2, props) {
@@ -93,13 +93,13 @@ export default s => {
 
     mutate(props) {
       this.calculateGravitationalPulls(props)
-      this.particles.forEach(particle => {
+      this.particles.forEach((particle) => {
         particle.move(props)
       })
     }
 
     draw(props) {
-      this.particles.forEach(particle => {
+      this.particles.forEach((particle) => {
         particle.draw(props)
       })
     }
@@ -195,7 +195,7 @@ export default s => {
     },
   })
 
-  const get = prop => getProp('swirl', prop)
+  const get = (prop) => getProp('swirl', prop)
 
   const getProps = () => ({
     maxSpeed: get('maxSpeed'),

@@ -1,8 +1,8 @@
 import { interpolate, interpolateSmooth } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 
-export default s => {
-  const get = prop => getProp('checkers', prop)
+export default (s) => {
+  const get = (prop) => getProp('checkers', prop)
   const getProps = () => ({
     n: get('n'),
     minRatio: 0.1,

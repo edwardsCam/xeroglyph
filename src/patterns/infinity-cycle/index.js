@@ -19,15 +19,15 @@ labels.appendChild(dampFactorLabel)
 
 document.body.appendChild(labels)
 
-const setLineCountLabel = count =>
+const setLineCountLabel = (count) =>
   (lineCountLabel.innerHTML = `line count: ${count}`)
-const setPeriodLabel = period =>
+const setPeriodLabel = (period) =>
   (periodLabel.innerHTML = `period: ${period * 1000}ms`)
-const setPeriodProgressLabel = progress =>
+const setPeriodProgressLabel = (progress) =>
   (periodProgressLabel.innerHTML = `cycle progress: ${(progress * 100).toFixed(
     0
   )}%`)
-const setDampFactorLabel = damp =>
+const setDampFactorLabel = (damp) =>
   (dampFactorLabel.innerHTML = `dampening factor: ${damp.toFixed(1)}`)
 
 const interpolateColors = (color1, color2, p) => ({
@@ -37,8 +37,8 @@ const interpolateColors = (color1, color2, p) => ({
   o: interpolate([0, 1], [color1.o, color2.o], p),
 })
 
-export default s => {
-  const get = prop => getProp('infinity', prop)
+export default (s) => {
+  const get = (prop) => getProp('infinity', prop)
   const getProps = () => ({
     isFilled: false,
     is3d: true,
@@ -177,7 +177,7 @@ export default s => {
 
   s.setup = () => {
     initialize()
-    window.addEventListener('keydown', e => {
+    window.addEventListener('keydown', (e) => {
       if (e.key == 'q') {
         if (isPausingDampIncrease) {
           isPausingDampIncrease = false
@@ -369,7 +369,7 @@ export default s => {
           }
         })
       } else {
-        lines.forEach(line => s.line(...line))
+        lines.forEach((line) => s.line(...line))
       }
     }
   }

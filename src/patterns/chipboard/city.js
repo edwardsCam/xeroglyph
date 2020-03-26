@@ -2,13 +2,13 @@ import { interpolate, diff } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 import { rir, colorSchemes } from './common'
 
-export default s => {
+export default (s) => {
   let isPaused = false
   let lastKnowns = []
   let timeouts = []
   let cubes = []
 
-  const get = prop => getProp('city', prop)
+  const get = (prop) => getProp('city', prop)
   const getProps = () => ({
     minBlankSpace: get('minBlankSpace'),
     randomness: get('randomness'),
@@ -68,9 +68,9 @@ export default s => {
 
   s.setup = () => {
     const canvas = document.getElementById('defaultCanvas0')
-    window.addEventListener('keydown', e => {
+    window.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.altKey && e.key === 's') {
-        canvas.toBlob(blob => {
+        canvas.toBlob((blob) => {
           const downloadLink = document.createElement('a')
           downloadLink.href = URL.createObjectURL(blob)
           downloadLink.download = 'chipboard.png'
@@ -81,7 +81,7 @@ export default s => {
       } else if (e.code === 'Space') {
         isPaused = !isPaused
         if (!isPaused) {
-          lastKnowns.forEach(lastKnown => createChipboard(...lastKnown))
+          lastKnowns.forEach((lastKnown) => createChipboard(...lastKnown))
           lastKnowns = []
         }
       }
@@ -99,7 +99,7 @@ export default s => {
 
   function initialize() {
     const props = getProps()
-    timeouts.forEach(timeout => clearTimeout(timeout))
+    timeouts.forEach((timeout) => clearTimeout(timeout))
     timeouts = []
     lastKnowns = []
     cubes = []

@@ -2,8 +2,8 @@ import { interpolate, diff } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 import { rir, colorSchemes } from './common'
 
-export default s => {
-  const get = prop => getProp('chipboard', prop)
+export default (s) => {
+  const get = (prop) => getProp('chipboard', prop)
   initProps('chipboard', {
     draw: {
       type: 'func',
@@ -75,9 +75,9 @@ export default s => {
 
   s.setup = () => {
     const canvas = document.getElementById('defaultCanvas0')
-    window.addEventListener('keydown', e => {
+    window.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.altKey && e.code === 'KeyS') {
-        canvas.toBlob(blob => {
+        canvas.toBlob((blob) => {
           const downloadLink = document.createElement('a')
           downloadLink.href = URL.createObjectURL(blob)
           downloadLink.download = 'chipboard.png'
@@ -97,7 +97,7 @@ export default s => {
     function togglePause() {
       isPaused = !isPaused
       if (!isPaused) {
-        lastKnowns.forEach(lastKnown => createChipboard(...lastKnown))
+        lastKnowns.forEach((lastKnown) => createChipboard(...lastKnown))
         lastKnowns = []
       }
     }
@@ -109,7 +109,7 @@ export default s => {
     s.clear()
     const props = getProps()
 
-    timeouts.forEach(timeout => clearTimeout(timeout))
+    timeouts.forEach((timeout) => clearTimeout(timeout))
     timeouts = []
     lastKnowns = []
     isPaused = false

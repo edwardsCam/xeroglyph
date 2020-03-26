@@ -2,18 +2,18 @@ export default function PriorityQueue(priorityProp = '') {
   if (!(this instanceof PriorityQueue)) return new PriorityQueue(priorityProp)
   const dat = []
 
-  this.push = function(item) {
+  this.push = function (item) {
     if (!item) return
     dat.push(item)
     bubbleUp()
   }
-  this.pop = function() {
+  this.pop = function () {
     if (!this.has()) return null
     const ret = dat.shift()
     bubbleDown()
     return ret
   }
-  this.has = function() {
+  this.has = function () {
     return dat.length > 0
   }
 

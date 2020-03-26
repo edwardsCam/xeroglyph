@@ -62,8 +62,8 @@ const getRandomAdjacentRoom = ({ r, c }, n) => {
   return null
 }
 
-export default s => {
-  const get = prop => getProp('iSpy', prop)
+export default (s) => {
+  const get = (prop) => getProp('iSpy', prop)
   const getProps = () => ({
     n: get('Resolution'),
     unity: get('Unity'),
@@ -100,7 +100,7 @@ export default s => {
       s.stroke(255, 255, 255)
       s.fill(0, 0, 0)
       const roomSize = Math.min(window.innerWidth, window.innerHeight) / props.n
-      this.rooms.forEach(room => {
+      this.rooms.forEach((room) => {
         const { x, y, width, height } = getDimensions(room, roomSize)
         s.rect(x, y, width, height)
       })

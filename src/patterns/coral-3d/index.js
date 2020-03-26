@@ -6,8 +6,8 @@ import {
 } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 
-export default s => {
-  const get = prop => getProp('coral3d', prop)
+export default (s) => {
+  const get = (prop) => getProp('coral3d', prop)
   const getProps = () => ({
     damp: get('damp'),
     preferredProximity: get('preferredProximity'),
@@ -90,7 +90,7 @@ export default s => {
 
     mutate(props) {
       const { nodes } = this
-      nodes.forEach(node => {
+      nodes.forEach((node) => {
         if (props.randomMode) {
           node.acceleration = s.createVector()
         } else {
@@ -177,7 +177,7 @@ export default s => {
         }
       }
 
-      nodes.forEach(node => node.move(props))
+      nodes.forEach((node) => node.move(props))
     }
 
     isWithinRange(i, j, range) {
@@ -283,7 +283,7 @@ export default s => {
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
-    window.addEventListener('keydown', function(e) {
+    window.addEventListener('keydown', function (e) {
       if (e.code === 'Space') {
         isPaused = !isPaused
       }

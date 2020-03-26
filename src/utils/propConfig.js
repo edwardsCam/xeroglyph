@@ -1,6 +1,6 @@
 const index = {}
 
-const getConfig = pattern => index[pattern]
+const getConfig = (pattern) => index[pattern]
 const getProp = (pattern, prop) => index[pattern].values[prop]
 const setProp = (pattern, prop, value) => {
   index[pattern].values[prop] = value

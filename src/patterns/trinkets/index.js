@@ -1,10 +1,7 @@
-import { init as initProps, getProp } from 'utils/propConfig'
+import { init as initProps } from 'utils/propConfig'
 import zigzag from './zigzag'
 
-export default s => {
-  const get = prop => getProp('trinkets', prop)
-  const getProps = () => ({})
-
+export default (s) => {
   initProps('trinkets', {})
 
   let zig
@@ -17,8 +14,8 @@ export default s => {
     initialize()
   }
 
-  let padding = 0
-  let h = 4
+  const padding = 0
+  const h = 4
 
   s.draw = () => {
     s.clear()
