@@ -1,5 +1,6 @@
 import { interpolate, toRadians } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
+import Scribble from '../../p5.scribble'
 
 const labels = document.createElement('div')
 
@@ -71,6 +72,7 @@ export default (s) => {
       b: 255,
       o: 1,
     },
+    scribble: get('scribble'),
   })
 
   initProps('infinity', {
@@ -113,6 +115,10 @@ export default (s) => {
       min: 0,
       step: 0.05,
     },
+    scribble: {
+      type: 'boolean',
+      default: false,
+    },
   })
 
   let lines,
@@ -128,9 +134,11 @@ export default (s) => {
     pauseCamera,
     cameraFreeze,
     cameraOffset,
-    damp
+    damp,
+    scribble
 
   function initialize() {
+    scribble = new Scribble(s)
     const props = getProps()
     lines = []
 
@@ -350,6 +358,10 @@ export default (s) => {
     } else {
       const { r, g, b, a } = props.color1
       s.stroke(`rgba(${r}, ${g}, ${b}, ${a})`)
+
+      const drawFn = props.scribble
+        ? (...args) => scribble.scribbleLine(...args)
+        : (...args) => s.line(...args)
       if (props.zigzag) {
         lines.forEach((line, i) => {
           if (i === 0) return
@@ -358,18 +370,18 @@ export default (s) => {
 
           if (props.is3d) {
             if (i % 2) {
-              s.line(line1[3], line1[4], line1[5], line2[0], line2[1], line1[2])
+              drawFn(line1[3], line1[4], line1[5], line2[0], line2[1], line1[2])
             } else {
-              s.line(line1[0], line1[1], line1[2], line2[3], line2[4], line2[5])
+              drawFn(line1[0], line1[1], line1[2], line2[3], line2[4], line2[5])
             }
           } else if (i % 2) {
-            s.line(line1[2], line1[3], line2[0], line2[1])
+            drawFn(line1[2], line1[3], line2[0], line2[1])
           } else {
-            s.line(line1[0], line1[1], line2[2], line2[3])
+            drawFn(line1[0], line1[1], line2[2], line2[3])
           }
         })
       } else {
-        lines.forEach((line) => s.line(...line))
+        lines.forEach((line) => drawFn(...line))
       }
     }
   }

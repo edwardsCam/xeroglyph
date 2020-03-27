@@ -1,6 +1,7 @@
 import { interpolate, diff } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 import { rir, colorSchemes } from './common'
+import Scribble from '../../p5.scribble'
 
 export default (s) => {
   const get = (prop) => getProp('chipboard', prop)
@@ -12,7 +13,7 @@ export default (s) => {
     },
     minBlankSpace: {
       type: 'number',
-      default: 1.5,
+      default: 4,
       min: 0.5,
       step: 0.5,
     },
@@ -40,7 +41,7 @@ export default (s) => {
     maxDelay: {
       when: () => get('interpolateDelay'),
       type: 'number',
-      default: 500,
+      default: 700,
       min: 0,
       step: 1,
     },
@@ -50,7 +51,12 @@ export default (s) => {
     },
     withStrokes: {
       type: 'boolean',
-      default: false,
+      default: true,
+    },
+    scribble: {
+      type: 'boolean',
+      when: () => get('withStrokes'),
+      default: true,
     },
     pattern: {
       type: 'dropdown',
@@ -67,11 +73,13 @@ export default (s) => {
     maxDelay: get('maxDelay'),
     interpolateDelay: get('interpolateDelay'),
     withStrokes: get('withStrokes'),
+    scribble: get('scribble'),
     ...colorSchemes.icelandSlate,
   })
   let isPaused = false
   let lastKnowns = []
   let timeouts = []
+  let scribble
 
   s.setup = () => {
     const canvas = document.getElementById('defaultCanvas0')
@@ -113,6 +121,7 @@ export default (s) => {
     timeouts = []
     lastKnowns = []
     isPaused = false
+    scribble = new Scribble(s)
     if (props.withStrokes) {
       s.stroke(0, 0, 0)
     } else {
@@ -142,7 +151,15 @@ export default (s) => {
 
     switch (props.pattern) {
       case 'square':
-        drawSquare(minX, minY, maxX, maxY, 0)
+        if (props.scribble) {
+          scribble.scribbleRect(minX, minY, maxX - minX, maxY - minY)
+
+          s.stroke(color)
+          // scribble.scribbleFilling([minX,maxX], [minY, maxY], 2, 0)
+        } else {
+          drawSquare(minX, minY, maxX, maxY, 0)
+        }
+
         break
       case 'triangle':
         drawTriangle(minX, minY, maxX, maxY, quad)

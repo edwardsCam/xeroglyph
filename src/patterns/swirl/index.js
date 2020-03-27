@@ -1,5 +1,6 @@
 import { thetaFromTwoPoints, distance, clamp, interpolate } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
+import Scribble from '../../p5.scribble'
 
 function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {
   const d = distance(p1.position, p2.position)
@@ -12,6 +13,7 @@ function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {
 
 export default (s) => {
   let hasMouseMoved = false
+  let scribble = new Scribble(s)
 
   function getGravVector(p1, p2, props) {
     const { strength, theta } = calculateGravBetweenTwoBodies(p1, p2, props)
@@ -60,7 +62,9 @@ export default (s) => {
 
         const p1 = this.pathHistory[i - 1]
         const p2 = this.pathHistory[i]
-        s.line(p1.x, p1.y, p2.x, p2.y)
+        props.scribble
+          ? scribble.scribbleLine(p1.x, p1.y, p2.x, p2.y)
+          : s.line(p1.x, p1.y, p2.x, p2.y)
       }
     }
 
@@ -193,6 +197,10 @@ export default (s) => {
       type: 'boolean',
       default: false,
     },
+    scribble: {
+      type: 'boolean',
+      default: false,
+    },
   })
 
   const get = (prop) => getProp('swirl', prop)
@@ -208,6 +216,7 @@ export default (s) => {
     dotMass: get('dotMass'),
     renderDots: get('renderDots'),
     disableMouse: get('disableMouse'),
+    scribble: get('scribble'),
     colorFn: (particle, historyPathIdx) => {
       const tweenBetween = (v1, v2) =>
         interpolate(
