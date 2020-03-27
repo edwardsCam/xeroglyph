@@ -107,7 +107,7 @@ export default (s) => {
     }
 
     draw(props) {
-      debugger
+      scribble.roughness = props.roughness
       this.particles.forEach((particle) => {
         particle.draw(props)
       })
@@ -150,7 +150,7 @@ export default (s) => {
   initProps('swirl', {
     numTraceSteps: {
       type: 'number',
-      default: 40,
+      default: 4,
       step: 1,
       min: 0,
     },
@@ -206,6 +206,14 @@ export default (s) => {
       type: 'boolean',
       default: true,
     },
+    Roughness: {
+      type: 'number',
+      default: 5,
+      min: 0,
+      max: 10,
+      step: 0.2,
+      when: () => get('scribble'),
+    },
   })
 
   const get = (prop) => getProp('swirl', prop)
@@ -222,6 +230,7 @@ export default (s) => {
     renderDots: get('renderDots'),
     disableMouse: get('disableMouse'),
     scribble: get('scribble'),
+    roughness: get('Roughness'),
     colorFn: (particle, historyPathIdx) => {
       const tweenBetween = (v1, v2) =>
         interpolate(

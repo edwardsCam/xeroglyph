@@ -51,13 +51,21 @@ export default (s) => {
     },
     'Stroke Weight': {
       type: 'number',
-      default: 0.5,
+      default: 0.6,
       min: 0,
-      step: 0.5,
+      step: 0.2,
     },
     'Sketchy?': {
       type: 'boolean',
       default: true,
+    },
+    Roughness: {
+      type: 'number',
+      default: 1,
+      min: 0,
+      max: 5,
+      step: 0.1,
+      when: () => get('Sketchy?'),
     },
     Shape: {
       type: 'dropdown',
@@ -75,6 +83,7 @@ export default (s) => {
     interpolateDelay: get('interpolateDelay'),
     scribble: get('Sketchy?'),
     strokeWeight: get('Stroke Weight'),
+    roughness: get('Roughness'),
     ...colorSchemes.icelandSlate,
   })
   let isPaused = false
@@ -150,6 +159,8 @@ export default (s) => {
 
     s.fill(color)
     s.strokeWeight(props.strokeWeight)
+
+    scribble.roughness = props.roughness
 
     switch (props.pattern) {
       case 'square':

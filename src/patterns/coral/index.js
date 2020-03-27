@@ -1,5 +1,6 @@
 import { interpolate, distance, thetaFromTwoPoints } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
+import Scribble from '../../p5.scribble'
 
 export default (s) => {
   const get = (prop) => getProp('coral', prop)
@@ -13,7 +14,10 @@ export default (s) => {
     foldiness: get('foldiness'),
     stretchiness: get('stretchiness'),
     randomMode: get('randomMode'),
+    scribble: get('scribble'),
   })
+  const scribble = new Scribble(s)
+  scribble.roughness = 2
 
   class Node {
     constructor(x, y) {
@@ -187,13 +191,16 @@ export default (s) => {
       return j >= min && j <= max
     }
 
-    draw() {
+    draw(props) {
       const { nodes } = this
       s.stroke(255, 255, 255)
       for (let i = 0; i < nodes.length; i++) {
         const n1 = nodes[i].position
         const n2 = nodes[i === nodes.length - 1 ? 0 : i + 1].position
-        s.line(n1.x, n1.y, n2.x, n2.y)
+        const lineArgs = [n1.x, n1.y, n2.x, n2.y]
+        props.scribble
+          ? scribble.scribbleLine(...lineArgs)
+          : s.line(...lineArgs)
       }
     }
   }
@@ -251,6 +258,10 @@ export default (s) => {
       default: 20,
       min: 2,
       step: 1,
+    },
+    scribble: {
+      type: 'boolean',
+      default: true,
     },
     randomMode: {
       type: 'boolean',
