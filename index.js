@@ -13,6 +13,7 @@ import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 import ISpy from 'patterns/i-spy'
 import Trinkets from 'patterns/trinkets'
+import Tiles from 'patterns/tiles'
 
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
@@ -32,6 +33,7 @@ const patternMap = {
   eye: Eye,
   iSpy: ISpy,
   trinkets: Trinkets,
+  tiles: Tiles,
 }
 
 const getPattern = () => {
