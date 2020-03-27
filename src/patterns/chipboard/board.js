@@ -11,34 +11,34 @@ export default (s) => {
       label: 'Redraw!',
       callback: initialize,
     },
-    minBlankSpace: {
+    'Smallest Allowed Width': {
       type: 'number',
-      default: 14,
+      default: 12,
       min: 0.5,
       step: 0.5,
     },
-    randomness: {
+    Randomness: {
       type: 'number',
       default: 1,
       min: 0,
       max: 1,
       step: 0.025,
     },
-    delay: {
+    'Paint Delay': {
       when: () => !get('interpolateDelay'),
       type: 'number',
       default: 1,
       min: -1,
       step: 1,
     },
-    minDelay: {
+    'Fastest Paint': {
       when: () => get('interpolateDelay'),
       type: 'number',
       default: 1,
       min: 0,
       step: 1,
     },
-    maxDelay: {
+    'Slowest Paint': {
       when: () => get('interpolateDelay'),
       type: 'number',
       default: 700,
@@ -49,31 +49,32 @@ export default (s) => {
       type: 'boolean',
       default: true,
     },
-    withStrokes: {
+    'Stroke Weight': {
+      type: 'number',
+      default: 0.5,
+      min: 0,
+      step: 0.5,
+    },
+    'Sketchy?': {
       type: 'boolean',
       default: true,
     },
-    scribble: {
-      type: 'boolean',
-      when: () => get('withStrokes'),
-      default: true,
-    },
-    pattern: {
+    Shape: {
       type: 'dropdown',
       default: 'square',
       options: ['square', 'triangle'],
     },
   })
   const getProps = () => ({
-    minBlankSpace: get('minBlankSpace'),
-    randomness: get('randomness'),
-    pattern: get('pattern'),
-    delay: get('delay'),
-    minDelay: get('minDelay'),
-    maxDelay: get('maxDelay'),
+    minBlankSpace: get('Smallest Allowed Width'),
+    randomness: get('Randomness'),
+    pattern: get('Shape'),
+    delay: get('Paint Delay'),
+    minDelay: get('Fastest Paint'),
+    maxDelay: get('Slowest Paint'),
     interpolateDelay: get('interpolateDelay'),
-    withStrokes: get('withStrokes'),
-    scribble: get('scribble'),
+    scribble: get('Sketchy?'),
+    strokeWeight: get('Stroke Weight'),
     ...colorSchemes.icelandSlate,
   })
   let isPaused = false
@@ -122,7 +123,7 @@ export default (s) => {
     lastKnowns = []
     isPaused = false
     scribble = new Scribble(s)
-    if (props.withStrokes) {
+    if (props.strokeWeight > 0) {
       s.stroke(0, 0, 0)
     } else {
       s.noStroke()
@@ -148,6 +149,7 @@ export default (s) => {
     if (dx < props.minBlankSpace || dy < props.minBlankSpace) return
 
     s.fill(color)
+    s.strokeWeight(props.strokeWeight)
 
     switch (props.pattern) {
       case 'square':
@@ -155,19 +157,17 @@ export default (s) => {
           if (color != 'white') {
             s.stroke(color)
           }
-
-          s.strokeWeight(2)
           scribble.scribbleRect(minX, minY, maxX - minX, maxY - minY)
-
-          // s.strokeWeight(1)
-          // scribble.scribbleFilling([minX,maxX, maxX,minX], [minY, minY, maxY, maxY], 10, 45)
         } else {
           drawSquare(minX, minY, maxX, maxY, 0)
         }
 
         break
       case 'triangle':
-        drawTriangle(minX, minY, maxX, maxY, quad)
+        if (color != 'white') {
+          s.stroke(color)
+        }
+        drawTriangle(minX, minY, maxX, maxY, quad, props.scribble)
         break
     }
 
@@ -207,19 +207,25 @@ export default (s) => {
     s.rect(x1, y1, x2 - x1, y2 - y1, radius, radius, radius, radius)
   }
 
-  function drawTriangle(x1, y1, x2, y2, quad, withStretch) {
+  function drawTriangle(x1, y1, x2, y2, quad, withScribble) {
     const dx = x2 - x1
     const dy = y2 - y1
-    const stretchX = withStretch ? dx / 10 : 0
-    const stretchY = withStretch ? dy / 10 : 0
+
+    const drawFn = withScribble
+      ? (x1, y1, x2, y2, x3, y3) => {
+          scribble.scribbleLine(x1, y1, x2, y2)
+          scribble.scribbleLine(x2, y2, x3, y3)
+          scribble.scribbleLine(x3, y3, x1, y1)
+        }
+      : (...args) => s.triangle(...args)
     if (quad === 'bl') {
-      s.triangle(x1, y1, x2, y2, x1 + stretchX, y2 + stretchY)
+      drawFn(x1, y1, x2, y2, x1, y2)
     } else if (quad === 'br') {
-      s.triangle(x1, y2, x2 + stretchX, y2 + stretchY, x2, y1)
+      drawFn(x1, y2, x2, y2, x2, y1)
     } else if (quad === 'tr') {
-      s.triangle(x1, y1, x2 + stretchX, y1 + stretchY, x2, y2)
+      drawFn(x1, y1, x2, y1, x2, y2)
     } else if (quad === 'tl') {
-      s.triangle(x1 + stretchX, y1 + stretchY, x2, y1, x1, y2)
+      drawFn(x1, y1, x2, y1, x1, y2)
     }
   }
 }
