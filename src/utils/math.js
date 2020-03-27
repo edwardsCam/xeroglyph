@@ -60,7 +60,7 @@ function clamp(min, max, value) {
 function distance(p1, p2) {
   const dy = p2.y - p1.y
   const dx = p2.x - p1.x
-  const dz = p1.z !== null && p2.z !== null ? p2.z - p1.z : 0
+  const dz = (p2.z || 0) - (p1.z || 0)
   return Math.sqrt(dy * dy + dx * dx + dz * dz)
 }
 

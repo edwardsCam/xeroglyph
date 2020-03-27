@@ -52,9 +52,12 @@ export default (s) => {
     }
 
     draw(props) {
-      if (props.renderDots) {
+      if (props.renderDots && !props.scribble) {
         s.stroke(0, 0, 0)
-        s.ellipse(this.position.x, this.position.y, 10, 10)
+        const ellipseArgs = [this.position.x, this.position.y, 10, 10]
+        props.scribble
+          ? scribble.scribbleEllipse(...ellipseArgs)
+          : s.ellipse(...ellipseArgs)
       }
       for (let i = 1; i < this.pathHistory.length; i++) {
         const { r, g, b } = props.colorFn(this, i)
@@ -62,9 +65,10 @@ export default (s) => {
 
         const p1 = this.pathHistory[i - 1]
         const p2 = this.pathHistory[i]
+        const lineArgs = [p1.x, p1.y, p2.x, p2.y]
         props.scribble
-          ? scribble.scribbleLine(p1.x, p1.y, p2.x, p2.y)
-          : s.line(p1.x, p1.y, p2.x, p2.y)
+          ? scribble.scribbleLine(...lineArgs)
+          : s.line(...lineArgs)
       }
     }
 
@@ -103,6 +107,7 @@ export default (s) => {
     }
 
     draw(props) {
+      debugger
       this.particles.forEach((particle) => {
         particle.draw(props)
       })
@@ -199,7 +204,7 @@ export default (s) => {
     },
     scribble: {
       type: 'boolean',
-      default: false,
+      default: true,
     },
   })
 

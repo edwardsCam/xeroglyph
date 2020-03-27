@@ -13,7 +13,7 @@ export default (s) => {
     },
     minBlankSpace: {
       type: 'number',
-      default: 4,
+      default: 14,
       min: 0.5,
       step: 0.5,
     },
@@ -152,10 +152,15 @@ export default (s) => {
     switch (props.pattern) {
       case 'square':
         if (props.scribble) {
+          if (color != 'white') {
+            s.stroke(color)
+          }
+
+          s.strokeWeight(2)
           scribble.scribbleRect(minX, minY, maxX - minX, maxY - minY)
 
-          s.stroke(color)
-          // scribble.scribbleFilling([minX,maxX], [minY, maxY], 2, 0)
+          // s.strokeWeight(1)
+          // scribble.scribbleFilling([minX,maxX, maxX,minX], [minY, minY, maxY, maxY], 10, 45)
         } else {
           drawSquare(minX, minY, maxX, maxY, 0)
         }
