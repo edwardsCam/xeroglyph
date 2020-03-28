@@ -11,6 +11,7 @@ Algorithmically generated artworks.
 * Cubes: https://edwardscam.github.io/p5?pattern=cubes
 * Checkers: https://edwardscam.github.io/p5?pattern=checkers
 * Eye: https://edwardscam.github.io/p5?pattern=eye
+* Tiles: https://edwardscam.github.io/p5?pattern=tiles
 
 ## Help
 * Hit `Esc` or `i` to toggle an info panel.
