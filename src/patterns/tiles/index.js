@@ -6,23 +6,29 @@ export default (s) => {
   initProps('tiles', {
     draw: {
       type: 'func',
-      label: 'Redraw!',
+      label: 'Regenerate',
       callback: initialize,
+    },
+    randomizeColors: {
+      when: () => !get('Party Mode!'),
+      type: 'func',
+      label: 'Randomize colors',
+      callback: randomizeColors,
     },
     'Fill Screen': {
       type: 'boolean',
       default: true,
     },
-    'Square Count': {
-      type: 'number',
-      default: 5,
-      min: 1,
-      onChange: initialize,
-    },
     'Square Size': {
       when: () => !get('Fill Screen'),
       type: 'number',
       default: 150,
+      min: 1,
+      onChange: initialize,
+    },
+    'Square Count': {
+      type: 'number',
+      default: 5,
       min: 1,
       onChange: initialize,
     },
@@ -32,6 +38,10 @@ export default (s) => {
       min: 2,
       onChange: initialize,
     },
+    'Party Mode!': {
+      type: 'boolean',
+      default: false,
+    },
   })
   const get = (prop) => getProp('tiles', prop)
   const getProps = () => ({
@@ -39,6 +49,7 @@ export default (s) => {
     squareSize: get('Square Size'),
     fillScreen: get('Fill Screen'),
     split: get('Split Count'),
+    partyMode: get('Party Mode!'),
     colors: ['#e7b2a5', '#f1935c', '#ba6b57', '#30475e'],
   })
 
@@ -61,6 +72,8 @@ export default (s) => {
       const startX = window.innerWidth / 2 - fullSize / 2
       const startY = window.innerHeight / 2 - fullSize / 2
 
+      if (props.partyMode) this.randomizeColors()
+
       this.squares.forEach((row, r) => {
         row.forEach((tile, c) => {
           tile.draw({
@@ -74,11 +87,21 @@ export default (s) => {
         })
       })
     }
+
+    randomizeColors() {
+      this.squares.forEach((row) =>
+        row.forEach((tile) => tile.setColors(getProps()))
+      )
+    }
   }
 
   class Tile {
     constructor(props) {
       this.dir = Math.floor(Math.random() * 2)
+      this.setColors(props)
+    }
+
+    setColors(props) {
       this.colors = []
       for (let i = 0; i < props.split; i++) {
         let c = getRandomValue(props.colors)
@@ -91,7 +114,8 @@ export default (s) => {
       }
     }
 
-    draw({ start, squareSize, split, colors }) {
+    draw(props) {
+      const { start, squareSize, split, colors } = props
       const flip = this.dir === 0
 
       const { x: xmin, y: ymin } = start
@@ -161,6 +185,10 @@ export default (s) => {
   let tiles
   function initialize() {
     tiles = new Tiles(getProps())
+  }
+
+  function randomizeColors() {
+    tiles.randomizeColors()
   }
 
   s.setup = () => {

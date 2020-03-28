@@ -62,6 +62,7 @@ export default class Knobs extends React.Component {
               key={prop}
               onClick={propConfig.callback}
               children={propConfig.label}
+              className="knob"
             />
           )
 
