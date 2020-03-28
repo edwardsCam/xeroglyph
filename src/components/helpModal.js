@@ -41,7 +41,10 @@ const infoMap = {
   city: {
     title: 'Cityscape',
     instructions: [],
-    description: ['Randomly generate a cityscape!', 'Follows the same algorithm as "Chipboard", just extended to three dimensions.'],
+    description: [
+      'Randomly generate a cityscape!',
+      'Follows the same algorithm as "Chipboard", just extended to three dimensions.',
+    ],
   },
   joyDivision: {
     title: 'Joy Division',
@@ -50,11 +53,11 @@ const infoMap = {
       'The algorithm is as follows:',
       'Start with a number of lines, then have them randomly meander up and down, while moving at a constant rate to the side.',
       'About halfway through the screen, a different mode is triggered where each line will try to get back to its starting Y position.',
-      'They gravitate toward their starting position using Newton\'s formula for universal gravitation, actually.',
+      "They gravitate toward their starting position using Newton's formula for universal gravitation, actually.",
       'So they behave similarly to planets in orbit, for instance.',
       'As each line gets pulled closer to its center of gravity, the pull gets stronger which causes it to accelerate faster.',
       'When it finally does reach its target, it has too much velocity and it overshoots, before eventually being pulled back again.',
-      'Combined with the constant horizontal movement, this creates a cool mountain-like effect.'
+      'Combined with the constant horizontal movement, this creates a cool mountain-like effect.',
     ],
   },
   coral: {

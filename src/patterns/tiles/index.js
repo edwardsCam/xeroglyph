@@ -44,6 +44,13 @@ export default (s) => {
       min: 2,
       onChange: initialize,
     },
+    'Stroke Weight': {
+      type: 'number',
+      default: 2.5,
+      min: 0,
+      step: 0.25,
+      onChange: initialize,
+    },
     'Allow Same Adjacent Colors': {
       type: 'boolean',
       default: false,
@@ -60,6 +67,7 @@ export default (s) => {
     squareSize: get('Square Size'),
     fillScreen: get('Fill Screen'),
     split: get('Split Count'),
+    strokeWeight: get('Stroke Weight'),
     partyMode: get('Party Mode!'),
     allowAdjacent: get('Allow Same Adjacent Colors'),
     colors: colorSchemes[1],
@@ -77,7 +85,12 @@ export default (s) => {
     }
 
     draw(props) {
-      s.noStroke()
+      if (props.strokeWeight) {
+        s.stroke(0, 0, 0)
+        s.strokeWeight(props.strokeWeight)
+      } else {
+        s.noStroke()
+      }
       const min = Math.min(window.innerWidth, window.innerHeight)
       const squareSize = props.fillScreen ? min / props.n : props.squareSize
       const fullSize = squareSize * props.n
