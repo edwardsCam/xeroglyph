@@ -14,6 +14,7 @@ import Eye from 'patterns/eye'
 import ISpy from 'patterns/i-spy'
 import Trinkets from 'patterns/trinkets'
 import Tiles from 'patterns/tiles'
+import Vida from 'patterns/vida'
 
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
@@ -34,6 +35,7 @@ const patternMap = {
   iSpy: ISpy,
   trinkets: Trinkets,
   tiles: Tiles,
+  motionDetection: Vida
 }
 
 const getPattern = () => {

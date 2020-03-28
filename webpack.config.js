@@ -6,6 +6,7 @@ module.exports = {
   mode: 'development',
   output: {
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/assets/',
     filename: 'main.js',
   },
   module: {

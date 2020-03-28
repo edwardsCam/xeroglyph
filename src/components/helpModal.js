@@ -100,6 +100,11 @@ const infoMap = {
     instructions: [],
     description: [],
   },
+  motionDetection: {
+    title: 'Motion Detection',
+    instructions: [],
+    description: [],
+  },
 }
 
 export default class HelpModal extends React.Component {
