@@ -2,6 +2,12 @@ import { init as initProps, getProp } from 'utils/propConfig'
 
 const getRandomValue = (arr) => arr[Math.floor(Math.random() * arr.length)]
 
+const colorSchemes = [
+  ['#de7119', '#dee3e2', '#116979', '#18b0b0'],
+  ['#e7b2a5', '#f1935c', '#ba6b57', '#30475e'],
+  ['#edffea', '#75daad', '#216353', '#7a4d1d'],
+]
+
 export default (s) => {
   initProps('tiles', {
     draw: {
@@ -38,6 +44,11 @@ export default (s) => {
       min: 2,
       onChange: initialize,
     },
+    'Allow Same Adjacent Colors': {
+      type: 'boolean',
+      default: false,
+      onChange: initialize,
+    },
     'Party Mode!': {
       type: 'boolean',
       default: false,
@@ -50,7 +61,8 @@ export default (s) => {
     fillScreen: get('Fill Screen'),
     split: get('Split Count'),
     partyMode: get('Party Mode!'),
-    colors: ['#e7b2a5', '#f1935c', '#ba6b57', '#30475e'],
+    allowAdjacent: get('Allow Same Adjacent Colors'),
+    colors: colorSchemes[1],
   })
 
   class Tiles {
@@ -65,6 +77,7 @@ export default (s) => {
     }
 
     draw(props) {
+      s.noStroke()
       const min = Math.min(window.innerWidth, window.innerHeight)
       const squareSize = props.fillScreen ? min / props.n : props.squareSize
       const fullSize = squareSize * props.n
@@ -105,9 +118,11 @@ export default (s) => {
       this.colors = []
       for (let i = 0; i < props.split; i++) {
         let c = getRandomValue(props.colors)
-        if (i > 0) {
-          while (c === this.colors[i - 1]) {
-            c = getRandomValue(props.colors)
+        if (!props.allowAdjacent) {
+          if (i > 0) {
+            while (c === this.colors[i - 1]) {
+              c = getRandomValue(props.colors)
+            }
           }
         }
         this.colors.push(c)
@@ -124,8 +139,6 @@ export default (s) => {
 
       const splitDistance = (squareSize * 2) / split
       const mid = Math.floor(split / 2)
-
-      s.noStroke()
 
       let prev
       for (let i = 0; i < split; i++) {
