@@ -105,6 +105,11 @@ const infoMap = {
     instructions: [],
     description: [],
   },
+  voiceRecognition: {
+    title: 'Voice Recognition',
+    instructions: [],
+    description: [],
+  },
 }
 
 export default class HelpModal extends React.Component {
