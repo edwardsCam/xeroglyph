@@ -60,6 +60,12 @@ export default (s) => {
       type: 'boolean',
       default: false,
     },
+    Randomness: {
+      type: 'number',
+      min: 0,
+      default: 0,
+      onChange: initialize,
+    },
   })
   const get = (prop) => getProp('tiles', prop)
   const getProps = () => ({
@@ -69,6 +75,7 @@ export default (s) => {
     split: get('Split Count'),
     strokeWeight: get('Stroke Weight'),
     partyMode: get('Party Mode!'),
+    randomness: get('Randomness'),
     allowAdjacent: get('Allow Same Adjacent Colors'),
     colors: colorSchemes[1],
   })
@@ -82,6 +89,8 @@ export default (s) => {
           this.squares[r].push(new Tile(props))
         }
       }
+
+      if (props.randomness > 0) this.randomizeSplit()
     }
 
     draw(props) {
@@ -119,6 +128,20 @@ export default (s) => {
         row.forEach((tile) => tile.setColors(getProps()))
       )
     }
+
+    randomizeSplit() {
+      const props = getProps()
+      const { split, randomness } = props
+      this.squares.forEach((row) =>
+        row.forEach((tile) => {
+          const randomDeviation = Math.floor(
+            (Math.random() * (randomness + 1) - randomness / 2) * 2
+          )
+          tile.setSplit(Math.max(2, split + randomDeviation))
+          tile.setColors(props)
+        })
+      )
+    }
   }
 
   class Tile {
@@ -129,7 +152,8 @@ export default (s) => {
 
     setColors(props) {
       this.colors = []
-      for (let i = 0; i < props.split; i++) {
+      const split = this.getSplit(props)
+      for (let i = 0; i < split; i++) {
         let c = getRandomValue(props.colors)
         if (!props.allowAdjacent) {
           if (i > 0) {
@@ -142,8 +166,17 @@ export default (s) => {
       }
     }
 
+    setSplit(split) {
+      this.split = split
+    }
+
+    getSplit(props) {
+      return this.split || props.split
+    }
+
     draw(props) {
-      const { start, squareSize, split, colors } = props
+      const { start, squareSize, colors } = props
+      const split = this.getSplit(props)
       const flip = this.dir === 0
 
       const { x: xmin, y: ymin } = start
