@@ -9,6 +9,7 @@ export default (s) => {
     padding: get('Padding'),
     strokeWeight: get('Stroke Weight'),
     depth: get('Depth'),
+    opacity: get('Opacity'),
   })
   initProps('pandorasBox', {
     redraw: {
@@ -24,7 +25,7 @@ export default (s) => {
     },
     Unity: {
       type: 'number',
-      default: 0.5,
+      default: 0.75,
       min: 0,
       max: 1,
       step: 0.05,
@@ -32,12 +33,12 @@ export default (s) => {
     },
     Padding: {
       type: 'number',
-      default: 20,
+      default: 15,
       min: 0,
     },
     Depth: {
       type: 'number',
-      default: 20,
+      default: 30,
       min: 0,
       step: 2,
     },
@@ -46,6 +47,13 @@ export default (s) => {
       default: 2,
       min: 0,
       step: 0.2,
+    },
+    Opacity: {
+      type: 'number',
+      default: 1,
+      min: 0,
+      max: 1,
+      step: 0.1,
     },
   })
 
@@ -56,6 +64,8 @@ export default (s) => {
         new Face(props, 1),
         new Face(props, 2),
         new Face(props, 3),
+        new Face(props, 4),
+        new Face(props, 5),
       ]
     }
 
@@ -115,7 +125,7 @@ export default (s) => {
       }
     }
 
-    draw({ n, padding, depth }) {
+    draw({ n, padding, depth, opacity }) {
       s.push()
 
       const roomSize = Math.min(window.innerWidth, window.innerHeight) / (n * 2)
@@ -126,23 +136,40 @@ export default (s) => {
       switch (this.orientation) {
         case 0:
           s.translate(halfDepth + padding, 0, -offset)
-          s.fill('rgba(255, 0, 0, 1)')
+          s.rotateY(0)
+          // s.fill(`rgba(255, 0, 0, ${opacity})`)
           break
         case 1:
-          s.translate(offset + padding, 0, halfDepth + padding)
-          s.fill('rgba(0, 255, 0, 1)')
+          s.translate(offset + padding, padding + depth, halfDepth + padding)
+          s.rotateY(Math.PI / 2)
+          // s.fill(`rgba(0, 255, 0, ${opacity})`)
           break
         case 2:
-          s.translate(-halfDepth, 0, offset + padding)
-          s.fill('rgba(0, 0, 255, 1)')
+          s.translate(-halfDepth, padding + depth, offset + padding)
+          s.rotateY(Math.PI)
+          // s.fill(`rgba(0, 0, 255, ${opacity})`)
           break
         case 3:
           s.translate(-offset, 0, -halfDepth)
-          s.fill('rgba(0, 0, 0, 1)')
+          s.rotateY((3 * Math.PI) / 2)
+          // s.fill(`rgba(255, 255, 0, ${opacity})`)
+          break
+        case 4:
+          s.translate(-halfDepth, offset + padding + halfDepth, -halfDepth)
+          s.rotateX(Math.PI / 2)
+          // s.fill(`rgba(255, 0, 255, ${opacity})`)
+          break
+        case 5:
+          s.translate(
+            padding + halfDepth,
+            halfDepth - offset,
+            padding + halfDepth
+          )
+          s.rotateX((3 * Math.PI) / 2)
+          // s.fill(`rgba(0, 255, 255, ${opacity})`)
           break
       }
-
-      s.rotateY((this.orientation * Math.PI) / 2)
+      s.fill(`rgba(255, 255, 255, ${opacity})`)
 
       this.rooms.forEach((room) => {
         const { x, y, width, height } = this.getDimensions(
@@ -170,35 +197,43 @@ export default (s) => {
   let pandora
   let mouseX
   let mouseY
+  let zoom
+  const damp = 20
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
     initialize()
     mouseX = mouseY = 0
+    zoom = 5
   }
 
   s.draw = () => {
     const props = getProps()
     s.clear()
+    s.camera(0, 0, zoom * 200, 0, 0, 0, 0, 1, 0)
+    s.lights()
 
-    const damp = 20
-    const xDiff = (s.mouseX - mouseX) / damp
-    mouseX += xDiff
-
-    const yDiff = (s.mouseY - mouseY) / damp
-    mouseY += yDiff
+    mouseX += (s.mouseX - mouseX) / damp
+    mouseY += (s.mouseY - mouseY) / damp
     s.rotateY(mouseX * 0.005)
     s.rotateX(mouseY * 0.005)
     s.strokeWeight(props.strokeWeight)
+
     pandora.draw(props)
+  }
+
+  s.mouseWheel = (e) => {
+    zoom += e.delta / (damp * 60)
+    console.info(zoom)
   }
 
   function initialize() {
     const props = getProps()
 
     s.clear()
-    s.stroke(255, 255, 255)
+    s.stroke(0, 0, 0)
     s.noFill()
+    s.noCursor()
 
     pandora = new PandorasBox(props)
   }
