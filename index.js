@@ -16,6 +16,7 @@ import Trinkets from 'patterns/trinkets'
 import Tiles from 'patterns/tiles'
 import Vida from 'patterns/vida'
 import VoiceRecognition from 'patterns/voice-recognition'
+import PandorasBox from 'patterns/pandoras-box'
 
 import HelpModal from 'components/helpModal'
 import Knobs from 'components/knobs'
@@ -38,6 +39,7 @@ const patternMap = {
   tiles: Tiles,
   motionDetection: Vida,
   voiceRecognition: VoiceRecognition,
+  pandorasBox: PandorasBox,
 }
 
 const getPattern = () => {

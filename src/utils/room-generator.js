@@ -1,4 +1,5 @@
 import DisjointSet from './disjoint-set'
+import { randomInRange } from './math'
 
 const getRandomAdjacentRoom = ({ r, c }, n) => {
   let dir = Math.floor(Math.random() * 4)
@@ -39,37 +40,78 @@ const getRandomAdjacentRoom = ({ r, c }, n) => {
 }
 
 export default class RoomGenerator {
-  constructor({ n, unity }) {
-    this.n = n
-    this.unity = unity
+  constructor(props) {
     const rooms = []
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
+    for (let r = 0; r < props.n; r++) {
+      for (let c = 0; c < props.n; c++) {
         rooms.push({ r, c })
       }
     }
-    this.rooms = new DisjointSet(rooms)
-    this.singleRooms = Object.values(this.rooms.universe).map(
+    this.disjointSet = new DisjointSet(rooms)
+    this.singleRooms = Object.values(this.disjointSet.universe).map(
       ({ data }) => data
     )
 
-    this.combineRooms()
+    this.combineRooms(props)
   }
 
-  combineRooms() {
-    const { n, unity } = this
-    const numMerges = n * n * unity
-    for (let i = 0; i < numMerges; i++) {
-      if (!this.singleRooms.length) return
-      const randomIndex = Math.floor(Math.random() * this.singleRooms.length)
-      const room1 = this.singleRooms[randomIndex]
-      const room2 = getRandomAdjacentRoom(room1, n)
-      this.rooms.union(room1, room2)
-      this.singleRooms.splice(randomIndex, 1)
+  removeSingleRoom({ r, c }) {
+    const idx = this.singleRooms.findIndex(
+      (coords) => coords.r === r && coords.c === c
+    )
+    if (idx >= 0) {
+      this.singleRooms.splice(idx, 1)
     }
   }
 
+  combineRooms(props) {
+    const { n, unity, quadsOnly = false } = props
+
+    if (quadsOnly) {
+      const add = (room1, room2) => {
+        this.disjointSet.union(room1, room2)
+        this.removeSingleRoom(room1)
+        this.removeSingleRoom(room2)
+        const bigRoom = this.disjointSet.find(room1)
+        const { minR, minC, maxR, maxC } = bigRoom.getTopLeftCorner()
+        for (let r = minR; r <= maxR; r++) {
+          for (let c = minC; c <= maxC; c++) {
+            const coords = { r, c }
+            if (!this.disjointSet.areInTheSameRoom(room1, coords)) {
+              add(room1, coords)
+            }
+          }
+        }
+      }
+
+      const hasMoreMergingToDo = () => {
+        const expected = Math.floor(n * n * unity)
+        const actual = n * n - this.singleRooms.length
+        return actual < expected
+      }
+      while (hasMoreMergingToDo()) {
+        const room1 = this.getRandomRoom()
+        const room2 = getRandomAdjacentRoom(room1, n)
+        add(room1, room2)
+      }
+    } else {
+      const numMerges = n * n * unity
+      for (let i = 0; i < numMerges; i++) {
+        if (!this.singleRooms.length) return
+        const room1 = this.getRandomRoom()
+        const room2 = getRandomAdjacentRoom(room1, n)
+        this.disjointSet.union(room1, room2)
+        this.singleRooms.splice(randomIndex, 1)
+      }
+    }
+  }
+
+  getRandomRoom() {
+    const randomIndex = Math.floor(Math.random() * this.singleRooms.length)
+    return this.singleRooms[randomIndex]
+  }
+
   forEach(callback) {
-    this.rooms.forEach(callback)
+    this.disjointSet.forEach(callback)
   }
 }

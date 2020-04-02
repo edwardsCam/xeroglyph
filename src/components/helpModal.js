@@ -110,6 +110,11 @@ const infoMap = {
     instructions: [],
     description: [],
   },
+  pandorasBox: {
+    title: "Pandora's Box",
+    instructions: [],
+    description: [],
+  },
 }
 
 export default class HelpModal extends React.Component {
