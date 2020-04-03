@@ -3,6 +3,7 @@ Algorithmically generated artworks.
 ## Index
 * Chipboard: https://edwardscam.github.io/p5?pattern=chipboard
 * Tiles: https://edwardscam.github.io/p5?pattern=tiles
+* Pandora: https://edwardscam.github.io/p5?pattern=pandorasBox
 * Eye: https://edwardscam.github.io/p5?pattern=eye
 * Cubes: https://edwardscam.github.io/p5?pattern=cubes
 * Coral: https://edwardscam.github.io/p5?pattern=coral
