@@ -130,7 +130,7 @@ export default (s) => {
       }
     }
 
-    draw({ n, padding, depth, opacity, scribbly }) {
+    draw({ n, padding, depth, opacity, scribbly, strokeWeight }) {
       s.push()
 
       const roomSize = Math.min(window.innerWidth, window.innerHeight) / (n * 2)
@@ -193,6 +193,7 @@ export default (s) => {
               y2: y + height,
             },
             depth,
+            strokeWeight,
           },
           scribbly
         )
@@ -248,22 +249,68 @@ export default (s) => {
     pandora = new PandorasBox(props)
   }
 
-  function drawCube({ coords, depth }, scribbly) {
+  function drawCube({ coords, depth, strokeWeight }, scribbly) {
     const { x1, y1, x2, y2 } = coords
     const dx = x2 - x1
     const dy = y2 - y1
+    const avgX = (x1 + x2) / 2
+    const avgY = (y1 + y2) / 2
 
     s.push()
+    // if (scribbly) {
+
+    // } else {
+    s.push()
+    s.translate(avgX, avgY)
     if (scribbly) {
-      s.stroke(255, 255, 0)
+      s.noStroke()
+    }
+    s.box(dx, dy, depth)
+    s.pop()
+
+    if (scribbly) {
+      s.push()
+      s.strokeWeight(strokeWeight)
+      // s.stroke(0, 255, 0)
+      s.translate(0, 0, -depth / 2)
       scribble.scribbleLine(x1, y1, x2, y1)
       scribble.scribbleLine(x2, y1, x2, y2)
       scribble.scribbleLine(x2, y2, x1, y2)
       scribble.scribbleLine(x1, y2, x1, y1)
-    } else {
-      s.translate((x1 + x2) / 2, (y1 + y2) / 2)
-      s.box(dx, dy, depth)
+
+      s.translate(0, 0, depth)
+      scribble.scribbleLine(x1, y1, x2, y1)
+      scribble.scribbleLine(x2, y1, x2, y2)
+      scribble.scribbleLine(x2, y2, x1, y2)
+      scribble.scribbleLine(x1, y2, x1, y1)
+
+      s.translate(x1, y1, -depth)
+      s.push()
+      s.rotateX(Math.PI / 2)
+      scribble.scribbleLine(0, 0, 0, depth)
+      s.pop()
+
+      s.push()
+      s.translate(-x1 * 2, 0, 0)
+      s.rotateX(Math.PI / 2)
+      scribble.scribbleLine(0, 0, 0, depth)
+      s.pop()
+
+      s.push()
+      s.translate(-x1 * 2, -y1 * 2, 0)
+      s.rotateX(Math.PI / 2)
+      scribble.scribbleLine(0, 0, 0, depth)
+      s.pop()
+
+      s.push()
+      s.translate(0, -y1 * 2, 0)
+      s.rotateX(Math.PI / 2)
+      scribble.scribbleLine(0, 0, 0, depth)
+      s.pop()
+
+      s.pop()
     }
+
     s.pop()
   }
 }
