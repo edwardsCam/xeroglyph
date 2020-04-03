@@ -1,5 +1,6 @@
 import { init as initProps, getProp } from 'utils/propConfig'
 import RoomGenerator from '../../utils/room-generator'
+import Scribble from '../../p5.scribble'
 
 export default (s) => {
   const get = (prop) => getProp('pandorasBox', prop)
@@ -10,6 +11,7 @@ export default (s) => {
     strokeWeight: get('Stroke Weight'),
     depth: get('Depth'),
     opacity: get('Opacity'),
+    scribbly: get('Scribbly?'),
   })
   initProps('pandorasBox', {
     redraw: {
@@ -54,6 +56,9 @@ export default (s) => {
       min: 0,
       max: 1,
       step: 0.1,
+    },
+    'Scribbly?': {
+      type: 'boolean',
     },
   })
 
@@ -125,7 +130,7 @@ export default (s) => {
       }
     }
 
-    draw({ n, padding, depth, opacity }) {
+    draw({ n, padding, depth, opacity, scribbly }) {
       s.push()
 
       const roomSize = Math.min(window.innerWidth, window.innerHeight) / (n * 2)
@@ -179,15 +184,18 @@ export default (s) => {
           offset,
           padding
         )
-        drawCube({
-          coords: {
-            x1: x,
-            y1: y,
-            x2: x + width,
-            y2: y + height,
+        drawCube(
+          {
+            coords: {
+              x1: x,
+              y1: y,
+              x2: x + width,
+              y2: y + height,
+            },
+            depth,
           },
-          depth,
-        })
+          scribbly
+        )
       })
 
       s.pop()
@@ -199,12 +207,14 @@ export default (s) => {
   let mouseY
   let zoom
   const damp = 20
+  let scribble
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
     initialize()
     mouseX = mouseY = 0
     zoom = 5
+    scribble = new Scribble(s)
   }
 
   s.draw = () => {
@@ -238,14 +248,22 @@ export default (s) => {
     pandora = new PandorasBox(props)
   }
 
-  function drawCube({ coords, depth }) {
+  function drawCube({ coords, depth }, scribbly) {
     const { x1, y1, x2, y2 } = coords
     const dx = x2 - x1
     const dy = y2 - y1
 
     s.push()
-    s.translate((x1 + x2) / 2, (y1 + y2) / 2)
-    s.box(dx, dy, depth)
+    if (scribbly) {
+      s.stroke(255, 255, 0)
+      scribble.scribbleLine(x1, y1, x2, y1)
+      scribble.scribbleLine(x2, y1, x2, y2)
+      scribble.scribbleLine(x2, y2, x1, y2)
+      scribble.scribbleLine(x1, y2, x1, y1)
+    } else {
+      s.translate((x1 + x2) / 2, (y1 + y2) / 2)
+      s.box(dx, dy, depth)
+    }
     s.pop()
   }
 }
