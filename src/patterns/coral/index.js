@@ -225,13 +225,13 @@ export default (s) => {
     },
     maxNodes: {
       type: 'number',
-      default: 400,
+      default: 500,
       min: 3,
       step: 10,
     },
     nodeChangeTimer: {
       type: 'number',
-      default: 20,
+      default: 18,
       min: 5,
       step: 5,
     },
@@ -255,13 +255,13 @@ export default (s) => {
     },
     stretchiness: {
       type: 'number',
-      default: 20,
+      default: 12,
       min: 2,
       step: 1,
     },
     scribble: {
       type: 'boolean',
-      default: true,
+      default: false,
     },
     randomMode: {
       type: 'boolean',

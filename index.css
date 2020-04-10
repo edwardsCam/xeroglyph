@@ -36,3 +36,92 @@ body {
 .knob input {
   width: 50px;
 }
+
+.index-list {
+  background-image: linear-gradient(20deg, #85dcb0, #85dcd3);
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row;
+}
+
+.index-column {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+  min-width: 12rem;
+}
+
+.homepage-link {
+  position: relative;
+  height: 6rem;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  border: 2px solid #e27d60;
+
+  text-decoration: none;
+  font-family: sans-serif;
+  text-transform: uppercase;
+
+  padding: 0.5rem;
+  color: #242582;
+}
+
+.homepage-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  top: 0;
+  right: 0;
+  opacity: 1;
+  transition: opacity 200ms ease-out;
+  background-size: cover;
+  background-position: center;
+}
+
+.homepage-link:hover::before {
+  opacity: 0;
+}
+
+.homepage-link:hover,
+.homepage-link:focus {
+  outline: none;
+}
+
+.homepage-link.chipboard::before {
+  background-image: url('assets/example_chipboard.png');
+}
+.homepage-link.tiles::before {
+  background-image: url('assets/example_tiles.png');
+}
+.homepage-link.pandorasBox::before {
+  background-image: url('assets/example_pandora.png');
+}
+.homepage-link.eye::before {
+  background-image: url('assets/example_eye.png');
+}
+.homepage-link.cubes::before {
+  background-image: url('assets/example_cubes.png');
+}
+.homepage-link.coral::before {
+  background-image: url('assets/example_coral.png');
+}
+.homepage-link.coral3d::before {
+  background-image: url('assets/example_coral3d.png');
+}
+.homepage-link.swirl::before {
+  background-image: url('assets/example_swirl.gif');
+}
+.homepage-link.joyDivision::before {
+  background-image: url('assets/example_joyDivision.png');
+}
+.homepage-link.city::before {
+  background-image: url('assets/example_city.png');
+}
+
+.homepage-link.motionDetection::before {
+}
+.homepage-link.swirl::before {
+}
+.homepage-link.infinity::before {
+}

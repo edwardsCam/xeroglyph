@@ -94,6 +94,7 @@ export default (s) => {
     s.clear()
     s.rotateX(Math.sin(s.frameCount * 0.0025))
     s.rotateY(Math.cos(s.frameCount * 0.0025))
+    s.lights()
     cubes.forEach(drawCube)
   }
 
