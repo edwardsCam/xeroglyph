@@ -1,4 +1,4 @@
-import { init as initProps, getProp } from 'utils/propConfig'
+import { init as initProps, getProp, setProp } from 'utils/propConfig'
 import RoomGenerator from '../../utils/room-generator'
 import Scribble from '../../p5.scribble'
 
@@ -12,6 +12,11 @@ export default (s) => {
     depth: get('Depth'),
     opacity: get('Opacity'),
     scribbly: get('Scribbly?'),
+    pulse: get('Pulse'),
+    pulseIntensityPadding: get('Pulse Intensity (Padding)'),
+    pulseFrequencyPadding: get('Pulse Frequency (Padding)'),
+    pulseIntensityDepth: get('Pulse Intensity (Depth)'),
+    pulseFrequencyDepth: get('Pulse Frequency (Depth)'),
   })
   initProps('pandorasBox', {
     redraw: {
@@ -40,7 +45,7 @@ export default (s) => {
     },
     Depth: {
       type: 'number',
-      default: 30,
+      default: 40,
       min: 0,
       step: 2,
     },
@@ -59,6 +64,37 @@ export default (s) => {
     },
     'Scribbly?': {
       type: 'boolean',
+    },
+    Pulse: {
+      type: 'boolean',
+    },
+    'Pulse Intensity (Padding)': {
+      when: () => get('Pulse'),
+      type: 'number',
+      default: 20,
+      min: 0,
+      step: 0.5,
+    },
+    'Pulse Frequency (Padding)': {
+      when: () => get('Pulse'),
+      type: 'number',
+      default: 0.02,
+      min: 0,
+      step: 0.005,
+    },
+    'Pulse Intensity (Depth)': {
+      when: () => get('Pulse'),
+      type: 'number',
+      default: 40,
+      min: 0,
+      step: 0.5,
+    },
+    'Pulse Frequency (Depth)': {
+      when: () => get('Pulse'),
+      type: 'number',
+      default: 0.015,
+      min: 0,
+      step: 0.005,
     },
   })
 
@@ -219,7 +255,22 @@ export default (s) => {
   }
 
   s.draw = () => {
-    const props = getProps()
+    let props = getProps()
+    if (props.pulse) {
+      const newPadding =
+        props.padding +
+        props.pulseIntensityPadding *
+          Math.sin(s.frameCount * props.pulseFrequencyPadding)
+      const newDepth =
+        props.depth +
+        props.pulseIntensityDepth *
+          Math.cos(s.frameCount * props.pulseFrequencyDepth)
+      props = {
+        ...props,
+        padding: newPadding,
+        depth: newDepth,
+      }
+    }
     s.clear()
     s.camera(0, 0, zoom * 200, 0, 0, 0, 0, 1, 0)
     s.lights()
@@ -257,9 +308,6 @@ export default (s) => {
     const avgY = (y1 + y2) / 2
 
     s.push()
-    // if (scribbly) {
-
-    // } else {
     s.push()
     s.translate(avgX, avgY)
     if (scribbly) {
@@ -271,7 +319,6 @@ export default (s) => {
     if (scribbly) {
       s.push()
       s.strokeWeight(strokeWeight)
-      // s.stroke(0, 255, 0)
       s.translate(0, 0, -depth / 2)
       scribble.scribbleLine(x1, y1, x2, y1)
       scribble.scribbleLine(x2, y1, x2, y2)
