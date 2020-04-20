@@ -33,8 +33,12 @@ body {
   display: block;
 }
 
-.knob input {
+.knob-short-input {
   width: 50px;
+}
+
+.knob-text {
+  width: 125px;
 }
 
 .index-list {

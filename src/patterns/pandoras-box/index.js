@@ -10,13 +10,15 @@ export default (s) => {
     padding: get('Padding'),
     strokeWeight: get('Stroke Weight'),
     depth: get('Depth'),
-    opacity: get('Opacity'),
+    fillColor: get('Fill Color'),
+    strokeColor: get('Stroke Color'),
     scribbly: get('Scribbly?'),
     pulse: get('Pulse'),
     pulseIntensityPadding: get('Pulse Intensity (Padding)'),
     pulseFrequencyPadding: get('Pulse Frequency (Padding)'),
     pulseIntensityDepth: get('Pulse Intensity (Depth)'),
     pulseFrequencyDepth: get('Pulse Frequency (Depth)'),
+    ignoreMouse: get('Ignore Mouse'),
   })
   initProps('pandorasBox', {
     redraw: {
@@ -55,12 +57,13 @@ export default (s) => {
       min: 0,
       step: 0.2,
     },
-    Opacity: {
-      type: 'number',
-      default: 1,
-      min: 0,
-      max: 1,
-      step: 0.1,
+    'Fill Color': {
+      type: 'string',
+      default: 'rgba(255, 255, 255, 1)',
+    },
+    'Stroke Color': {
+      type: 'string',
+      default: 'rgba(0, 0, 0, 1)',
     },
     'Scribbly?': {
       type: 'boolean',
@@ -95,6 +98,9 @@ export default (s) => {
       default: 0.015,
       min: 0,
       step: 0.005,
+    },
+    'Ignore Mouse': {
+      type: 'boolean',
     },
   })
 
@@ -166,7 +172,7 @@ export default (s) => {
       }
     }
 
-    draw({ n, padding, depth, opacity, scribbly, strokeWeight }) {
+    draw({ n, padding, depth, scribbly, strokeWeight, strokeColor, fillColor }) {
       s.push()
 
       const roomSize = Math.min(window.innerWidth, window.innerHeight) / (n * 2)
@@ -178,27 +184,22 @@ export default (s) => {
         case 0:
           s.translate(halfDepth + padding, 0, -offset)
           s.rotateY(0)
-          // s.fill(`rgba(255, 0, 0, ${opacity})`)
           break
         case 1:
           s.translate(offset + padding, padding + depth, halfDepth + padding)
           s.rotateY(Math.PI / 2)
-          // s.fill(`rgba(0, 255, 0, ${opacity})`)
           break
         case 2:
           s.translate(-halfDepth, padding + depth, offset + padding)
           s.rotateY(Math.PI)
-          // s.fill(`rgba(0, 0, 255, ${opacity})`)
           break
         case 3:
           s.translate(-offset, 0, -halfDepth)
           s.rotateY((3 * Math.PI) / 2)
-          // s.fill(`rgba(255, 255, 0, ${opacity})`)
           break
         case 4:
           s.translate(-halfDepth, offset + padding + halfDepth, -halfDepth)
           s.rotateX(Math.PI / 2)
-          // s.fill(`rgba(255, 0, 255, ${opacity})`)
           break
         case 5:
           s.translate(
@@ -207,10 +208,10 @@ export default (s) => {
             padding + halfDepth
           )
           s.rotateX((3 * Math.PI) / 2)
-          // s.fill(`rgba(0, 255, 255, ${opacity})`)
           break
       }
-      s.fill(`rgba(255, 255, 255, ${opacity})`)
+      s.stroke(strokeColor)
+      s.fill(fillColor)
 
       this.rooms.forEach((room) => {
         const { x, y, width, height } = this.getDimensions(
@@ -249,7 +250,8 @@ export default (s) => {
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
     initialize()
-    mouseX = mouseY = 0
+    mouseX = 505
+    mouseY = 470
     zoom = 5
     scribble = new Scribble(s)
   }
@@ -275,8 +277,11 @@ export default (s) => {
     s.camera(0, 0, zoom * 200, 0, 0, 0, 0, 1, 0)
     s.lights()
 
-    mouseX += (s.mouseX - mouseX) / damp
-    mouseY += (s.mouseY - mouseY) / damp
+    if (!props.ignoreMouse) {
+      mouseX += (s.mouseX - mouseX) / damp
+      mouseY += (s.mouseY - mouseY) / damp
+    }
+    console.info(`x: ${mouseX}, y: ${mouseY}`)
     s.rotateY(mouseX * 0.005)
     s.rotateX(mouseY * 0.005)
     s.strokeWeight(props.strokeWeight)
@@ -286,14 +291,12 @@ export default (s) => {
 
   s.mouseWheel = (e) => {
     zoom += e.delta / (damp * 60)
-    console.info(zoom)
   }
 
   function initialize() {
     const props = getProps()
 
     s.clear()
-    s.stroke(0, 0, 0)
     s.noFill()
     s.noCursor()
 
