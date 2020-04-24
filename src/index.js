@@ -77,47 +77,52 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      init: true,
       pattern: null,
-      isShowingHelpModal: false,
+      isShowingHelpModal: true,
       isShowingKnobs: false,
     }
   }
 
-  componentDidMount() {
+  initPattern() {
     const begin = () => {
-      this.setState((prevState) => ({
+      this.setState({
         isShowingHelpModal: false,
         isShowingKnobs: false,
         init: false,
-      }))
+      })
       window.removeEventListener('click', begin)
     }
 
-    window.addEventListener('click', begin)
-    window.addEventListener('keydown', (e) => {
-      switch (e.key) {
-        case 'i':
-        case 'Escape':
-          if (this.state.init) {
-            begin()
-          } else {
-            this.setState((prevState) => ({
-              isShowingHelpModal: !prevState.isShowingHelpModal,
-              isShowingKnobs: false,
-            }))
-          }
-          break
-        case 'o':
-          if (!this.state.init) {
-            this.setState((prevState) => ({
-              isShowingKnobs: !prevState.isShowingKnobs,
-              isShowingHelpModal: false,
-            }))
-          }
-          break
-      }
+    setTimeout(() => {
+      window.addEventListener('click', begin)
+      window.addEventListener('keydown', (e) => {
+        switch (e.key) {
+          case 'i':
+          case 'Escape':
+            if (this.state.init) {
+              begin()
+            } else {
+              this.setState((prevState) => ({
+                isShowingHelpModal: !prevState.isShowingHelpModal,
+                isShowingKnobs: false,
+              }))
+            }
+            break
+          case 'o':
+            if (!this.state.init) {
+              this.setState((prevState) => ({
+                isShowingKnobs: !prevState.isShowingKnobs,
+                isShowingHelpModal: false,
+              }))
+            }
+            break
+        }
+      })
     })
+  }
 
+  componentDidMount() {
     window.addEventListener('popstate', function () {
       window.history.go(0)
     })
@@ -126,6 +131,12 @@ class App extends React.Component {
     if (search && search.startsWith('?pattern=')) {
       const [, pattern] = search.split('?pattern=')
       this.setState({ pattern })
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.pattern && !prevState.pattern) {
+      this.initPattern()
     }
   }
 
