@@ -172,7 +172,15 @@ export default (s) => {
       }
     }
 
-    draw({ n, padding, depth, scribbly, strokeWeight, strokeColor, fillColor }) {
+    draw({
+      n,
+      padding,
+      depth,
+      scribbly,
+      strokeWeight,
+      strokeColor,
+      fillColor,
+    }) {
       s.push()
 
       const roomSize = Math.min(window.innerWidth, window.innerHeight) / (n * 2)

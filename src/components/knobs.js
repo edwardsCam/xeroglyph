@@ -11,7 +11,7 @@ export default class Knobs extends React.Component {
         return null
       }
 
-      const onChange = getValue => (e) => {
+      const onChange = (getValue) => (e) => {
         setProp(pattern, prop, getValue(e))
         if (propConfig.onChange) {
           propConfig.onChange(e.target.value)
@@ -28,11 +28,11 @@ export default class Knobs extends React.Component {
             <label key={prop} className="knob">
               {`${prop}: `}
               <input
-                className='knob-short-input'
+                className="knob-short-input"
                 autoFocus={i === 0}
                 min={min}
                 max={max}
-                onChange={onChange(e => Number(e.target.value))}
+                onChange={onChange((e) => Number(e.target.value))}
                 step={step}
                 type="number"
                 value={values[prop]}
@@ -45,9 +45,9 @@ export default class Knobs extends React.Component {
             <label key={prop} className="knob">
               {`${prop}: `}
               <input
-                className='knob-short-input'
+                className="knob-short-input"
                 autoFocus={i === 0}
-                onChange={onChange(e => Boolean(e.target.checked))}
+                onChange={onChange((e) => Boolean(e.target.checked))}
                 type="checkbox"
                 checked={values[prop]}
               />
@@ -70,7 +70,7 @@ export default class Knobs extends React.Component {
               {`${prop}: `}
               <select
                 name={prop}
-                onChange={onChange(e => e.target.value)}
+                onChange={onChange((e) => e.target.value)}
                 value={values[prop]}
               >
                 {propConfig.options.map((opt) => (
@@ -85,9 +85,9 @@ export default class Knobs extends React.Component {
             <label key={prop} className="knob">
               {`${prop}: `}
               <input
-                className='knob-text'
+                className="knob-text"
                 name={prop}
-                onChange={onChange(e => e.target.value)}
+                onChange={onChange((e) => e.target.value)}
                 value={values[prop]}
               />
             </label>
