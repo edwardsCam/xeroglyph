@@ -46,21 +46,26 @@ body {
   display: flex;
   justify-content: space-around;
   flex-direction: row;
+  min-height: 100%;
+  overflow: auto;
 }
 
 .index-column {
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
   width: 30%;
   min-width: 12rem;
 }
 
 .homepage-link {
   position: relative;
-  height: 6rem;
+  min-height: 6rem;
   margin: 1rem 0;
   border-radius: 0.5rem;
-  border: 2px solid #e27d60;
+  border: 0.125rem solid #e27d60;
+
+  flex: 1;
 
   text-decoration: none;
   font-family: sans-serif;
