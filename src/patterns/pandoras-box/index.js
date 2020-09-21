@@ -320,11 +320,17 @@ export default (s) => {
 
     s.push()
     s.push()
-    s.translate(avgX, avgY)
     if (scribbly) {
       s.noStroke()
     }
-    s.box(dx, dy, depth)
+
+    if (depth === 0) {
+      s.rect(x1, y1, dx, dy)
+    } else {
+      s.translate(avgX, avgY)
+      s.box(dx, dy, depth)
+    }
+
     s.pop()
 
     if (scribbly) {
