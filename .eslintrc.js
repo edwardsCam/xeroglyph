@@ -33,6 +33,7 @@ module.exports = {
   rules: {
     ...ignore([
       'array-bracket-spacing',
+      'camelcase',
       'class-methods-use-this',
       'comma-dangle',
       'curly',
@@ -71,6 +72,7 @@ module.exports = {
       'react/button-has-type',
       'react/destructuring-assignment',
       'react/jsx-curly-brace-presence',
+      'react/jsx-props-no-spreading',
       'react/no-array-index-key',
       'react/no-children-prop',
       'react/prefer-stateless-function',

@@ -1,5 +1,4 @@
 import DisjointSet from './disjoint-set'
-import { randomInRange } from './math'
 
 const getRandomAdjacentRoom = ({ r, c }, n) => {
   let dir = Math.floor(Math.random() * 4)
@@ -90,7 +89,7 @@ export default class RoomGenerator {
         return actual < expected
       }
       while (hasMoreMergingToDo()) {
-        const room1 = this.getRandomRoom()
+        const { room: room1 } = this.getRandomRoom()
         const room2 = getRandomAdjacentRoom(room1, n)
         add(room1, room2)
       }
@@ -98,7 +97,7 @@ export default class RoomGenerator {
       const numMerges = n * n * unity
       for (let i = 0; i < numMerges; i++) {
         if (!this.singleRooms.length) return
-        const room1 = this.getRandomRoom()
+        const { room: room1, randomIndex } = this.getRandomRoom()
         const room2 = getRandomAdjacentRoom(room1, n)
         this.disjointSet.union(room1, room2)
         this.singleRooms.splice(randomIndex, 1)
@@ -108,7 +107,10 @@ export default class RoomGenerator {
 
   getRandomRoom() {
     const randomIndex = Math.floor(Math.random() * this.singleRooms.length)
-    return this.singleRooms[randomIndex]
+    return {
+      room: this.singleRooms[randomIndex],
+      index: randomIndex,
+    }
   }
 
   forEach(callback) {

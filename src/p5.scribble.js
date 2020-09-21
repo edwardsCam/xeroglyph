@@ -27,7 +27,7 @@ export default function Scribble(p) {
   }
 
   this.buildEllipse = function (cx, cy, rx, ry, offset, overlap) {
-    var radialOffset = this.getOffset(-0.5, 0.5) - Math.PI / 2
+    const radialOffset = this.getOffset(-0.5, 0.5) - Math.PI / 2
 
     this.sketch.beginShape()
     this.sketch.curveVertex(
@@ -40,7 +40,7 @@ export default function Scribble(p) {
     )
 
     for (
-      var theta = radialOffset;
+      let theta = radialOffset;
       theta < Math.PI * 2 + radialOffset - 0.01;
       theta += this.ellipseInc
     ) {
@@ -80,16 +80,16 @@ export default function Scribble(p) {
   }
 
   this.getIntersectingLines = function (lineCoords, xCoords, yCoords) {
-    var intersections = []
-    var s1 = new Segment(
+    const intersections = []
+    const s1 = new Segment(
       lineCoords[0],
       lineCoords[1],
       lineCoords[2],
       lineCoords[3]
     )
 
-    for (var i = 0; i < xCoords.length; i++) {
-      var s2 = new Segment(
+    for (let i = 0; i < xCoords.length; i++) {
+      const s2 = new Segment(
         xCoords[i],
         yCoords[i],
         xCoords[(i + 1) % xCoords.length],
@@ -104,17 +104,17 @@ export default function Scribble(p) {
   }
 
   this.scribbleLine = function (x1, y1, x2, y2) {
-    var lenSq = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)
-    var offset = this.maxOffset
+    const lenSq = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)
+    let offset = this.maxOffset
 
     if (this.maxOffset * this.maxOffset * 100 > lenSq) {
       offset = Math.sqrt(lenSq) / 10
     }
 
-    var halfOffset = offset / 2
-    var divergePoint = 0.2 + this.sketch.random() * 0.2
-    var midDispX = (this.bowing * this.maxOffset * (y2 - y1)) / 200
-    var midDispY = (this.bowing * this.maxOffset * (x1 - x2)) / 200
+    const halfOffset = offset / 2
+    const divergePoint = 0.2 + this.sketch.random() * 0.2
+    let midDispX = (this.bowing * this.maxOffset * (y2 - y1)) / 200
+    let midDispY = (this.bowing * this.maxOffset * (x1 - x2)) / 200
     midDispX = this.getOffset(-midDispX, midDispX)
     midDispY = this.getOffset(-midDispY, midDispY)
 
@@ -221,12 +221,12 @@ export default function Scribble(p) {
   }
 
   this.scribbleRect = function (x, y, w, h) {
-    var halfWidth = w / 2
-    var halfHeight = h / 2
-    var left = Math.min(x - halfWidth, x + halfWidth)
-    var right = Math.max(x - halfWidth, x + halfWidth)
-    var top = Math.min(y - halfHeight, y + halfHeight)
-    var bottom = Math.max(y - halfHeight, y + halfHeight)
+    const halfWidth = w / 2
+    const halfHeight = h / 2
+    const left = Math.min(x - halfWidth, x + halfWidth)
+    const right = Math.max(x - halfWidth, x + halfWidth)
+    const top = Math.min(y - halfHeight, y + halfHeight)
+    const bottom = Math.max(y - halfHeight, y + halfHeight)
 
     this.scribbleLine(left, top, right, top)
     this.scribbleLine(right, top, right, bottom)
@@ -235,18 +235,18 @@ export default function Scribble(p) {
   }
 
   this.scribbleRoundedRect = function (x, y, w, h, radius) {
-    var halfWidth = w / 2
-    var halfHeight = h / 2
+    const halfWidth = w / 2
+    const halfHeight = h / 2
 
     if (radius == 0 || radius > halfWidth || radius > halfHeight) {
       this.scribbleRect(x, y, w, h)
       return
     }
 
-    var left = Math.min(x - halfWidth, x + halfWidth)
-    var right = Math.max(x - halfWidth, x + halfWidth)
-    var top = Math.min(y - halfHeight, y + halfHeight)
-    var bottom = Math.max(y - halfHeight, y + halfHeight)
+    const left = Math.min(x - halfWidth, x + halfWidth)
+    const right = Math.max(x - halfWidth, x + halfWidth)
+    const top = Math.min(y - halfHeight, y + halfHeight)
+    const bottom = Math.max(y - halfHeight, y + halfHeight)
 
     this.scribbleLine(left + radius, top, right - radius, top, 1.5)
     this.scribbleLine(right, top + radius, right, bottom - radius, 1.5)
@@ -296,8 +296,8 @@ export default function Scribble(p) {
   }
 
   this.scribbleEllipse = function (x, y, w, h) {
-    var rx = Math.abs(w / 2)
-    var ry = Math.abs(h / 2)
+    let rx = Math.abs(w / 2)
+    let ry = Math.abs(h / 2)
 
     rx += this.getOffset(-rx * 0.05, rx * 0.05)
     ry += this.getOffset(-ry * 0.05, ry * 0.05)
@@ -323,24 +323,24 @@ export default function Scribble(p) {
       return
     }
 
-    var hachureAngle = this.sketch.radians(angle % 180)
-    var cosAngle = Math.cos(hachureAngle)
-    var sinAngle = Math.sin(hachureAngle)
-    var tanAngle = Math.tan(hachureAngle)
+    const hachureAngle = this.sketch.radians(angle % 180)
+    const cosAngle = Math.cos(hachureAngle)
+    const sinAngle = Math.sin(hachureAngle)
+    const tanAngle = Math.tan(hachureAngle)
 
-    var left = xCoords[0]
-    var right = xCoords[0]
-    var top = yCoords[0]
-    var bottom = yCoords[0]
+    let left = xCoords[0]
+    let right = xCoords[0]
+    let top = yCoords[0]
+    let bottom = yCoords[0]
 
-    for (var i = 1; i < xCoords.length; i++) {
+    for (let i = 1; i < xCoords.length; i++) {
       left = Math.min(left, xCoords[i])
       right = Math.max(right, xCoords[i])
       top = Math.min(top, yCoords[i])
       bottom = Math.max(bottom, yCoords[i])
     }
 
-    var it = new HachureIterator(
+    const it = new HachureIterator(
       top - 1,
       bottom + 1,
       left - 1,
@@ -350,15 +350,15 @@ export default function Scribble(p) {
       cosAngle,
       tanAngle
     )
-    var rectCoords = null
+    let rectCoords = null
 
     while ((rectCoords = it.getNextLine()) != null) {
-      var lines = this.getIntersectingLines(rectCoords, xCoords, yCoords)
+      const lines = this.getIntersectingLines(rectCoords, xCoords, yCoords)
 
-      for (var i = 0; i < lines.length; i += 2) {
+      for (let i = 0; i < lines.length; i += 2) {
         if (i < lines.length - 1) {
-          var p1 = lines[i]
-          var p2 = lines[i + 1]
+          const p1 = lines[i]
+          const p2 = lines[i + 1]
           this.scribbleLine(p1[0], p1[1], p2[0], p2[1], 2)
         }
       }
@@ -376,17 +376,17 @@ function HachureIterator(
   _cosAngle,
   _tanAngle
 ) {
-  var sinAngle = _sinAngle
-  var tanAngle = _tanAngle
-  var top = _top
-  var bottom = _bottom
-  var left = _left
-  var right = _right
-  var gap = _gap
+  const sinAngle = _sinAngle
+  const tanAngle = _tanAngle
+  const top = _top
+  const bottom = _bottom
+  const left = _left
+  const right = _right
+  const gap = _gap
 
-  var pos
-  var deltaX, hGap
-  var sLeft, sRight
+  let pos
+  let deltaX, hGap
+  let sLeft, sRight
 
   if (Math.abs(sinAngle) < 0.0001) {
     pos = left + gap
@@ -403,21 +403,21 @@ function HachureIterator(
   this.getNextLine = function () {
     if (Math.abs(sinAngle) < 0.0001) {
       if (pos < right) {
-        var line = [pos, top, pos, bottom]
+        const line = [pos, top, pos, bottom]
         pos += gap
         return line
       }
     } else if (Math.abs(sinAngle) > 0.9999) {
       if (pos < bottom) {
-        var line = [left, pos, right, pos]
+        const line = [left, pos, right, pos]
         pos += gap
         return line
       }
     } else {
-      var xLower = pos - deltaX / 2
-      var xUpper = pos + deltaX / 2
-      var yLower = bottom
-      var yUpper = top
+      let xLower = pos - deltaX / 2
+      let xUpper = pos + deltaX / 2
+      let yLower = bottom
+      let yUpper = top
 
       if (pos < right + deltaX) {
         while (
@@ -433,7 +433,7 @@ function HachureIterator(
           }
         }
 
-        var s = new Segment(xLower, yLower, xUpper, yUpper)
+        const s = new Segment(xLower, yLower, xUpper, yUpper)
 
         if (s.compare(sLeft) == Relation.INTERSECTS) {
           xLower = s.getIntersectionX()
@@ -448,7 +448,7 @@ function HachureIterator(
           xUpper = right - (xUpper - left)
         }
 
-        var line = [xLower, yLower, xUpper, yUpper]
+        const line = [xLower, yLower, xUpper, yUpper]
         pos += hGap
         return line
       }
@@ -458,18 +458,17 @@ function HachureIterator(
 }
 
 function Segment(_x1, _y1, _x2, _y2) {
-  var x1 = _x1
-  var y1 = _y1
-  var x2 = _x2
-  var y2 = _y2
-  var a, b, c
-  var undef
-  var xi = Number.MAX_VALUE
-  var yi = Number.MAX_VALUE
+  const x1 = _x1
+  const y1 = _y1
+  const x2 = _x2
+  const y2 = _y2
+  let undef
+  let xi = Number.MAX_VALUE
+  let yi = Number.MAX_VALUE
 
-  a = y2 - y1
-  b = x1 - x2
-  c = x2 * y1 - x1 * y2
+  const a = y2 - y1
+  const b = x1 - x2
+  const c = x2 * y1 - x1 * y2
 
   if (a == 0 && b == 0 && c == 0) {
     undef = true
@@ -482,10 +481,10 @@ function Segment(_x1, _y1, _x2, _y2) {
       return Relation.UNDEFINED
     }
 
-    var grad1 = Number.MAX_VALUE
-    var grad2 = Number.MAX_VALUE
-    var int1 = 0
-    var int2 = 0
+    let grad1 = Number.MAX_VALUE
+    let grad2 = Number.MAX_VALUE
+    let int1 = 0
+    let int2 = 0
 
     if (Math.abs(b) > 0.00001) {
       grad1 = -a / b
@@ -646,13 +645,13 @@ function Segment(_x1, _y1, _x2, _y2) {
   }
 
   this.getLength = function (tx1, ty1, tx2, ty2) {
-    var dx = tx2 - tx1
-    var dy = ty2 - ty1
+    const dx = tx2 - tx1
+    const dy = ty2 - ty1
     return Math.sqrt(dx * dx + dy * dy)
   }
 }
 
-var Relation = {
+const Relation = {
   LEFT: 1,
   RIGHT: 2,
   INTERSECTS: 3,

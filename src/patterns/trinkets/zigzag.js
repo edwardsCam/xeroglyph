@@ -21,18 +21,16 @@ const zigzag = (s) => {
             // 1, west upright bookend
             s.line(midX, yp1, x1, yp0)
           }
+        } else if (isInverted) {
+          // 2, west inverted mid
+          const inflection = [midX, yp0]
+          s.line(x0, yp1, ...inflection)
+          s.line(...inflection, x1, yp1)
         } else {
-          if (isInverted) {
-            // 2, west inverted mid
-            const inflection = [midX, yp0]
-            s.line(x0, yp1, ...inflection)
-            s.line(...inflection, x1, yp1)
-          } else {
-            // 0, west upright mid
-            const inflection = [midX, yp1]
-            s.line(x0, yp0, ...inflection)
-            s.line(...inflection, x1, yp0)
-          }
+          // 0, west upright mid
+          const inflection = [midX, yp1]
+          s.line(x0, yp0, ...inflection)
+          s.line(...inflection, x1, yp0)
         }
         break
       case 1: // north
@@ -44,18 +42,16 @@ const zigzag = (s) => {
             // 5, north upright bookend
             s.line(xp0, midY, xp1, y1)
           }
+        } else if (isInverted) {
+          // 6, north inverted mid
+          const inflection = [xp1, midY]
+          s.line(xp0, y0, ...inflection)
+          s.line(...inflection, xp0, y1)
         } else {
-          if (isInverted) {
-            // 6, north inverted mid
-            const inflection = [xp1, midY]
-            s.line(xp0, y0, ...inflection)
-            s.line(...inflection, xp0, y1)
-          } else {
-            // 4, north upright mid
-            const inflection = [xp0, midY]
-            s.line(xp1, y0, ...inflection)
-            s.line(...inflection, xp1, y1)
-          }
+          // 4, north upright mid
+          const inflection = [xp0, midY]
+          s.line(xp1, y0, ...inflection)
+          s.line(...inflection, xp1, y1)
         }
         break
       case 2: // east
@@ -67,18 +63,16 @@ const zigzag = (s) => {
             // 9, east upright bookend
             s.line(x0, yp1, midX, yp0)
           }
+        } else if (isInverted) {
+          // 10, east inverted mid
+          const inflection = [midX, yp1]
+          s.line(x0, yp0, ...inflection)
+          s.line(...inflection, x1, yp0)
         } else {
-          if (isInverted) {
-            // 10, east inverted mid
-            const inflection = [midX, yp1]
-            s.line(x0, yp0, ...inflection)
-            s.line(...inflection, x1, yp0)
-          } else {
-            // 8, east upright mid
-            const inflection = [midX, yp0]
-            s.line(x0, yp1, ...inflection)
-            s.line(...inflection, x1, yp1)
-          }
+          // 8, east upright mid
+          const inflection = [midX, yp0]
+          s.line(x0, yp1, ...inflection)
+          s.line(...inflection, x1, yp1)
         }
         break
       case 3: // south
@@ -90,18 +84,16 @@ const zigzag = (s) => {
             // 13, south upright bookend
             s.line(xp0, y0, xp1, midY)
           }
+        } else if (isInverted) {
+          // 14, south inverted mid
+          const inflection = [xp0, midY]
+          s.line(xp1, y0, ...inflection)
+          s.line(...inflection, xp1, y1)
         } else {
-          if (isInverted) {
-            // 14, south inverted mid
-            const inflection = [xp0, midY]
-            s.line(xp1, y0, ...inflection)
-            s.line(...inflection, xp1, y1)
-          } else {
-            // 12, south upright mid
-            const inflection = [xp1, midY]
-            s.line(xp0, y0, ...inflection)
-            s.line(...inflection, xp0, y1)
-          }
+          // 12, south upright mid
+          const inflection = [xp1, midY]
+          s.line(xp0, y0, ...inflection)
+          s.line(...inflection, xp0, y1)
         }
         break
     }
@@ -121,7 +113,7 @@ const zigzag = (s) => {
           const startX = (n - 1) * height + start.x
           for (let i = 0; i < n; i++) {
             const x = startX - height * i
-            const y = start.y
+            const { y } = start
             if (i === 0) {
               drawZig(
                 height,

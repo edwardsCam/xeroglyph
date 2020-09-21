@@ -1,6 +1,6 @@
 import Vida from '../../p5.vida'
 
-/*****************************************************************************\
+/** ***************************************************************************\
 ********************************** V I D A ************************************
 *******************************************************************************
 
@@ -85,7 +85,7 @@ import Vida from '../../p5.vida'
 
                                                      */
 
-var myVideo, // video file
+let myVideo, // video file
   myVida // VIDA
 
 /*
@@ -94,7 +94,7 @@ var myVideo, // video file
   use this variable to manage the start of the file after interacting with the
   user.
 */
-var interactionStartedFlag = true
+const interactionStartedFlag = true
 
 const HEIGHT = 420
 const WIDTH = (HEIGHT * 4) / 3

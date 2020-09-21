@@ -1,7 +1,7 @@
 import p5 from 'react-p5-wrapper'
 import { interpolate } from './utils/math'
 
-/*****************************************************************************\
+/** ***************************************************************************\
 ********************************** V I D A ************************************
 *******************************************************************************
 
@@ -84,7 +84,7 @@ import { interpolate } from './utils/math'
                       |------------------------------+
                                                      [1.0, 1.0]
 
-\*****************************************************************************/
+\**************************************************************************** */
 
 /*
   Container used to store blob data. For image processing, a blob is a region
@@ -410,24 +410,24 @@ p5.prototype.Vida.prototype.resizeGraphicsWorkaround = function (_g, _w, _h) {
     _g.height = _h
     _g.elt.width = _w // * this._pInst._pixelDensity;
     _g.elt.height = _h // * this._pInst._pixelDensity;
-    _g.elt.style.width = _w + 'px'
-    _g.elt.style.height = _h + 'px'
+    _g.elt.style.width = `${_w}px`
+    _g.elt.style.height = `${_h}px`
     /*
     if (this._isMainCanvas) {
       this._pInst._setProperty('width', this.width);
       this._pInst._setProperty('height', this.height);
-    }*/
-    //_g.remove();
-    //_g = null;
-    //_g = this.__sketch.createGraphics(_w, _h); // ugly!
-    //_g.width = _w; _g.height = _h;
-    //_g.size(_w, _h);
-    //_g.elt.setAttribute('style', 'width:' + _w + 'px; height:' + _h + 'px');
-    //_g.elt.style.width = _w +'px'; _g.elt.style.height = _h + 'px';
-    //_g.resize(_w, _h);
+    } */
+    // _g.remove();
+    // _g = null;
+    // _g = this.__sketch.createGraphics(_w, _h); // ugly!
+    // _g.width = _w; _g.height = _h;
+    // _g.size(_w, _h);
+    // _g.elt.setAttribute('style', 'width:' + _w + 'px; height:' + _h + 'px');
+    // _g.elt.style.width = _w +'px'; _g.elt.style.height = _h + 'px';
+    // _g.resize(_w, _h);
     _g.pixelDensity(1)
     _g.loadPixels() // console.log(_g.width);
-    //_g.elt.style.width = _w +'px'; _g.elt.style.height = _h + 'px';
+    // _g.elt.style.width = _w +'px'; _g.elt.style.height = _h + 'px';
     _g.elt.setAttribute('style', 'display: none')
   }
   _g.updatePixels()
@@ -435,19 +435,12 @@ p5.prototype.Vida.prototype.resizeGraphicsWorkaround = function (_g, _w, _h) {
   _g.loadPixels()
   if (_w * _h !== _g.pixels.length / 4) {
     console.log(
-      '[Vida, resizeGraphicsWorkaround] _w * _h !== _g.pixels.length / 4:' +
-        '\n_w = ' +
-        _w +
-        ' _h = ' +
-        _h +
-        '\n_g.width = ' +
-        _g.width +
-        ' _g.height = ' +
-        _g.height +
-        '\n_w * _h = ' +
-        _w * _h +
-        '\n_g.pixels.length / 4 = ' +
-        _g.pixels.length / 4
+      `${
+        '[Vida, resizeGraphicsWorkaround] _w * _h !== _g.pixels.length / 4:' +
+        '\n_w = '
+      }${_w} _h = ${_h}\n_g.width = ${_g.width} _g.height = ${
+        _g.height
+      }\n_w * _h = ${_w * _h}\n_g.pixels.length / 4 = ${_g.pixels.length / 4}`
     )
   }
 }
@@ -465,13 +458,7 @@ p5.prototype.Vida.prototype.getBlobs = function (_location) {
     _location !== this.__previousBlobsLocation
   ) {
     console.log(
-      '[Vida, getBlobs] Unhandled _location parameter value: ' +
-        _location +
-        '. The _location value will be change to ' +
-        this.__currentBlobsLocation +
-        ' (' +
-        this.__currentBlobsLocation +
-        ').'
+      `[Vida, getBlobs] Unhandled _location parameter value: ${_location}. The _location value will be change to ${this.__currentBlobsLocation} (${this.__currentBlobsLocation}).`
     )
     _location = this.__currentBlobsLocation
   }
@@ -507,7 +494,7 @@ p5.prototype.Vida.prototype.getPreviousBlobsLocation = function () {
 p5.prototype.Vida.prototype.resizeBlobMapArray = function (_w, _h) {
   this.__blobMapArray.splice(0, this.__blobMapArray.length)
   for (let x = 0; x < _w; x++) {
-    let temp_column_array = []
+    const temp_column_array = []
     for (let y = 0; y < _h; y++) temp_column_array[y] = 0
     this.__blobMapArray[x] = temp_column_array
   }
@@ -533,8 +520,8 @@ p5.prototype.Vida.prototype.hitTestThresholdImage = function (
   _norm_y
 ) {
   // convert coords to pixel-based
-  let temp_coord_x = Math.floor(_norm_x * this.thresholdImage.width)
-  let temp_coord_y = Math.floor(_norm_y * this.thresholdImage.height)
+  const temp_coord_x = Math.floor(_norm_x * this.thresholdImage.width)
+  const temp_coord_y = Math.floor(_norm_y * this.thresholdImage.height)
   // test these conditions to prevent possible problems if coords are out of
   // range
   if (temp_coord_x < 0.0) return false
@@ -546,7 +533,7 @@ p5.prototype.Vida.prototype.hitTestThresholdImage = function (
     Pixels array is one-dimentional and contains 4 cells per pixel (to store
     RGBA components).
   */
-  let temp_pixel_position =
+  const temp_pixel_position =
     (temp_coord_y * this.thresholdImage.width + temp_coord_x) * 4
   // check if the pixel contains information on detected movement.
   if (this.thresholdImage.pixels[temp_pixel_position] > 0) return true
@@ -603,9 +590,10 @@ p5.prototype.Vida.prototype.addActiveZone = function (
   for (let i = 0; i < this.activeZones.length; i++)
     if (_id == this.activeZones[i].id)
       console.log(
-        '[Vida, addActiveZone] There are already active zones with the same' +
-          ' id: ' +
-          _id
+        `${
+          '[Vida, addActiveZone] There are already active zones with the same' +
+          ' id: '
+        }${_id}`
       )
   if (
     _onChangeCallbackFunction === null ||
@@ -647,7 +635,7 @@ p5.prototype.Vida.prototype.drawBlobs = function (_x, _y, props) {
   for (let i = 0; i < this.__blobs[this.__currentBlobsLocation].length; i++) {
     const blob = this.__blobs[this.__currentBlobsLocation][i]
 
-    let ampedMass = blob.normMass * 16
+    const ampedMass = blob.normMass * 16
     if (props.drawBoundingBox) {
       // convert norm coords to pixel-based
       temp_rect_x = Math.floor(blob.normRectX * _w)
@@ -896,12 +884,10 @@ p5.prototype.Vida.prototype.setBackgroundImage = function (_image) {
   }
   if (_image.width < 1 || _image.height < 1) {
     console.log(
-      '[Vida, setBackgroundImage] possible error: resolution of the _image ' +
-        'seems to be incorrect: _image.width = ' +
-        _image.width +
-        ' _image.height = ' +
-        _image.height +
-        '.'
+      `${
+        '[Vida, setBackgroundImage] possible error: resolution of the _image ' +
+        'seems to be incorrect: _image.width = '
+      }${_image.width} _image.height = ${_image.height}.`
     )
     return false
   }
@@ -915,10 +901,7 @@ p5.prototype.Vida.prototype.setBackgroundImage = function (_image) {
     _image.height != this.backgroundImage.height
   ) {
     console.log(
-      '[Vida, setBackgroundImage] adjusting images size to: ' +
-        _image.width +
-        ' ' +
-        _image.height
+      `[Vida, setBackgroundImage] adjusting images size to: ${_image.width} ${_image.height}`
     )
     this.resizeGraphicsWorkaround(
       this.currentImage,
@@ -1018,7 +1001,7 @@ p5.prototype.Vida.prototype.setBackgroundImage = function (_image) {
       break
     default:
       console.log(
-        '[Vida, setBackgroundImage] unhandled mirror value: ' + this.mirror
+        `[Vida, setBackgroundImage] unhandled mirror value: ${this.mirror}`
       )
   }
 }
@@ -1042,12 +1025,10 @@ p5.prototype.Vida.prototype.updateImageProcessor = function (_image) {
   }
   if (_image.width < 1 || _image.height < 1) {
     console.log(
-      '[Vida, updateImageProcessor] possible error: resolution of the _image ' +
-        'seems to be incorrect: _image.width = ' +
-        _image.width +
-        ' _image.height = ' +
-        _image.height +
-        '.'
+      `${
+        '[Vida, updateImageProcessor] possible error: resolution of the _image ' +
+        'seems to be incorrect: _image.width = '
+      }${_image.width} _image.height = ${_image.height}.`
     )
     return false
   }
@@ -1061,10 +1042,7 @@ p5.prototype.Vida.prototype.updateImageProcessor = function (_image) {
     _image.height != this.backgroundImage.height
   ) {
     console.log(
-      '[Vida, updateImageProcessor] adjusting images size to: ' +
-        _image.width +
-        ' ' +
-        _image.height
+      `[Vida, updateImageProcessor] adjusting images size to: ${_image.width} ${_image.height}`
     )
     this.resizeGraphicsWorkaround(
       this.currentImage,
@@ -1117,7 +1095,7 @@ p5.prototype.Vida.prototype.updateImageProcessor = function (_image) {
       break
     default:
       console.log(
-        '[Vida, updateImageProcessor] unhandled mirror value: ' + this.mirror
+        `[Vida, updateImageProcessor] unhandled mirror value: ${this.mirror}`
       )
   }
   // calc and store "flipped" feedback value
@@ -1282,7 +1260,7 @@ p5.prototype.Vida.prototype.trackBlobs = function () {
   }
   // some reusable variables we need
   let temp_dist, temp_index
-  let temp_distances = []
+  const temp_distances = []
   /*
     At the beginning, let's mark all new blobs as not assigned to any previous
     blob (id = -1). Also let's fill in the cells of the temp_distances array
@@ -1498,7 +1476,7 @@ p5.prototype.Vida.prototype.trackBlobs = function () {
   this.pointsPerApproximatedBlobPolygon variable.
 */
 p5.prototype.Vida.prototype.approximateBlobPolygons = function () {
-  let temp_2PI = Math.PI * 2 // useful precalculated value
+  const temp_2PI = Math.PI * 2 // useful precalculated value
   // some reusable variables we need
   let temp_radius_1,
     temp_radius_2,
@@ -1517,31 +1495,29 @@ p5.prototype.Vida.prototype.approximateBlobPolygons = function () {
   */
   if (this.pointsPerApproximatedBlobPolygon < 3) {
     console.log(
-      '[Vida, approximateBlobPolygons] ' +
+      `${
+        '[Vida, approximateBlobPolygons] ' +
         'Minumum valid value of pointsPerApproximatedBlobPolygon is 3 ' +
-        '(currently: ' +
-        this.pointsPerApproximatedBlobPolygon +
-        '). The value will be set to 3'
+        '(currently: '
+      }${this.pointsPerApproximatedBlobPolygon}). The value will be set to 3`
     )
     this.pointsPerApproximatedBlobPolygon = 3
-  } else {
-    if (
-      Math.floor(this.pointsPerApproximatedBlobPolygon) !==
-      Math.ceil(this.pointsPerApproximatedBlobPolygon)
-    ) {
-      console.log(
+  } else if (
+    Math.floor(this.pointsPerApproximatedBlobPolygon) !==
+    Math.ceil(this.pointsPerApproximatedBlobPolygon)
+  ) {
+    console.log(
+      `${
         '[Vida, approximateBlobPolygons] ' +
-          'The variable pointsPerApproximatedBlobPolygon should be of the ' +
-          'integer type, not a float. Current value ' +
-          this.pointsPerApproximatedBlobPolygon +
-          ' will be changed to' +
-          Math.floor(this.pointsPerApproximatedBlobPolygon) +
-          '.'
-      )
-      this.pointsPerApproximatedBlobPolygon = Math.floor(
+        'The variable pointsPerApproximatedBlobPolygon should be of the ' +
+        'integer type, not a float. Current value '
+      }${this.pointsPerApproximatedBlobPolygon} will be changed to${Math.floor(
         this.pointsPerApproximatedBlobPolygon
-      )
-    }
+      )}.`
+    )
+    this.pointsPerApproximatedBlobPolygon = Math.floor(
+      this.pointsPerApproximatedBlobPolygon
+    )
   }
   // iterate over detected blobs
   for (let i = 0; i < this.numberOfDetectedBlobs; i++) {
@@ -1655,16 +1631,12 @@ p5.prototype.Vida.prototype.approximateBlobPolygons = function () {
         */
         if (temp_x < 0) {
           temp_x = 0
-        } else {
-          if (temp_x >= this.thresholdImage.width)
-            temp_x = this.thresholdImage.width - 1
-        }
+        } else if (temp_x >= this.thresholdImage.width)
+          temp_x = this.thresholdImage.width - 1
         if (temp_y < 0) {
           temp_y = 0
-        } else {
-          if (temp_y >= this.thresholdImage.height)
-            temp_y = this.thresholdImage.height - 1
-        }
+        } else if (temp_y >= this.thresholdImage.height)
+          temp_y = this.thresholdImage.height - 1
         /*
           If the coordinates of the point refer to a point that is part of the
           blobe, we break the loop.
@@ -1779,7 +1751,7 @@ p5.prototype.Vida.prototype.rejectOuterBlobs = function () {
   variables this.normMinBlobArea and this.normMaxBlobArea.
 */
 p5.prototype.Vida.prototype.processBlobs = function () {
-  let temp_raw_blobs_data = [] // temporary storage for blobs
+  const temp_raw_blobs_data = [] // temporary storage for blobs
   let temp_index = -1 // helper variable for storing identifiers of the blobs
   let temp_number_of_blobs = 0 // helper variable to count the blobs
   let temp_area // helper variable storing area of the tested blob
@@ -1822,16 +1794,12 @@ p5.prototype.Vida.prototype.processBlobs = function () {
       // update bounding box parameters
       if (x < temp_raw_blobs_data[temp_index].normMinX) {
         temp_raw_blobs_data[temp_index].normMinX = x
-      } else {
-        if (x > temp_raw_blobs_data[temp_index].normMaxX)
-          temp_raw_blobs_data[temp_index].normMaxX = x
-      }
+      } else if (x > temp_raw_blobs_data[temp_index].normMaxX)
+        temp_raw_blobs_data[temp_index].normMaxX = x
       if (y < temp_raw_blobs_data[temp_index].normMinY) {
         temp_raw_blobs_data[temp_index].normMinY = y
-      } else {
-        if (y > temp_raw_blobs_data[temp_index].normMaxY)
-          temp_raw_blobs_data[temp_index].normMaxY = y
-      }
+      } else if (y > temp_raw_blobs_data[temp_index].normMaxY)
+        temp_raw_blobs_data[temp_index].normMaxY = y
     }
   }
   /*
@@ -1942,8 +1910,7 @@ p5.prototype.Vida.prototype.updateBlobs = function () {
       break
     default:
       console.log(
-        '[Vida, updateBlobs] unhandled rejectBlobsMethod value: ' +
-          this.rejectBlobsMethod
+        `[Vida, updateBlobs] unhandled rejectBlobsMethod value: ${this.rejectBlobsMethod}`
       )
   }
   /*
@@ -2045,8 +2012,8 @@ p5.prototype.Vida.prototype.findBlobs_createTemporaryIndices = function () {
     properly, we must maintain a "clean" (filled with 0) "frame" at the
     boundaries of the this.__blobMapArray array.
   */
-  let temp_wmax = this.thresholdImage.width - 1 // safe bounds
-  let temp_hmax = this.thresholdImage.height - 1 // safe bounds
+  const temp_wmax = this.thresholdImage.width - 1 // safe bounds
+  const temp_hmax = this.thresholdImage.height - 1 // safe bounds
   this.resetBlobMapArray() // clear the array
   for (let temp_y = 1; temp_y < temp_hmax; temp_y++) {
     for (let temp_x = 1; temp_x < temp_wmax; temp_x++) {
@@ -2091,8 +2058,8 @@ p5.prototype.Vida.prototype.findBlobs_mergerIterationA = function () {
     properly, we must maintain a "clean" (filled with 0) "frame" at the
     boundaries of the this.__blobMapArray array.
   */
-  let temp_wmax = this.thresholdImage.width - 1 // safe bounds
-  let temp_hmax = this.thresholdImage.height - 1 // safe bounds
+  const temp_wmax = this.thresholdImage.width - 1 // safe bounds
+  const temp_hmax = this.thresholdImage.height - 1 // safe bounds
   /*
     Variable that stores the lowest detected identifier occurring around the
     cell being tested.
@@ -2186,8 +2153,8 @@ p5.prototype.Vida.prototype.findBlobs_mergerIterationB = function () {
     properly, we must maintain a "clean" (filled with 0) "frame" at the
     boundaries of the this.__blobMapArray array.
   */
-  let temp_wmax = this.thresholdImage.width - 2 // safe bounds
-  let temp_hmax = this.thresholdImage.height - 2 // safe bounds
+  const temp_wmax = this.thresholdImage.width - 2 // safe bounds
+  const temp_hmax = this.thresholdImage.height - 2 // safe bounds
   /*
     Variable that stores the lowest detected identifier occurring around the
     cell being tested.
@@ -2270,10 +2237,10 @@ p5.prototype.Vida.prototype.findBlobs_optimizeIdentifiers = function () {
     properly, we must maintain a "clean" (filled with 0) "frame" at the
     boundaries of the this.__blobMapArray array.
   */
-  let temp_wmax = this.thresholdImage.width - 1 // safe bounds
-  let temp_hmax = this.thresholdImage.height - 1 // safe bounds
+  const temp_wmax = this.thresholdImage.width - 1 // safe bounds
+  const temp_hmax = this.thresholdImage.height - 1 // safe bounds
   // array storing identifiers we want to change
-  let temp_redirections_array = []
+  const temp_redirections_array = []
   /*
     Setting this flag (as "true") will mean that the array containing the list
     of identifiers to be changed needs to be supplemented with the current
@@ -2339,9 +2306,9 @@ p5.prototype.Vida.prototype.findBlobs_countUnorderedIdentifiers = function () {
     properly, we must maintain a "clean" (filled with 0) "frame" at the
     boundaries of the this.__blobMapArray array.
   */
-  let temp_wmax = this.thresholdImage.width - 1 // safe bounds
-  let temp_hmax = this.thresholdImage.height - 1 // safe bounds
-  let temp_identifiers_array = [] // list of detected identifiers
+  const temp_wmax = this.thresholdImage.width - 1 // safe bounds
+  const temp_hmax = this.thresholdImage.height - 1 // safe bounds
+  const temp_identifiers_array = [] // list of detected identifiers
   /*
     Setting this flag (as "true") will mean that the array containing the list
     of identifiers needs to be supplemented with the current identifier.

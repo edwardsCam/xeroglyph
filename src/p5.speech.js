@@ -67,7 +67,7 @@ export function Speech(_dv, _callback) {
   if (_dv !== undefined) this.initvoice = _dv
   if (_callback !== undefined) this.onLoad = _callback
 
-  var that = this // some bullshit
+  const that = this // some bullshit
 
   // onvoiceschanged() fires automatically when the synthesizer
   // is configured and has its voices loaded.  you don't need
@@ -84,7 +84,7 @@ export function Speech(_dv, _callback) {
 
       if (that.initvoice != undefined) {
         that.setVoice(that.initvoice) // set a custom initial voice
-        console.log('p5.Speech: initial voice: ' + that.initvoice)
+        console.log(`p5.Speech: initial voice: ${that.initvoice}`)
       }
 
       // fire custom onLoad() callback, if it exists:
@@ -95,19 +95,19 @@ export function Speech(_dv, _callback) {
       //
 
       that.utterance.onstart = function (e) {
-        //console.log("STARTED");
+        // console.log("STARTED");
         if (that.onStart != undefined) that.onStart(e)
       }
       that.utterance.onpause = function (e) {
-        //console.log("PAUSED");
+        // console.log("PAUSED");
         if (that.onPause != undefined) that.onPause(e)
       }
       that.utterance.onresume = function (e) {
-        //console.log("RESUMED");
+        // console.log("RESUMED");
         if (that.onResume != undefined) that.onResume(e)
       }
       that.utterance.onend = function (e) {
-        //console.log("ENDED");
+        // console.log("ENDED");
         if (that.onEnd != undefined) that.onEnd(e)
       }
     }
@@ -117,7 +117,7 @@ export function Speech(_dv, _callback) {
 // listVoices() - dump voice names to javascript console:
 Speech.prototype.listVoices = function () {
   if (this.isLoaded) {
-    for (var i = 0; i < this.voices.length; i++) {
+    for (let i = 0; i < this.voices.length; i++) {
       console.log(this.voices[i].name)
     }
   } else {
@@ -182,7 +182,7 @@ Speech.prototype.resume = function () {
 // stop current utterance:
 Speech.prototype.stop = function () {
   // not working...
-  //this.synth.stop();
+  // this.synth.stop();
   this.synth.cancel()
 }
 
@@ -295,7 +295,7 @@ export function SpeechRec(_lang, _callback) {
   // out potentially bogus recognition tokens.
   this.resultConfidence
 
-  var that = this // some bullshit
+  const that = this // some bullshit
 
   // onresult() fires automatically when the recognition engine
   // detects speech, or times out trying.

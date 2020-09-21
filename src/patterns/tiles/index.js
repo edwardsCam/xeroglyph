@@ -203,20 +203,18 @@ export default (s) => {
             x1 = xmax
             y1 = ymin + step
           }
+        } else if (i <= mid) {
+          const step = i * splitDistance
+          x0 = xmin
+          y0 = ymin + step
+          x1 = xmin + step
+          y1 = ymin
         } else {
-          if (i <= mid) {
-            const step = i * splitDistance
-            x0 = xmin
-            y0 = ymin + step
-            x1 = xmin + step
-            y1 = ymin
-          } else {
-            const step = (split - i) * splitDistance
-            x0 = xmax - step
-            y0 = ymax
-            x1 = xmax
-            y1 = ymax - step
-          }
+          const step = (split - i) * splitDistance
+          x0 = xmax - step
+          y0 = ymax
+          x1 = xmax
+          y1 = ymax - step
         }
 
         if (i > 0) {

@@ -13,7 +13,7 @@ function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {
 
 export default (s) => {
   let hasMouseMoved = false
-  let scribble = new Scribble(s)
+  const scribble = new Scribble(s)
 
   function getGravVector(p1, p2, props) {
     const { strength, theta } = calculateGravBetweenTwoBodies(p1, p2, props)

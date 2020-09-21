@@ -13,13 +13,10 @@ function initCaptureDevice(s) {
     myCapture.elt.setAttribute('playsinline', '')
     myCapture.hide()
     console.log(
-      '[initCaptureDevice] capture ready. Resolution: ' +
-        myCapture.width +
-        ' ' +
-        myCapture.height
+      `[initCaptureDevice] capture ready. Resolution: ${myCapture.width} ${myCapture.height}`
     )
   } catch (_err) {
-    console.log('[initCaptureDevice] capture error: ' + _err)
+    console.log(`[initCaptureDevice] capture error: ${_err}`)
   }
 }
 
@@ -38,8 +35,8 @@ export function setup(s) {
   myVida.normMinBlobArea = 0.0002 // uncomment if needed
   myVida.normMaxBlobArea = 4 // uncomment if needed
 
-  //myVida.trackBlobsMaxNormDist = 0.3; // uncomment if needed
-  //myVida.rejectBlobsMethod = myVida.REJECT_NONE_BLOBS; // uncomment if needed
+  // myVida.trackBlobsMaxNormDist = 0.3; // uncomment if needed
+  // myVida.rejectBlobsMethod = myVida.REJECT_NONE_BLOBS; // uncomment if needed
   myVida.approximateBlobPolygonsFlag = true
 
   // s.frameRate(30) // set framerate

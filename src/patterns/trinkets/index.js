@@ -14,7 +14,7 @@ export default (s) => {
     initialize()
   }
 
-  let padding = 0.1
+  const padding = 0.1
 
   s.draw = () => {
     s.clear()
