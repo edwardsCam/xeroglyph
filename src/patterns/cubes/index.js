@@ -1,5 +1,5 @@
-import { interpolate } from 'utils/math'
-import { init as initProps, getProp } from 'utils/propConfig'
+import { interpolate } from 'utils/math.ts'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 
 export default (s) => {
   const get = (prop) => getProp('cubes', prop)

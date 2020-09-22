@@ -1,5 +1,5 @@
-import { interpolate, toRadians } from 'utils/math'
-import { init as initProps, getProp } from 'utils/propConfig'
+import { interpolate, toRadians } from 'utils/math.ts'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 import Scribble from '../../p5.scribble'
 
 const labels = document.createElement('div')

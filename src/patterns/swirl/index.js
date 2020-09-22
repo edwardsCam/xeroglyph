@@ -1,5 +1,5 @@
-import { thetaFromTwoPoints, distance, clamp, interpolate } from 'utils/math'
-import { init as initProps, getProp } from 'utils/propConfig'
+import { thetaFromTwoPoints, distance, clamp, interpolate } from 'utils/math.ts'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 import Scribble from '../../p5.scribble'
 
 function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {

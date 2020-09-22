@@ -1,5 +1,5 @@
-import { interpolate, distance, thetaFromTwoPoints } from 'utils/math'
-import { init as initProps, getProp } from 'utils/propConfig'
+import { interpolate, distance, thetaFromTwoPoints } from 'utils/math.ts'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 import Scribble from '../../p5.scribble'
 
 export default (s) => {

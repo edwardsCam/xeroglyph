@@ -1,5 +1,5 @@
-import { interpolate, diff } from 'utils/math'
-import { init as initProps, getProp } from 'utils/propConfig'
+import { interpolate, diff } from 'utils/math.ts'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { rir, colorSchemes } from './common'
 
 export default (s) => {

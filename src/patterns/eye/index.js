@@ -1,4 +1,4 @@
-import { init as initProps, getProp /* setProp */ } from 'utils/propConfig'
+import { init as initProps, getProp /* setProp */ } from 'utils/propConfig.ts'
 
 export default (s) => {
   const get = (prop) => getProp('eye', prop)

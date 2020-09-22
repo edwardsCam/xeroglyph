@@ -1,4 +1,4 @@
-import { init as initProps } from 'utils/propConfig'
+import { init as initProps } from 'utils/propConfig.ts'
 import arrowSquare from './arrow-square'
 
 export default (s) => {

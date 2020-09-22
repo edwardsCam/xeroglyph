@@ -1,4 +1,4 @@
-import { interpolate } from 'utils/math'
+import { interpolate } from 'utils/math.ts'
 
 class Drape {
   constructor({ createVector }, { x, res, damp = 1 }) {

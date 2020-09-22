@@ -1,4 +1,4 @@
-import { init as initProps, getProp } from 'utils/propConfig'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 
 const getRandomValue = (arr) => arr[Math.floor(Math.random() * arr.length)]
 

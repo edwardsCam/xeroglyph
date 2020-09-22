@@ -1,4 +1,4 @@
-import { init as initProps, getProp } from 'utils/propConfig'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 import * as vida from './progressive-camera'
 
 export default (s) => {

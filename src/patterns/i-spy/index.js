@@ -1,4 +1,4 @@
-import { init as initProps, getProp } from 'utils/propConfig'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 import RoomGenerator from '../../utils/room-generator'
 
 const getDimensions = (room, roomSize) => {

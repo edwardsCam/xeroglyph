@@ -1,5 +1,5 @@
 import p5 from 'react-p5-wrapper'
-import { interpolate } from './utils/math'
+import { interpolate } from './utils/math.ts'
 
 /** ***************************************************************************\
 ********************************** V I D A ************************************

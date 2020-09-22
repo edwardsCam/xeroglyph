@@ -5,7 +5,7 @@ import {
   interpolate,
   distance,
   toRadians,
-} from 'utils/math'
+} from 'utils/math.ts'
 import throttle from 'lodash.throttle'
 import drawGrid from './utils/drawGrid'
 import { getCenterOfTile, getCoordinates } from './utils/gridUtils'

@@ -7,12 +7,13 @@
   "scripts": {
     "build": "webpack",
     "clean": "rm -rf dist/",
-    "lint": "yarn prettier && eslint src",
+    "lint": "yarn prettier && eslint src && yarn typecheck",
     "prebuild": "yarn clean",
-    "prettier": "prettier 'src/**/*.js' --write",
+    "prettier": "prettier 'src/**/*.js' 'src/**/*.ts' 'src/**/*.tsx' --write",
     "start": "yarn build && webpack-dev-server --hot",
     "test:watch": "karma start karma.conf.js",
-    "test": "karma start karma.conf.js --single-run"
+    "test": "karma start karma.conf.js --single-run",
+    "typecheck": "tsc --noEmit"
   },
   "author": "Cameron Edwards",
   "license": "MIT",
@@ -21,6 +22,8 @@
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-react": "^7.10.4",
+    "@babel/preset-typescript": "^7.10.4",
+    "@types/react": "^16.9.49",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.0.4",
     "chai": "^4.2.0",
@@ -42,6 +45,7 @@
     "karma-jasmine": "^4.0.1",
     "karma-webpack": "^4.0.2",
     "prettier": "^2.1.2",
+    "typescript": "^4.0.3",
     "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"

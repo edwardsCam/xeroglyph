@@ -1,4 +1,4 @@
-import { init as initProps, getProp, setProp } from 'utils/propConfig'
+import { init as initProps, getProp, setProp } from 'utils/propConfig.ts'
 import RoomGenerator from '../../utils/room-generator'
 import Scribble from '../../p5.scribble'
 
