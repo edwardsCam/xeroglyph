@@ -2,7 +2,7 @@ import React from 'react'
 import P5Wrapper from 'react-p5-wrapper'
 import ReactDOM from 'react-dom'
 
-import { board, city } from 'patterns/chipboard'
+import { board, city } from 'patterns/chipboard/index.ts'
 import InfinityCycle from 'patterns/infinity-cycle'
 import Swirl from 'patterns/swirl'
 import JoyDivision from 'patterns/joy-division'
