@@ -4,7 +4,6 @@ import { getConfig, setProp } from 'utils/propConfig.ts'
 export default class Knobs extends React.Component<{ pattern: string }> {
   render() {
     const { pattern } = this.props
-    debugger
     const { config, values } = getConfig(pattern)
 
     const knobs = Object.entries(config).map(([prop, propConfig], i) => {

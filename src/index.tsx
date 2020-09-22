@@ -2,6 +2,7 @@ import React from 'react'
 import P5Wrapper from 'react-p5-wrapper'
 import ReactDOM from 'react-dom'
 
+import Poi from 'patterns/poi/index.ts'
 import { board, city } from 'patterns/chipboard/index.ts'
 import InfinityCycle from 'patterns/infinity-cycle'
 import Swirl from 'patterns/swirl'
@@ -23,6 +24,10 @@ import Knobs from 'components/knobs.tsx'
 import HomepageLink from 'components/homepageLink.tsx'
 
 const patternMap = {
+  poi: {
+    label: 'Poi',
+    component: Poi,
+  },
   chipboard: {
     label: 'Chipboard',
     component: board,

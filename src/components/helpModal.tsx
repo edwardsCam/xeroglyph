@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  poi: {
+    title: 'Poi',
+    instructions: [],
+    description: [],
+  },
   swirl: {
     title: 'Swirl',
     instructions: [],
