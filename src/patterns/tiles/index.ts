@@ -1,12 +1,30 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { Point } from 'utils/math.ts'
 
-const getRandomValue = (arr) => arr[Math.floor(Math.random() * arr.length)]
+const getRandomValue = <T>(arr: T[]): T =>
+  arr[Math.floor(Math.random() * arr.length)]
 
 const colorSchemes = [
   ['#de7119', '#dee3e2', '#116979', '#18b0b0'],
   ['#e7b2a5', '#f1935c', '#ba6b57', '#30475e'],
   ['#edffea', '#75daad', '#216353', '#7a4d1d'],
 ]
+
+type Props = {
+  n: number
+  squareSize: number
+  fillScreen: boolean
+  split: number
+  strokeWeight: number
+  partyMode: boolean
+  randomness: number
+  allowAdjacent: boolean
+  colors: string[]
+}
+
+type TileProps = Props & {
+  start: Point
+}
 
 export default (s) => {
   initProps('tiles', {
@@ -67,8 +85,8 @@ export default (s) => {
       onChange: initialize,
     },
   })
-  const get = (prop) => getProp('tiles', prop)
-  const getProps = () => ({
+  const get = (prop: string) => getProp('tiles', prop)
+  const getProps = (): Props => ({
     n: get('Square Count'),
     squareSize: get('Square Size'),
     fillScreen: get('Fill Screen'),
@@ -81,7 +99,8 @@ export default (s) => {
   })
 
   class Tiles {
-    constructor(props) {
+    squares: Tile[][]
+    constructor(props: Props) {
       this.squares = []
       for (let r = 0; r < props.n; r++) {
         this.squares.push([])
@@ -93,7 +112,7 @@ export default (s) => {
       if (props.randomness > 0) this.randomizeSplit()
     }
 
-    draw(props) {
+    draw(props: Props) {
       if (props.strokeWeight) {
         s.stroke(0, 0, 0)
         s.strokeWeight(props.strokeWeight)
@@ -123,13 +142,13 @@ export default (s) => {
       })
     }
 
-    randomizeColors() {
+    randomizeColors(): void {
       this.squares.forEach((row) =>
         row.forEach((tile) => tile.setColors(getProps()))
       )
     }
 
-    randomizeSplit() {
+    randomizeSplit(): void {
       const props = getProps()
       const { split, randomness } = props
       this.squares.forEach((row) =>
@@ -145,12 +164,18 @@ export default (s) => {
   }
 
   class Tile {
-    constructor(props) {
+    dir: number
+    colors: string[]
+    split: number
+
+    constructor(props: Props) {
       this.dir = Math.floor(Math.random() * 2)
+      this.colors = []
+      this.split = 0
       this.setColors(props)
     }
 
-    setColors(props) {
+    setColors(props: Props): void {
       this.colors = []
       const split = this.getSplit(props)
       for (let i = 0; i < split; i++) {
@@ -166,16 +191,16 @@ export default (s) => {
       }
     }
 
-    setSplit(split) {
+    setSplit(split: number): void {
       this.split = split
     }
 
-    getSplit(props) {
+    getSplit(props: Props): number {
       return this.split || props.split
     }
 
-    draw(props) {
-      const { start, squareSize, colors } = props
+    draw(props: TileProps) {
+      const { start, squareSize } = props
       const split = this.getSplit(props)
       const flip = this.dir === 0
 
@@ -186,9 +211,9 @@ export default (s) => {
       const splitDistance = (squareSize * 2) / split
       const mid = Math.floor(split / 2)
 
-      let prev
+      let prev: { x0: number; y0: number; x1: number; y1: number }
       for (let i = 0; i < split; i++) {
-        let x0, y0, x1, y1
+        let x0: number, y0: number, x1: number, y1: number
         if (flip) {
           if (i <= mid) {
             const step = i * splitDistance
@@ -223,7 +248,9 @@ export default (s) => {
             s.triangle(x0, y0, x1, y1, xmin, flip ? ymax : ymin)
           } else {
             s.beginShape()
+            // @ts-ignore
             s.vertex(prev.x0, prev.y0)
+            // @ts-ignore
             s.vertex(prev.x1, prev.y1)
             s.vertex(xmax, flip ? ymax : ymin)
             s.vertex(x1, y1)
@@ -235,11 +262,12 @@ export default (s) => {
         prev = { x0, y0, x1, y1 }
       }
       s.fill(this.colors[this.colors.length - 1])
+      // @ts-ignore
       s.triangle(prev.x0, prev.y0, prev.x1, prev.y1, xmax, flip ? ymin : ymax)
     }
   }
 
-  let tiles
+  let tiles: Tiles
   function initialize() {
     tiles = new Tiles(getProps())
   }
@@ -251,9 +279,8 @@ export default (s) => {
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
     initialize()
-    document
-      .getElementById('defaultCanvas0')
-      .addEventListener('click', initialize)
+    const canvas = document.getElementById('defaultCanvas0')
+    if (canvas) canvas.addEventListener('click', initialize)
   }
 
   s.draw = () => {

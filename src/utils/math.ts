@@ -3,7 +3,7 @@
     Extensions to the Math class.
 * */
 
-interface Point {
+export interface Point {
   x: number
   y: number
   z?: number
