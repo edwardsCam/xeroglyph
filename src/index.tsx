@@ -17,7 +17,7 @@ import Eye from 'patterns/eye'
 import Tiles from 'patterns/tiles/index.ts'
 import Vida from 'patterns/vida'
 // import VoiceRecognition from 'patterns/voice-recognition'
-import PandorasBox from 'patterns/pandoras-box'
+import PandorasBox from 'patterns/pandoras-box/index.ts'
 
 import HelpModal from 'components/helpModal.tsx'
 import Knobs from 'components/knobs.tsx'

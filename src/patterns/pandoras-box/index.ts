@@ -1,10 +1,27 @@
-import { init as initProps, getProp, setProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig.ts'
 import RoomGenerator from '../../utils/room-generator'
 import Scribble from '../../p5.scribble'
 
+type Props = {
+  n: number
+  unity: number
+  padding: number
+  strokeWeight: number
+  depth: number
+  fillColor: string
+  strokeColor: string
+  scribbly: boolean
+  pulse: boolean
+  pulseIntensityPadding: number
+  pulseFrequencyPadding: number
+  pulseIntensityDepth: number
+  pulseFrequencyDepth: number
+  ignoreMouse: boolean
+}
+
 export default (s) => {
-  const get = (prop) => getProp('pandorasBox', prop)
-  const getProps = () => ({
+  const get = (prop: string) => getProp('pandorasBox', prop)
+  const getProps = (): Props => ({
     n: get('Resolution'),
     unity: get('Unity'),
     padding: get('Padding'),
@@ -105,6 +122,7 @@ export default (s) => {
   })
 
   class PandorasBox {
+    faces: Face[]
     constructor(props) {
       this.faces = [
         new Face(props, 0),
@@ -116,20 +134,29 @@ export default (s) => {
       ]
     }
 
-    draw(props) {
+    draw(props: Props) {
       this.faces.forEach((face) => face.draw(props))
     }
   }
 
   class Face {
-    constructor(props, orientation) {
+    rooms: RoomGenerator
+    orientation: number
+
+    constructor(props: Props, orientation: number) {
       this.rooms = new RoomGenerator({ ...props, quadsOnly: true })
       this.orientation = orientation
     }
 
-    getDimensions({ items }, roomSize, n, offset, padding) {
-      let minX, maxX
-      let minY, maxY
+    getDimensions(
+      { items },
+      roomSize: number,
+      n: number,
+      offset: number,
+      padding: number
+    ) {
+      let minX: number, maxX: number
+      let minY: number, maxY: number
 
       let first = true
       items.forEach(({ data }) => {
@@ -144,22 +171,28 @@ export default (s) => {
         if (data.r > maxY) maxY = data.r
       })
 
+      // @ts-ignore
       let x = minX * roomSize
+      // @ts-ignore
       let y = minY * roomSize
 
       let xPads = 0
       let yPads = 0
+      // @ts-ignore
       if (minX > 0) {
         x += padding / 2
         xPads++
       }
+      // @ts-ignore
       if (minY > 0) {
         y += padding / 2
         yPads++
       }
+      // @ts-ignore
       if (maxX < n - 1) {
         xPads++
       }
+      // @ts-ignore
       if (maxY < n - 1) {
         yPads++
       }
@@ -167,7 +200,9 @@ export default (s) => {
       return {
         x: x - offset,
         y: y - offset,
+        // @ts-ignore
         width: (1 + (maxX - minX)) * roomSize - (xPads * padding) / 2,
+        // @ts-ignore
         height: (1 + (maxY - minY)) * roomSize - (yPads * padding) / 2,
       }
     }
@@ -180,7 +215,7 @@ export default (s) => {
       strokeWeight,
       strokeColor,
       fillColor,
-    }) {
+    }: Props) {
       s.push()
 
       const roomSize = Math.min(window.innerWidth, window.innerHeight) / (n * 2)
@@ -248,12 +283,12 @@ export default (s) => {
     }
   }
 
-  let pandora
-  let mouseX
-  let mouseY
-  let zoom
+  let pandora: PandorasBox
+  let mouseX: number
+  let mouseY: number
+  let zoom: number
   const damp = 20
-  let scribble
+  let scribble: Scribble
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
@@ -289,7 +324,6 @@ export default (s) => {
       mouseX += (s.mouseX - mouseX) / damp
       mouseY += (s.mouseY - mouseY) / damp
     }
-    console.info(`x: ${mouseX}, y: ${mouseY}`)
     s.rotateY(mouseX * 0.005)
     s.rotateX(mouseY * 0.005)
     s.strokeWeight(props.strokeWeight)
@@ -311,7 +345,7 @@ export default (s) => {
     pandora = new PandorasBox(props)
   }
 
-  function drawCube({ coords, depth, strokeWeight }, scribbly) {
+  function drawCube({ coords, depth, strokeWeight }, scribbly: boolean) {
     const { x1, y1, x2, y2 } = coords
     const dx = x2 - x1
     const dy = y2 - y1
