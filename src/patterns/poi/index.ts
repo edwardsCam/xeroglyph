@@ -1,14 +1,14 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
-import { coordWithAngleAndDistance, interpolate } from 'utils/math.ts'
+import { coordWithAngleAndDistance, interpolate, TWO_PI } from 'utils/math.ts'
 
 type Props = {
   n: number
   period: number
   speed: number
-  mode: 'period' | 'speed'
+  mode: 'constant time' | 'constant speed'
 }
 
-type Ball = {
+type BallProps = {
   radiusFromCenter: number
   theta: number
   size: number
@@ -18,6 +18,11 @@ const FRAMERATE = 60
 
 export default (s) => {
   initProps('poi', {
+    draw: {
+      type: 'func',
+      label: 'Clear',
+      callback: initialize,
+    },
     n: {
       type: 'number',
       default: 3,
@@ -25,22 +30,22 @@ export default (s) => {
     },
     period: {
       type: 'number',
-      default: 4,
+      default: 5,
       min: 0.1,
       step: 0.1,
-      when: () => get('mode') == 'period',
+      when: () => get('mode') == 'constant time',
     },
     speed: {
       type: 'number',
-      default: 4,
-      min: 0.1,
-      step: 0.1,
-      when: () => get('mode') == 'speed',
+      default: 3,
+      min: 0.2,
+      step: 0.2,
+      when: () => get('mode') == 'constant speed',
     },
     mode: {
       type: 'dropdown',
-      default: 'period',
-      options: ['period', 'speed'],
+      default: 'constant time',
+      options: ['constant speed', 'constant time'],
     },
   })
   const get = (prop: string) => getProp('poi', prop)
@@ -51,47 +56,77 @@ export default (s) => {
     mode: get('mode'),
   })
 
+  const bound = (): number =>
+    Math.min(window.innerHeight / 2, window.innerWidth / 2) * 0.85
+  const getSize = (): number => Math.sin(s.frameCount * 0.001) * 50
+  const getRadius = (): number => Math.sin(s.frameCount * 0.001) * bound()
+
+  class Ball {
+    radiusFromCenter: number
+    theta: number
+    size: number
+
+    constructor(props: BallProps) {
+      this.radiusFromCenter = props.radiusFromCenter
+      this.theta = props.theta
+      this.size = props.size
+    }
+
+    mutate({ mode, period, speed }: Props): void {
+      const r = getRadius()
+      this.radiusFromCenter = r
+      this.size = getSize()
+      let dt: number
+      if (mode === 'constant time') {
+        dt = TWO_PI / (FRAMERATE * period)
+      } else {
+        dt = r == 0 ? 0 : speed / r
+      }
+      this.theta += dt
+    }
+  }
+
   let balls: Ball[]
 
-  function mutate(props: Props): void {
-    balls = []
-    const { period, n } = props
-    const seconds = s.frameCount / FRAMERATE
+  function mutate(): void {
+    const props = getProps()
+    balls.forEach((ball) => {
+      ball.mutate(props)
+    })
+  }
 
+  function initialize(): void {
+    s.clear()
+    s.stroke(255, 255, 255)
+    s.fill(0, 0, 0, 60)
+    balls = []
+    const { n } = getProps()
     for (let i = 0; i < n; i++) {
-      const a = i / n
-      const b = a * period
-      const c = seconds + b
-      const d = c % period
-      let theta = interpolate([0, period], [0, Math.PI * 2], d)
-      // if (props.mode === 'speed') {
-      //   theta += props.speed
-      // }
-      balls.push({
-        radiusFromCenter: 150 + Math.sin(s.frameCount * 0.01) * 100,
-        theta,
-        size: 40 + Math.sin(s.frameCount * 0.015) * 30,
-      })
+      balls.push(
+        new Ball({
+          radiusFromCenter: getRadius(),
+          theta: interpolate([0, n], [0, TWO_PI], i),
+          size: getSize(),
+        })
+      )
     }
   }
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
     s.frameRate(FRAMERATE)
+    initialize()
   }
 
   s.draw = () => {
-    s.stroke(255, 255, 255)
-    s.fill(0, 0, 0)
-    const props = getProps()
-    mutate(props)
+    mutate()
     balls.forEach((ball) => {
-      const location = coordWithAngleAndDistance(
+      const { x, y } = coordWithAngleAndDistance(
         { x: window.innerWidth / 2, y: window.innerHeight / 2 },
         ball.theta,
         ball.radiusFromCenter
       )
-      s.circle(location.x, location.y, ball.size)
+      s.circle(x, y, ball.size)
     })
   }
 }

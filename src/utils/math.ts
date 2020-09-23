@@ -9,6 +9,9 @@ export interface Point {
   z?: number
 }
 
+export const TWO_PI = Math.PI * 2
+export const PI_HALVES = Math.PI / 2
+
 type Range = [number, number]
 
 const toRadians = (d: number): number => (d * Math.PI) / 180
