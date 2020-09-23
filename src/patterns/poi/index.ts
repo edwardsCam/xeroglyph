@@ -6,6 +6,7 @@ type Props = {
   period: number
   speed: number
   mode: 'constant time' | 'constant speed'
+  startAtCenter: boolean
 }
 
 type BallProps = {
@@ -18,10 +19,15 @@ const FRAMERATE = 60
 
 export default (s) => {
   initProps('poi', {
-    draw: {
+    restart: {
+      type: 'func',
+      label: 'Restart',
+      callback: initialize,
+    },
+    clear: {
       type: 'func',
       label: 'Clear',
-      callback: initialize,
+      callback: () => s.clear(),
     },
     n: {
       type: 'number',
@@ -47,6 +53,10 @@ export default (s) => {
       default: 'constant time',
       options: ['constant speed', 'constant time'],
     },
+    'Start at Center': {
+      type: 'boolean',
+      default: true,
+    },
   })
   const get = (prop: string) => getProp('poi', prop)
   const getProps = (): Props => ({
@@ -54,12 +64,23 @@ export default (s) => {
     period: get('period'),
     speed: get('speed'),
     mode: get('mode'),
+    startAtCenter: get('Start at Center'),
   })
+
+  let frameCount: number
 
   const bound = (): number =>
     Math.min(window.innerHeight / 2, window.innerWidth / 2) * 0.85
-  const getSize = (): number => Math.sin(s.frameCount * 0.001) * 50
-  const getRadius = (): number => Math.sin(s.frameCount * 0.001) * bound()
+  const getSizeFromCenter = (): number => Math.sin(frameCount * 0.001) * 50
+  const getRadiusFromCenter = (): number =>
+    Math.sin(frameCount * 0.001) * bound()
+
+  const getSizeFromOutside = (): number => Math.cos(frameCount * 0.001) * 50
+  const getRadiusFromOutside = (): number =>
+    Math.cos(frameCount * 0.001) * bound()
+
+  let getSize: () => number
+  let getRadius: () => number
 
   class Ball {
     radiusFromCenter: number
@@ -96,11 +117,14 @@ export default (s) => {
   }
 
   function initialize(): void {
+    frameCount = 0
     s.clear()
     s.stroke(255, 255, 255)
     s.fill(0, 0, 0, 60)
     balls = []
-    const { n } = getProps()
+    const { n, startAtCenter } = getProps()
+    getSize = startAtCenter ? getSizeFromCenter : getSizeFromOutside
+    getRadius = startAtCenter ? getRadiusFromCenter : getRadiusFromOutside
     for (let i = 0; i < n; i++) {
       balls.push(
         new Ball({
@@ -119,6 +143,7 @@ export default (s) => {
   }
 
   s.draw = () => {
+    frameCount++
     mutate()
     balls.forEach((ball) => {
       const { x, y } = coordWithAngleAndDistance(
