@@ -10,7 +10,8 @@ const infoMap = {
     title: 'Swirl',
     instructions: [],
     description: [
-      'Particles floating in space, they will gravitate toward your mouse.',
+      'Particles floating in space!',
+      'They will gravitate toward your mouse.',
     ],
   },
   infinity: {
@@ -31,7 +32,7 @@ const infoMap = {
   chipboard: {
     title: 'Chipboard',
     instructions: [
-      'Pause by clicking or hitting spacebar.',
+      'Pause by either clicking or hitting spacebar.',
       'Hit ctrl+alt+s to save the image.',
     ],
     description: [
@@ -68,12 +69,20 @@ const infoMap = {
   coral: {
     title: 'Coral',
     instructions: [],
-    description: [],
+    description: [
+      'This is based on growth patterns seen in self-folding organisms in nature, such as coral, red cabbage, walnuts, even the human brain.',
+      'Essentially, the tissue is trying to grow as large as possible, within the smallest amount of space, but with one constraint:',
+      'it also wants to keep as much distance from its neighbors as possible.',
+      '',
+      'This makes sense if you think about it from a survival perspective: a colony thrives by growing, and individuals within the colony benefit by being near their friends, but they still need some space to grow.',
+    ],
   },
   coral3d: {
     title: 'Coral 3D',
     instructions: [],
-    description: [],
+    description: [
+      'This is essentially the same algorithm as "Coral", but extended to three dimensions.',
+    ],
   },
   cubes: {
     title: 'Cubes',
@@ -102,7 +111,7 @@ const infoMap = {
   },
   tiles: {
     title: 'tiles',
-    instructions: [],
+    instructions: ['Click or press space to regenerate.'],
     description: [],
   },
   motionDetection: {
@@ -117,7 +126,13 @@ const infoMap = {
   },
   pandorasBox: {
     title: "Pandora's Box",
-    instructions: [],
+    instructions: [
+      'You can move your mouse to change perspective, and scroll to zoom.',
+      '',
+      'The "unity" parameter determines how likely tiles are to combine with eachother.',
+      'A unity of 0 means no tiles will combine, so you end up with an array of little squares.',
+      'A unity of 1 means all (or most) tiles will combine, so you pretty much end up with one big square on each face.',
+    ],
     description: [],
   },
 }
