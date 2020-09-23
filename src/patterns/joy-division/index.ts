@@ -1,9 +1,34 @@
-import { interpolate, clamp } from 'utils/math.ts'
+import { interpolate, clamp, Point } from 'utils/math.ts'
 import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { Vector } from 'p5'
+
+type Props = {
+  lineCount: number
+  fillBehind: boolean
+  lineSpacing: number
+  initialDistance: number
+  xSpeed: number
+  pathDelay: number
+  randomnessDamp: number
+  yAccelDamp: number
+  maxAccel: number
+  splitDistance: number
+}
+
+type ParticleProps = Props & {
+  position: Point
+}
 
 export default (s) => {
   class Particle {
-    constructor(props) {
+    position: Vector
+    initialPosition: Vector
+    velocity: Vector
+    acceleration: Vector
+    history: Vector[]
+    pathStep: number
+
+    constructor(props: ParticleProps) {
       this.position = props.position
       this.initialPosition = s.createVector(props.position.x, props.position.y)
       this.velocity = s.createVector(props.xSpeed, 0)
@@ -12,7 +37,7 @@ export default (s) => {
       this.pathStep = 0
     }
 
-    move(props) {
+    move(props: Props) {
       if (this.position.x > window.innerWidth - 20) return
       if (this.pathStep++ > props.pathDelay) {
         this.pathStep = 0
@@ -37,7 +62,7 @@ export default (s) => {
       this.position.add(this.velocity)
     }
 
-    draw(props, row) {
+    draw(props: Props, row: number) {
       if (this.history.length < 2) return
       if (this.position.x > window.innerWidth - 20) return
       const maxRow = props.lineCount - 1
@@ -74,7 +99,9 @@ export default (s) => {
   }
 
   class Particles {
-    constructor(props) {
+    particles: Particle[]
+
+    constructor(props: Props) {
       this.particles = []
       const numSpaces = props.lineCount - 1
       const totalHeight = numSpaces * props.lineSpacing
@@ -89,21 +116,21 @@ export default (s) => {
       }
     }
 
-    move(props) {
+    move(props: Props) {
       this.particles.forEach((particle) => {
         particle.move(props)
       })
     }
 
-    draw(props) {
+    draw(props: Props) {
       this.particles.forEach((particle, r) => {
         particle.draw(props, r)
       })
     }
   }
 
-  const get = (prop) => getProp('joyDivision', prop)
-  const getProps = () => ({
+  const get = (prop: string) => getProp('joyDivision', prop)
+  const getProps = (): Props => ({
     initialDistance: get('initialDistance'),
     lineCount: get('lineCount'),
     lineSpacing: get('lineSpacing'),
