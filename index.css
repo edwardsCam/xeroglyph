@@ -97,6 +97,9 @@ body {
   outline: none;
 }
 
+.homepage-link.squid::before {
+  background-image: url('assets/example_squid.png');
+}
 .homepage-link.chipboard::before {
   background-image: url('assets/example_chipboard.png');
 }

@@ -18,6 +18,7 @@ import Tiles from 'patterns/tiles/index.ts'
 import Vida from 'patterns/vida'
 // import VoiceRecognition from 'patterns/voice-recognition'
 import PandorasBox from 'patterns/pandoras-box/index.ts'
+import Squid from 'patterns/squid/index.ts'
 
 import HelpModal from 'components/helpModal.tsx'
 import Knobs from 'components/knobs.tsx'
@@ -27,6 +28,10 @@ const patternMap = {
   poi: {
     label: 'Poi',
     component: Poi,
+  },
+  squid: {
+    label: 'Squid',
+    component: Squid,
   },
   chipboard: {
     label: 'Chipboard',
