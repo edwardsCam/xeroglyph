@@ -97,6 +97,9 @@ body {
   outline: none;
 }
 
+.homepage-link.poi::before {
+  background-image: url('assets/example_poi.png');
+}
 .homepage-link.squid::before {
   background-image: url('assets/example_squid.png');
 }
