@@ -212,7 +212,56 @@ function smoothToStep(value: number, step: number): number {
   return step * Math.round(value / step)
 }
 
+function getIntersectionPoint(
+  [v1, v2]: [Point, Point],
+  [v3, v4]: [Point, Point]
+): null | Point {
+  const a1 = v2.y - v1.y
+  const b1 = v1.x - v2.x
+  const c1 = a1 * v1.x + b1 * v1.y
+
+  // Line CD represented as a2x + b2y = c2
+  const a2 = v4.y - v3.y
+  const b2 = v3.x - v4.x
+  const c2 = a2 * v3.x + b2 * v3.y
+
+  const determinant = a1 * b2 - a2 * b1
+
+  if (determinant == 0) {
+    // The lines are parallel
+    return null
+  }
+
+  const x = Number(((b2 * c1 - b1 * c2) / determinant).toFixed(6))
+  const y = Number(((a1 * c2 - a2 * c1) / determinant).toFixed(6))
+
+  const line1minx = Number(Math.min(v1.x, v2.x).toFixed(6))
+  const line1miny = Number(Math.min(v1.y, v2.y).toFixed(6))
+  const line1maxx = Number(Math.max(v1.x, v2.x).toFixed(6))
+  const line1maxy = Number(Math.max(v1.y, v2.y).toFixed(6))
+  const line2minx = Number(Math.min(v3.x, v4.x).toFixed(6))
+  const line2miny = Number(Math.min(v3.y, v4.y).toFixed(6))
+  const line2maxx = Number(Math.max(v3.x, v4.x).toFixed(6))
+  const line2maxy = Number(Math.max(v3.y, v4.y).toFixed(6))
+
+  if (
+    x < line1minx ||
+    x > line1maxx ||
+    y < line1miny ||
+    y > line1maxy ||
+    x < line2minx ||
+    x > line2maxx ||
+    y < line2miny ||
+    y > line2maxy
+  ) {
+    // outside the segment
+    return null
+  }
+  return { x, y }
+}
+
 export {
+  getIntersectionPoint,
   clamp,
   diff,
   distance,

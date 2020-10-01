@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  field: {
+    title: 'Field',
+    instructions: [],
+    description: [],
+  },
   poi: {
     title: 'Poi',
     instructions: [],

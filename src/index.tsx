@@ -10,6 +10,7 @@ import JoyDivision from 'patterns/joy-division/index.ts'
 import Coral from 'patterns/coral'
 import Coral3D from 'patterns/coral-3d'
 import Cubes from 'patterns/cubes'
+import Field from 'patterns/field/index.ts'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -25,6 +26,10 @@ import Knobs from 'components/knobs.tsx'
 import HomepageLink from 'components/homepageLink.tsx'
 
 const patternMap = {
+  field: {
+    label: 'Field',
+    component: Field,
+  },
   poi: {
     label: 'Poi',
     component: Poi,
