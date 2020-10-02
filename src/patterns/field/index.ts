@@ -15,6 +15,7 @@ type Props = {
   noise: number
   distortion: number
   alpha: number
+  density: number
   rainbow: boolean
   lineLength: number
   drawMode: DrawMode
@@ -45,6 +46,13 @@ export default (s) => {
       min: 0,
       step: Math.PI / 24,
     },
+    density: {
+      type: 'number',
+      default: 0.8,
+      min: 0,
+      max: 1,
+      step: 0.025,
+    },
     rainbow: {
       type: 'boolean',
     },
@@ -73,6 +81,7 @@ export default (s) => {
     noise: get('noise'),
     rainbow: get('rainbow'),
     alpha: get('alpha'),
+    density: get('density'),
     drawMode: get('drawMode'),
     noiseMode: get('noiseMode'),
     distortion: get('distortion'),
@@ -166,6 +175,7 @@ export default (s) => {
     n: number,
     lineLength: number,
     alpha: number,
+    density: number,
     rainbow: boolean,
     center: Point,
     totalLength: number
@@ -177,6 +187,7 @@ export default (s) => {
 
     grid.forEach((row, r) => {
       row.forEach((_angle, c) => {
+        if (Math.random() > density) return
         const p = getPoint(n, center, totalLength, r, c)
         let cnt = 0
         while (
@@ -223,7 +234,7 @@ export default (s) => {
 
   s.draw = () => {
     const props = getProps()
-    const { n, drawMode, lineLength, alpha, rainbow } = props
+    const { n, drawMode, lineLength, alpha, rainbow, density } = props
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop]))
       return
 
@@ -244,7 +255,15 @@ export default (s) => {
         break
       }
       case 'streams': {
-        drawAsStreams(n, lineLength, alpha, rainbow, center, totalLength)
+        drawAsStreams(
+          n,
+          lineLength,
+          alpha,
+          density,
+          rainbow,
+          center,
+          totalLength
+        )
         break
       }
     }
