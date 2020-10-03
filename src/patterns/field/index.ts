@@ -8,7 +8,7 @@ import {
 
 import SimplexNoise from 'simplex-noise'
 
-type DrawMode = 'arrows' | 'streams'
+type DrawMode = 'arrows' | 'streams' | 'dots'
 
 type Props = {
   n: number
@@ -66,7 +66,7 @@ export default (s) => {
     drawMode: {
       type: 'dropdown',
       default: 'streams',
-      options: ['arrows', 'streams'],
+      options: ['arrows', 'streams', 'dots'],
     },
     noiseMode: {
       type: 'dropdown',
@@ -199,7 +199,6 @@ export default (s) => {
         ) {
           const curRow = Math.floor(interpolate([minX, maxX], [0, n - 1], p.x))
           const curCol = Math.floor(interpolate([minY, maxY], [0, n - 1], p.y))
-
           if (curRow < 0 || curRow >= n || curCol < 0 || curCol >= n) break
 
           const angle = grid[curRow][curCol]
@@ -224,9 +223,69 @@ export default (s) => {
     })
   }
 
+  const drawAsDots = (
+    n: number,
+    lineLength: number,
+    density: number,
+    center: Point,
+    totalLength: number
+  ) => {
+    const minX = center.x - totalLength / 2
+    const maxX = center.x + totalLength / 2
+    const minY = center.y - totalLength / 2
+    const maxY = center.y + totalLength / 2
+
+    const squareLen = totalLength / n
+
+    const tiles: number[][] = grid.map((row) => row.map(() => 0))
+    let max = 0
+
+    grid.forEach((row, r) => {
+      row.forEach((_angle, c) => {
+        if (Math.random() > density) return
+        const p = getPoint(n, center, totalLength, r, c)
+        let cnt = 0
+        const marked = {}
+        while (
+          p.x >= minX &&
+          p.x <= maxX &&
+          p.y > minY &&
+          p.y < maxY &&
+          cnt++ < 200
+        ) {
+          const curRow = Math.floor(interpolate([minX, maxX], [0, n - 1], p.x))
+          const curCol = Math.floor(interpolate([minY, maxY], [0, n - 1], p.y))
+          if (curRow < 0 || curRow >= n || curCol < 0 || curCol >= n) break
+
+          const key = `${curRow} ${curCol}`
+          if (!marked[key]) {
+            marked[key] = true
+            tiles[curRow][curCol]++
+            if (tiles[curRow][curCol] > max) max = tiles[curRow][curCol]
+          }
+
+          const angle = grid[curRow][curCol]
+          const nextP = coordWithAngleAndDistance(p, angle, lineLength)
+
+          p.x = nextP.x
+          p.y = nextP.y
+        }
+      })
+    })
+
+    s.noStroke()
+    tiles.forEach((row, r) => {
+      row.forEach((cnt, c) => {
+        const loc = getPoint(n, center, totalLength, r, c)
+        const p = interpolate([0, max], [0, 1], cnt)
+        s.fill(`rgba(255, 255, 255, ${p})`)
+        s.circle(loc.x, loc.y, squareLen, squareLen)
+      })
+    })
+  }
+
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
-
     s.frameRate(60)
   }
 
@@ -264,6 +323,10 @@ export default (s) => {
           center,
           totalLength
         )
+        break
+      }
+      case 'dots': {
+        drawAsDots(n, lineLength, density, center, totalLength)
         break
       }
     }
