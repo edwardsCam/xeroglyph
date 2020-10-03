@@ -44,7 +44,7 @@ export default (s) => {
       type: 'number',
       default: 0,
       min: 0,
-      step: Math.PI / 24,
+      step: Math.PI / 128,
     },
     density: {
       type: 'number',
