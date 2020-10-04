@@ -4,17 +4,14 @@ import {
   coordWithAngleAndDistance,
   distance,
   interpolate,
-  getIntersectionPoint,
-  equalWithinEpsilon,
-  getDirection,
 } from 'utils/math.ts'
 
 import SimplexNoise from 'simplex-noise'
 
-const epsilon = 0.0001
-
-type DrawMode = 'arrows' | 'streams' | 'dots'
+type DrawMode = 'arrows' | 'streams'
 type ConstraintMode = 'none' | 'circle'
+
+type NoiseFn = (x: number, y: number) => number
 
 type Props = {
   n: number
@@ -22,7 +19,7 @@ type Props = {
   distortion: number
   alpha: number
   density: number
-  rainbow: boolean
+  continuation: number
   lineLength: number
   drawMode: DrawMode
   withArrows: boolean
@@ -35,40 +32,44 @@ export default (s) => {
   initProps('field', {
     n: {
       type: 'number',
-      default: 25,
+      default: 55,
       min: 3,
     },
     lineLength: {
       type: 'number',
-      default: 20,
+      default: 10,
       min: 1,
-      when: () => get('drawMode') !== 'streams',
     },
     noise: {
       type: 'number',
-      default: 0.35,
+      default: 2,
       min: 0,
-      step: 0.0005,
+      step: 0.01,
     },
     distortion: {
       type: 'number',
       default: 0,
       min: 0,
-      step: Math.PI / 128,
+      step: Math.PI / 2048,
     },
     density: {
       type: 'number',
-      default: 0.8,
+      default: 0.5,
       min: 0,
       max: 1,
       step: 0.025,
     },
-    rainbow: {
-      type: 'boolean',
+    continuation: {
+      type: 'number',
+      default: 0.9,
+      min: 0,
+      max: 1,
+      step: 0.025,
+      when: () => get('drawMode') === 'streams',
     },
     alpha: {
       type: 'number',
-      default: 0.4,
+      default: 1,
       min: 0,
       max: 1,
       step: 0.01,
@@ -76,7 +77,7 @@ export default (s) => {
     drawMode: {
       type: 'dropdown',
       default: 'streams',
-      options: ['arrows', 'streams', 'dots'],
+      options: ['arrows', 'streams'],
     },
     withArrows: {
       type: 'boolean',
@@ -105,9 +106,9 @@ export default (s) => {
     n: get('n'),
     lineLength: get('lineLength'),
     noise: get('noise'),
-    rainbow: get('rainbow'),
     alpha: get('alpha'),
     density: get('density'),
+    continuation: get('continuation'),
     drawMode: get('drawMode'),
     noiseMode: get('noiseMode'),
     distortion: get('distortion'),
@@ -115,32 +116,6 @@ export default (s) => {
     constraintRadius: get('constraintRadius'),
     withArrows: get('withArrows'),
   })
-
-  let grid: number[][]
-
-  function generateField() {
-    grid = []
-    const { n, noise, noiseMode, distortion } = getProps()
-    let noiseFn: (x: number, y: number) => any
-    if (noiseMode === 'perlin') {
-      noiseFn = s.noise
-    } else {
-      const simplex = new SimplexNoise()
-      noiseFn = (x: number, y: number) => simplex.noise2D(x, y)
-    }
-    for (let r = 0; r < n; r++) {
-      grid.push([])
-      const scaled_y = r * noise
-      for (let c = 0; c < n; c++) {
-        const scaled_x = c * noise
-        const noise_val = noiseFn(scaled_x, scaled_y)
-        const angle = s.map(noise_val, 0, 1, 0, Math.PI * 2)
-        const distortedAngle =
-          distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
-        grid[r].push(distortedAngle)
-      }
-    }
-  }
 
   const drawArrow = (
     start: Point,
@@ -191,353 +166,102 @@ export default (s) => {
     distance(p, center) < maxDist
 
   const drawAsArrows = (
-    n: number,
+    props: Props,
     center: Point,
     totalLength: number,
-    lineLength: number,
-    withArrows: boolean,
-    density: number
+    noiseFn: NoiseFn
   ) => {
-    const squareLen = totalLength / n
-    grid.forEach((row, r) => {
-      row.forEach((angle, c) => {
-        if (Math.random() > density) return
+    const { n, lineLength, withArrows, density } = props
+    const squareLen = totalLength / 2
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (Math.random() > density) continue
         const p: Point = getPoint(n, center, totalLength, squareLen, r, c)
-        drawArrow(p, angle, lineLength, withArrows)
-      })
-    })
+        drawArrow(p, noiseFn(p.x, p.y), lineLength, withArrows)
+      }
+    }
   }
 
-  const drawAsStreams = (props: Props, totalLength: number, center: Point) => {
-    const {
-      n,
-      constraintMode,
-      constraintRadius,
-      rainbow,
-      alpha,
-      density,
-    } = props
-    const squareLen = totalLength / n
-
-    // if (constraintMode === 'circle') {
-    //   s.noFill()
-    //   s.strokeWeight(2)
-    //   s.circle(center.x, center.y, constraintRadius * 2)
-    // }
-
+  const buildStreamLines = (
+    props: Props,
+    totalLength: number,
+    center: Point,
+    noiseFn: NoiseFn
+  ): Point[][] => {
     const lines: Point[][] = []
 
-    grid.forEach((row, _r) => {
-      row.forEach((_angle, _c) => {
-        if (Math.random() > density) return
-
-        let r = _r
-        let c = _c
-
-        const p = getPoint(n, center, totalLength, squareLen, r, c)
-        if (constraintMode === 'circle') {
-          if (!inBoundsCircle(p, center, constraintRadius)) return
-        }
-        lines.push([])
-        let cnt = 0
-        let a = _angle
-
-        const avgWithTop = () => {
-          if (r <= 0) return
-          const otherAngle = grid[r - 1][c]
-          a = (a + otherAngle) / 2
-          if (getDirection(a).startsWith('n')) r--
-        }
-        const avgWithRight = () => {
-          if (c >= n - 1) return
-          const otherAngle = grid[r][c + 1]
-          a = (a + otherAngle) / 2
-          if (getDirection(a).endsWith('e')) c++
-        }
-        const avgWithBot = () => {
-          if (r >= n - 1) return
-          const otherAngle = grid[r + 1][c]
-          a = (a + otherAngle) / 2
-          if (getDirection(a).startsWith('s')) r++
-        }
-        const avgWithLeft = () => {
-          if (c <= 0) return
-          const otherAngle = grid[r][c - 1]
-          a = (a + otherAngle) / 2
-          if (getDirection(a).endsWith('w')) c--
-        }
-
-        while (r >= 0 && r < n && c >= 0 && c < n && cnt++ < 200) {
-          if (rainbow) {
-            const scaled = cnt * 0.01
-            const [r, g, b] = [
-              Math.floor(s.map(s.noise(scaled), 0, 1, 0, 255)),
-              Math.floor(s.map(s.noise((scaled * p.x) / 100), 0, 1, 0, 255)),
-              Math.floor(s.map(s.noise((scaled * p.y) / 100), 0, 1, 0, 255)),
-            ]
-            const color = `rgba(${r}, ${g}, ${b}, ${alpha})`
-            s.stroke(color)
-          }
-          const dir = getDirection(a)
-          const topLeftCorner = getPoint(
-            n,
-            center,
-            totalLength,
-            squareLen,
-            r,
-            c
-          )
-          const topRightCorner: Point = {
-            x: topLeftCorner.x + squareLen,
-            y: topLeftCorner.y,
-          }
-          const botRightCorner: Point = {
-            x: topLeftCorner.x + squareLen,
-            y: topLeftCorner.y + squareLen,
-          }
-          const botLeftCorner: Point = {
-            x: topLeftCorner.x,
-            y: topLeftCorner.y + squareLen,
-          }
-
-          const topBorder: [Point, Point] = [topLeftCorner, topRightCorner]
-          const rightBorder: [Point, Point] = [topRightCorner, botRightCorner]
-          const botBorder: [Point, Point] = [botRightCorner, botLeftCorner]
-          const leftBorder: [Point, Point] = [botLeftCorner, topLeftCorner]
-
-          const onTop = equalWithinEpsilon(p.y, topLeftCorner.y, epsilon)
-          const onRight = equalWithinEpsilon(p.x, topRightCorner.x, epsilon)
-          const onBottom = equalWithinEpsilon(p.y, botLeftCorner.y, epsilon)
-          const onLeft = equalWithinEpsilon(p.x, topLeftCorner.x, epsilon)
-          const extension: [Point, Point] = [
-            p,
-            coordWithAngleAndDistance(p, a, squareLen * 2),
-          ]
-
-          const tryCrossingTop = (): boolean => {
-            const intersection = getIntersectionPoint(extension, topBorder)
-            if (intersection) {
-              lines[lines.length - 1].push(intersection)
-              p.x = intersection.x
-              p.y = intersection.y
-              r--
-              if (r >= 0) a = grid[r][c]
-              return true
-            }
-            return false
-          }
-          const tryCrossingRight = (): boolean => {
-            const intersection = getIntersectionPoint(extension, rightBorder)
-            if (intersection) {
-              lines[lines.length - 1].push(intersection)
-              p.x = intersection.x
-              p.y = intersection.y
-              c++
-              if (c < n) a = grid[r][c]
-              return true
-            }
-            return false
-          }
-          const tryCrossingBot = (): boolean => {
-            const intersection = getIntersectionPoint(extension, botBorder)
-            if (intersection) {
-              lines[lines.length - 1].push(intersection)
-              p.x = intersection.x
-              p.y = intersection.y
-              r++
-              if (r < n) a = grid[r][c]
-              return true
-            }
-            return false
-          }
-          const tryCrossingLeft = (): boolean => {
-            const intersection = getIntersectionPoint(extension, leftBorder)
-            if (intersection) {
-              lines[lines.length - 1].push(intersection)
-              p.x = intersection.x
-              p.y = intersection.y
-              c--
-              if (c >= 0) a = grid[r][c]
-              return true
-            }
-            return false
-          }
-          const tryCrossingNE = () => tryCrossingTop() || tryCrossingRight()
-          const tryCrossingNW = () => tryCrossingTop() || tryCrossingLeft()
-          const tryCrossingSW = () => tryCrossingBot() || tryCrossingLeft()
-          const tryCrossingSE = () => tryCrossingBot() || tryCrossingRight()
-
-          if (onTop && onLeft) {
-            if (dir == 'ne') {
-              avgWithTop()
-            } else if (dir == 'nw') {
-              if (c <= 0 || r <= 0) return
-              const otherAngle = grid[r - 1][c - 1]
-              a = (a + otherAngle) / 2
-              const newDir = getDirection(a)
-              if (newDir.endsWith('w')) c--
-              if (newDir.startsWith('n')) r--
-            } else if (dir == 'sw') {
-              avgWithLeft()
-            } else if (dir == 'se') {
-              tryCrossingSE()
-            }
-          } else if (onTop && onRight) {
-            if (dir == 'ne') {
-              if (c >= n - 1 || r <= 0) return
-              const otherAngle = grid[r - 1][c + 1]
-              a = (a + otherAngle) / 2
-              const newDir = getDirection(a)
-              if (newDir.endsWith('e')) c++
-              if (newDir.startsWith('n')) r--
-            } else if (dir == 'nw') {
-              avgWithTop()
-            } else if (dir == 'sw') {
-              tryCrossingSW()
-            } else if (dir == 'se') {
-              avgWithRight()
-            }
-          } else if (onBottom && onRight) {
-            if (dir == 'ne') {
-              avgWithRight()
-            } else if (dir == 'nw') {
-              tryCrossingNW()
-            } else if (dir == 'sw') {
-              avgWithBot()
-            } else if (dir == 'se') {
-              if (c >= n - 1 || r >= n - 1) return
-              const otherAngle = grid[r + 1][c + 1]
-              a = (a + otherAngle) / 2
-              const newDir = getDirection(a)
-              if (newDir.endsWith('e')) c++
-              if (newDir.startsWith('s')) r++
-            }
-          } else if (onBottom && onLeft) {
-            if (dir == 'ne') {
-              tryCrossingNE()
-            } else if (dir == 'nw') {
-              avgWithLeft()
-            } else if (dir == 'sw') {
-              if (c <= 0 || r >= n - 1) return
-              const otherAngle = grid[r + 1][c - 1]
-              a = (a + otherAngle) / 2
-              const newDir = getDirection(a)
-              if (newDir.endsWith('w')) c--
-              if (newDir.startsWith('s')) r++
-            } else if (dir == 'se') {
-              avgWithBot()
-            }
-          } else if (onTop) {
-            if (dir.startsWith('n')) {
-              avgWithTop()
-            } else if (dir == 'sw') {
-              tryCrossingSW()
-            } else if (dir == 'se') {
-              tryCrossingSE()
-            }
-          } else if (onRight) {
-            if (dir.endsWith('e')) {
-              avgWithRight()
-            } else if (dir === 'nw') {
-              tryCrossingNW()
-            } else if (dir === 'sw') {
-              tryCrossingSW()
-            }
-          } else if (onBottom) {
-            if (dir.startsWith('s')) {
-              avgWithBot()
-            } else if (dir == 'nw') {
-              tryCrossingNW()
-            } else if (dir == 'ne') {
-              tryCrossingNE()
-            }
-          } else if (onLeft) {
-            if (dir.endsWith('w')) {
-              avgWithLeft()
-            } else if (dir === 'ne') {
-              tryCrossingNE()
-            } else if (dir === 'se') {
-              tryCrossingSE()
-            }
-          }
-        }
-      })
-    })
-
-    s.noFill()
-    lines
-      .filter((line) => line.length > 1)
-      .forEach((line) => {
-        s.beginShape()
-        line.forEach((point) => s.vertex(point.x, point.y))
-        s.endShape()
-      })
-  }
-
-  const drawAsDots = (
-    n: number,
-    lineLength: number,
-    density: number,
-    center: Point,
-    totalLength: number
-  ) => {
     const minX = center.x - totalLength / 2
     const maxX = center.x + totalLength / 2
     const minY = center.y - totalLength / 2
     const maxY = center.y + totalLength / 2
-
+    const {
+      n,
+      density,
+      constraintMode,
+      constraintRadius,
+      lineLength,
+      continuation,
+    } = props
     const squareLen = totalLength / n
 
-    const tiles: number[][] = grid.map((row) => row.map(() => 0))
-    let max = 0
-
-    grid.forEach((row, _r) => {
-      row.forEach((_angle, _c) => {
-        if (Math.random() > density) return
-        const p = getPoint(n, center, totalLength, squareLen, _r, _c)
-        let cnt = 0
-        const marked = {}
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (Math.random() > density) continue
+        const p = getPoint(n, center, totalLength, squareLen, r, c)
+        lines.push([])
+        if (constraintMode === 'circle') {
+          if (!inBoundsCircle(p, center, constraintRadius)) continue
+        }
         while (
+          Math.random() < continuation &&
           p.x >= minX &&
           p.x <= maxX &&
-          p.y > minY &&
-          p.y < maxY &&
-          cnt++ < 200
+          p.y >= minY &&
+          p.y <= maxY
         ) {
-          const r = Math.floor(interpolate([minX, maxX], [0, n - 1], p.x))
-          const c = Math.floor(interpolate([minY, maxY], [0, n - 1], p.y))
-          if (r < 0 || r >= n || c < 0 || c >= n) break
-
-          const key = `${r} ${c}`
-          if (!marked[key]) {
-            marked[key] = true
-            tiles[r][c]++
-            if (tiles[r][c] > max) max = tiles[r][c]
-          }
-
-          const angle = grid[r][c]
+          const angle = noiseFn(p.x, p.y)
           const nextP = coordWithAngleAndDistance(p, angle, lineLength)
-
+          lines[lines.length - 1].push(nextP)
           p.x = nextP.x
           p.y = nextP.y
         }
-      })
-    })
+      }
+    }
+    return lines
+  }
 
-    s.noStroke()
-    tiles.forEach((row, r) => {
-      row.forEach((cnt, c) => {
-        const p = getPoint(n, center, totalLength, squareLen, r, c)
-        const alpha = interpolate([0, max], [0, 1], cnt)
-        s.fill(`rgba(255, 255, 255, ${alpha})`)
-        s.circle(p.x, p.y, squareLen, squareLen)
+  const drawAsStreams = (
+    props: Props,
+    totalLength: number,
+    center: Point,
+    noiseFn: NoiseFn
+  ) => {
+    const { constraintMode, constraintRadius } = props
+
+    if (constraintMode === 'circle') {
+      s.noFill()
+      s.strokeWeight(2)
+      s.circle(center.x, center.y, constraintRadius * 2)
+    }
+
+    const lines = buildStreamLines(props, totalLength, center, noiseFn)
+
+    s.noFill()
+    lines.forEach((line) => {
+      s.beginShape()
+      line.forEach((point) => {
+        s.vertex(point.x, point.y)
       })
+      s.endShape()
     })
   }
+
+  let simplex: SimplexNoise
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
     s.frameRate(60)
+    simplex = new SimplexNoise()
   }
 
   let last: Props
@@ -547,36 +271,37 @@ export default (s) => {
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop]))
       return
 
-    const { n, drawMode, lineLength, alpha, rainbow, density } = props
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'alpha', Math.cos(s.frameCount / 100) / 2.2 + 0.5)
     // setProp('field', 'distortion', interpolate([-1, 1], [0, Math.PI /3], Math.sin(s.frameCount / 200)))
     s.clear()
-    if (!rainbow) s.stroke(`rgba(255, 255, 255, ${alpha})`)
-    generateField()
+    const { distortion, noise, noiseMode, alpha, drawMode } = props
+    s.stroke(`rgba(255, 255, 255, ${alpha})`)
     const totalLength = Math.min(window.innerWidth, window.innerHeight)
     const center = {
-      x: Math.floor(window.innerWidth / 2),
-      y: Math.floor(window.innerHeight / 2),
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
     }
+    const normalizedNoise = noise / 1000
+    const distortionFn = (angle: number): number =>
+      distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
+    const noiseFn: NoiseFn =
+      noiseMode == 'perlin'
+        ? (x: number, y: number) => {
+            const angle = s.noise(x * normalizedNoise, y * normalizedNoise)
+            return s.map(distortionFn(angle), 0, 1, 0, Math.PI * 2)
+          }
+        : (x: number, y: number) =>
+            distortionFn(
+              simplex.noise2D(x * normalizedNoise, y * normalizedNoise)
+            )
     switch (drawMode) {
       case 'arrows': {
-        drawAsArrows(
-          n,
-          center,
-          totalLength,
-          lineLength,
-          props.withArrows,
-          density
-        )
+        drawAsArrows(props, center, totalLength, noiseFn)
         break
       }
       case 'streams': {
-        drawAsStreams(props, totalLength, center)
-        break
-      }
-      case 'dots': {
-        drawAsDots(n, lineLength, density, center, totalLength)
+        drawAsStreams(props, totalLength, center, noiseFn)
         break
       }
     }
