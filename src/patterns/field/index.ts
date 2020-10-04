@@ -2,6 +2,7 @@ import { init as initProps, getProp, setProp } from 'utils/propConfig.ts'
 import {
   Point,
   coordWithAngleAndDistance,
+  distance,
   interpolate,
   getIntersectionPoint,
 } from 'utils/math.ts'
@@ -9,6 +10,7 @@ import {
 import SimplexNoise from 'simplex-noise'
 
 type DrawMode = 'arrows' | 'streams' | 'dots'
+type ConstraintMode = 'none' | 'circle'
 
 type Props = {
   n: number
@@ -20,6 +22,8 @@ type Props = {
   lineLength: number
   drawMode: DrawMode
   noiseMode: 'perlin' | 'simplex'
+  constraintMode: ConstraintMode
+  constraintRadius: number
 }
 
 export default (s) => {
@@ -73,6 +77,17 @@ export default (s) => {
       default: 'perlin',
       options: ['perlin', 'simplex'],
     },
+    constraintMode: {
+      type: 'dropdown',
+      default: 'none',
+      options: ['none', 'circle'],
+    },
+    constraintRadius: {
+      type: 'number',
+      default: 100,
+      min: 1,
+      when: () => get('constraintMode') === 'circle',
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
@@ -85,6 +100,8 @@ export default (s) => {
     drawMode: get('drawMode'),
     noiseMode: get('noiseMode'),
     distortion: get('distortion'),
+    constraintMode: get('constraintMode'),
+    constraintRadius: get('constraintRadius'),
   })
 
   let grid: number[][]
@@ -157,6 +174,9 @@ export default (s) => {
     ),
   })
 
+  const inBoundsCircle = (p: Point, center: Point, maxDist: number): boolean =>
+    distance(p, center) < maxDist
+
   const drawAsArrows = (
     n: number,
     center: Point,
@@ -172,23 +192,37 @@ export default (s) => {
   }
 
   const drawAsStreams = (
-    n: number,
+    props: Props,
+    totalLength: number,
     lineLength: number,
-    alpha: number,
-    density: number,
-    rainbow: boolean,
-    center: Point,
-    totalLength: number
+    center: Point
   ) => {
+    const {
+      n,
+      constraintMode,
+      constraintRadius,
+      rainbow,
+      alpha,
+      density,
+    } = props
     const minX = center.x - totalLength / 2
     const maxX = center.x + totalLength / 2
     const minY = center.y - totalLength / 2
     const maxY = center.y + totalLength / 2
 
+    if (constraintMode === 'circle') {
+      s.noFill()
+      s.strokeWeight(2)
+      s.circle(center.x, center.y, constraintRadius * 2)
+    }
+
     grid.forEach((row, r) => {
       row.forEach((_angle, c) => {
         if (Math.random() > density) return
         const p = getPoint(n, center, totalLength, r, c)
+        if (constraintMode === 'circle') {
+          if (!inBoundsCircle(p, center, constraintRadius)) return
+        }
         let cnt = 0
         while (
           p.x >= minX &&
@@ -293,7 +327,15 @@ export default (s) => {
 
   s.draw = () => {
     const props = getProps()
-    const { n, drawMode, lineLength, alpha, rainbow, density } = props
+    const {
+      n,
+      drawMode,
+      lineLength,
+      alpha,
+      rainbow,
+      density,
+      constraintMode,
+    } = props
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop]))
       return
 
@@ -314,15 +356,7 @@ export default (s) => {
         break
       }
       case 'streams': {
-        drawAsStreams(
-          n,
-          lineLength,
-          alpha,
-          density,
-          rainbow,
-          center,
-          totalLength
-        )
+        drawAsStreams(props, totalLength, lineLength, center)
         break
       }
       case 'dots': {

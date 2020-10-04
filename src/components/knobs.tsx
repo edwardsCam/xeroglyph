@@ -68,7 +68,7 @@ export default class Knobs extends React.Component<{ pattern: string }> {
         case 'dropdown':
           return (
             propConfig.options && (
-              <label key={prop}>
+              <label key={prop} className="knob">
                 {`${prop}: `}
                 <select
                   name={prop}
