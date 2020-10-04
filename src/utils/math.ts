@@ -181,7 +181,7 @@ function coordWithAngleAndDistance(
   const ydist = distanceFromCenter * Math.sin(theta)
   return {
     x: start.x + xdist,
-    y: start.y + ydist,
+    y: start.y - ydist,
   }
 }
 
@@ -258,6 +258,19 @@ function getIntersectionPoint(
     return null
   }
   return { x, y }
+}
+
+export const equalWithinEpsilon = (
+  actual: number,
+  expected: number,
+  e: number
+): boolean => actual >= expected - e && actual <= expected + e
+
+export const getDirection = (angle: number): 'ne' | 'nw' | 'sw' | 'se' => {
+  if (angle < Math.PI / 2) return 'ne'
+  if (angle < Math.PI) return 'nw'
+  if (angle < (Math.PI * 3) / 2) return 'sw'
+  return 'se'
 }
 
 export {
