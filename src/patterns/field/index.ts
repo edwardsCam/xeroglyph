@@ -25,6 +25,7 @@ type Props = {
   rainbow: boolean
   lineLength: number
   drawMode: DrawMode
+  withArrows: boolean
   noiseMode: 'perlin' | 'simplex'
   constraintMode: ConstraintMode
   constraintRadius: number
@@ -77,6 +78,11 @@ export default (s) => {
       default: 'streams',
       options: ['arrows', 'streams', 'dots'],
     },
+    withArrows: {
+      type: 'boolean',
+      default: false,
+      when: () => get('drawMode') === 'arrows',
+    },
     noiseMode: {
       type: 'dropdown',
       default: 'perlin',
@@ -107,6 +113,7 @@ export default (s) => {
     distortion: get('distortion'),
     constraintMode: get('constraintMode'),
     constraintRadius: get('constraintRadius'),
+    withArrows: get('withArrows'),
   })
 
   let grid: number[][]
@@ -187,13 +194,16 @@ export default (s) => {
     n: number,
     center: Point,
     totalLength: number,
-    lineLength: number
+    lineLength: number,
+    withArrows: boolean,
+    density: number
   ) => {
     const squareLen = totalLength / n
     grid.forEach((row, r) => {
       row.forEach((angle, c) => {
+        if (Math.random() > density) return
         const p: Point = getPoint(n, center, totalLength, squareLen, r, c)
-        drawArrow(p, angle, lineLength, false)
+        drawArrow(p, angle, lineLength, withArrows)
       })
     })
   }
@@ -534,10 +544,10 @@ export default (s) => {
 
   s.draw = () => {
     const props = getProps()
-    const { n, drawMode, lineLength, alpha, rainbow, density } = props
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop]))
       return
 
+    const { n, drawMode, lineLength, alpha, rainbow, density } = props
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'alpha', Math.cos(s.frameCount / 100) / 2.2 + 0.5)
     // setProp('field', 'distortion', interpolate([-1, 1], [0, Math.PI /3], Math.sin(s.frameCount / 200)))
@@ -551,7 +561,14 @@ export default (s) => {
     }
     switch (drawMode) {
       case 'arrows': {
-        drawAsArrows(n, center, totalLength, lineLength)
+        drawAsArrows(
+          n,
+          center,
+          totalLength,
+          lineLength,
+          props.withArrows,
+          density
+        )
         break
       }
       case 'streams': {
