@@ -227,8 +227,8 @@ export default (s) => {
         while (
           p.x >= minX &&
           p.x <= maxX &&
-          p.y > minY &&
-          p.y < maxY &&
+          p.y >= minY &&
+          p.y <= maxY &&
           cnt++ < 200
         ) {
           const curRow = Math.floor(interpolate([minX, maxX], [0, n - 1], p.x))
