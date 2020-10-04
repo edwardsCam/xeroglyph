@@ -114,12 +114,12 @@ export default (s) => {
   function generateField() {
     grid = []
     const { n, noise, noiseMode, distortion } = getProps()
-    let noiseFn
+    let noiseFn: (x: number, y: number) => any
     if (noiseMode === 'perlin') {
       noiseFn = s.noise
     } else {
       const simplex = new SimplexNoise()
-      noiseFn = (x, y) => simplex.noise2D(x, y)
+      noiseFn = (x: number, y: number) => simplex.noise2D(x, y)
     }
     for (let r = 0; r < n; r++) {
       grid.push([])
@@ -209,58 +209,55 @@ export default (s) => {
     } = props
     const squareLen = totalLength / n
 
-    if (constraintMode === 'circle') {
-      s.noFill()
-      s.strokeWeight(2)
-      s.circle(center.x, center.y, constraintRadius * 2)
-    }
+    // if (constraintMode === 'circle') {
+    //   s.noFill()
+    //   s.strokeWeight(2)
+    //   s.circle(center.x, center.y, constraintRadius * 2)
+    // }
 
     const lines: Point[][] = []
 
-    grid.forEach((row, r) => {
-      row.forEach((_angle, c) => {
+    grid.forEach((row, _r) => {
+      row.forEach((_angle, _c) => {
         if (Math.random() > density) return
 
+        let r = _r
+        let c = _c
+
         const p = getPoint(n, center, totalLength, squareLen, r, c)
-        lines.push([])
         if (constraintMode === 'circle') {
           if (!inBoundsCircle(p, center, constraintRadius)) return
         }
+        lines.push([])
         let cnt = 0
-        let curRow = r
-        let curCol = c
-        let angle = grid[r][c]
+        let a = _angle
+
         const avgWithTop = () => {
-          if (curRow <= 0) return
-          const aboveAngle = grid[curRow - 1][curCol]
-          angle = (angle + aboveAngle) / 2
-          if (getDirection(angle).startsWith('n')) curRow--
+          if (r <= 0) return
+          const otherAngle = grid[r - 1][c]
+          a = (a + otherAngle) / 2
+          if (getDirection(a).startsWith('n')) r--
         }
         const avgWithRight = () => {
-          if (curCol >= n - 1) return
-          const rightAngle = grid[curRow][curCol + 1]
-          angle = (angle + rightAngle) / 2
-          if (getDirection(angle).endsWith('e')) curCol++
+          if (c >= n - 1) return
+          const otherAngle = grid[r][c + 1]
+          a = (a + otherAngle) / 2
+          if (getDirection(a).endsWith('e')) c++
         }
         const avgWithBot = () => {
-          if (curRow >= n - 1) return
-          const belowAngle = grid[curRow + 1][curCol]
-          angle = (angle + belowAngle) / 2
-          if (getDirection(angle).startsWith('s')) curRow++
+          if (r >= n - 1) return
+          const otherAngle = grid[r + 1][c]
+          a = (a + otherAngle) / 2
+          if (getDirection(a).startsWith('s')) r++
         }
         const avgWithLeft = () => {
-          if (curCol <= 0) return
-          const leftAngle = grid[curRow][curCol - 1]
-          angle = (angle + leftAngle) / 2
-          if (getDirection(angle).endsWith('w')) curCol--
+          if (c <= 0) return
+          const otherAngle = grid[r][c - 1]
+          a = (a + otherAngle) / 2
+          if (getDirection(a).endsWith('w')) c--
         }
-        while (
-          curRow >= 0 &&
-          curRow < n &&
-          curCol >= 0 &&
-          curCol < n &&
-          cnt++ < 100
-        ) {
+
+        while (r >= 0 && r < n && c >= 0 && c < n && cnt++ < 200) {
           if (rainbow) {
             const scaled = cnt * 0.01
             const [r, g, b] = [
@@ -271,14 +268,14 @@ export default (s) => {
             const color = `rgba(${r}, ${g}, ${b}, ${alpha})`
             s.stroke(color)
           }
-          const dir = getDirection(angle)
+          const dir = getDirection(a)
           const topLeftCorner = getPoint(
             n,
             center,
             totalLength,
             squareLen,
-            curRow,
-            curCol
+            r,
+            c
           )
           const topRightCorner: Point = {
             x: topLeftCorner.x + squareLen,
@@ -304,7 +301,7 @@ export default (s) => {
           const onLeft = equalWithinEpsilon(p.x, topLeftCorner.x, epsilon)
           const extension: [Point, Point] = [
             p,
-            coordWithAngleAndDistance(p, angle, squareLen * 2),
+            coordWithAngleAndDistance(p, a, squareLen * 2),
           ]
 
           const tryCrossingTop = (): boolean => {
@@ -313,8 +310,8 @@ export default (s) => {
               lines[lines.length - 1].push(intersection)
               p.x = intersection.x
               p.y = intersection.y
-              curRow--
-              if (curRow >= 0) angle = grid[curRow][curCol]
+              r--
+              if (r >= 0) a = grid[r][c]
               return true
             }
             return false
@@ -325,8 +322,8 @@ export default (s) => {
               lines[lines.length - 1].push(intersection)
               p.x = intersection.x
               p.y = intersection.y
-              curCol++
-              if (curCol < n) angle = grid[curRow][curCol]
+              c++
+              if (c < n) a = grid[r][c]
               return true
             }
             return false
@@ -337,8 +334,8 @@ export default (s) => {
               lines[lines.length - 1].push(intersection)
               p.x = intersection.x
               p.y = intersection.y
-              curRow++
-              if (curRow < n) angle = grid[curRow][curCol]
+              r++
+              if (r < n) a = grid[r][c]
               return true
             }
             return false
@@ -349,8 +346,8 @@ export default (s) => {
               lines[lines.length - 1].push(intersection)
               p.x = intersection.x
               p.y = intersection.y
-              curCol--
-              if (curCol >= 0) angle = grid[curRow][curCol]
+              c--
+              if (c >= 0) a = grid[r][c]
               return true
             }
             return false
@@ -364,12 +361,12 @@ export default (s) => {
             if (dir == 'ne') {
               avgWithTop()
             } else if (dir == 'nw') {
-              if (curCol <= 0 || curRow <= 0) return
-              const topLeftAngle = grid[curRow - 1][curCol - 1]
-              angle = (angle + topLeftAngle) / 2
-              const newDir = getDirection(angle)
-              if (newDir.endsWith('w')) curCol--
-              if (newDir.startsWith('n')) curRow--
+              if (c <= 0 || r <= 0) return
+              const otherAngle = grid[r - 1][c - 1]
+              a = (a + otherAngle) / 2
+              const newDir = getDirection(a)
+              if (newDir.endsWith('w')) c--
+              if (newDir.startsWith('n')) r--
             } else if (dir == 'sw') {
               avgWithLeft()
             } else if (dir == 'se') {
@@ -377,12 +374,12 @@ export default (s) => {
             }
           } else if (onTop && onRight) {
             if (dir == 'ne') {
-              if (curCol >= n - 1 || curRow <= 0) return
-              const topRightAngle = grid[curRow - 1][curCol + 1]
-              angle = (angle + topRightAngle) / 2
-              const newDir = getDirection(angle)
-              if (newDir.endsWith('e')) curCol++
-              if (newDir.startsWith('n')) curRow--
+              if (c >= n - 1 || r <= 0) return
+              const otherAngle = grid[r - 1][c + 1]
+              a = (a + otherAngle) / 2
+              const newDir = getDirection(a)
+              if (newDir.endsWith('e')) c++
+              if (newDir.startsWith('n')) r--
             } else if (dir == 'nw') {
               avgWithTop()
             } else if (dir == 'sw') {
@@ -398,12 +395,12 @@ export default (s) => {
             } else if (dir == 'sw') {
               avgWithBot()
             } else if (dir == 'se') {
-              if (curCol >= n - 1 || curRow >= n - 1) return
-              const botRightAngle = grid[curRow + 1][curCol + 1]
-              angle = (angle + botRightAngle) / 2
-              const newDir = getDirection(angle)
-              if (newDir.endsWith('e')) curCol++
-              if (newDir.startsWith('s')) curRow++
+              if (c >= n - 1 || r >= n - 1) return
+              const otherAngle = grid[r + 1][c + 1]
+              a = (a + otherAngle) / 2
+              const newDir = getDirection(a)
+              if (newDir.endsWith('e')) c++
+              if (newDir.startsWith('s')) r++
             }
           } else if (onBottom && onLeft) {
             if (dir == 'ne') {
@@ -411,12 +408,12 @@ export default (s) => {
             } else if (dir == 'nw') {
               avgWithLeft()
             } else if (dir == 'sw') {
-              if (curCol <= 0 || curRow >= n - 1) return
-              const botRightAngle = grid[curRow + 1][curCol - 1]
-              angle = (angle + botRightAngle) / 2
-              const newDir = getDirection(angle)
-              if (newDir.endsWith('w')) curCol--
-              if (newDir.startsWith('s')) curRow++
+              if (c <= 0 || r >= n - 1) return
+              const otherAngle = grid[r + 1][c - 1]
+              a = (a + otherAngle) / 2
+              const newDir = getDirection(a)
+              if (newDir.endsWith('w')) c--
+              if (newDir.startsWith('s')) r++
             } else if (dir == 'se') {
               avgWithBot()
             }
@@ -484,10 +481,10 @@ export default (s) => {
     const tiles: number[][] = grid.map((row) => row.map(() => 0))
     let max = 0
 
-    grid.forEach((row, r) => {
-      row.forEach((_angle, c) => {
+    grid.forEach((row, _r) => {
+      row.forEach((_angle, _c) => {
         if (Math.random() > density) return
-        const p = getPoint(n, center, totalLength, squareLen, r, c)
+        const p = getPoint(n, center, totalLength, squareLen, _r, _c)
         let cnt = 0
         const marked = {}
         while (
@@ -497,18 +494,18 @@ export default (s) => {
           p.y < maxY &&
           cnt++ < 200
         ) {
-          const curRow = Math.floor(interpolate([minX, maxX], [0, n - 1], p.x))
-          const curCol = Math.floor(interpolate([minY, maxY], [0, n - 1], p.y))
-          if (curRow < 0 || curRow >= n || curCol < 0 || curCol >= n) break
+          const r = Math.floor(interpolate([minX, maxX], [0, n - 1], p.x))
+          const c = Math.floor(interpolate([minY, maxY], [0, n - 1], p.y))
+          if (r < 0 || r >= n || c < 0 || c >= n) break
 
-          const key = `${curRow} ${curCol}`
+          const key = `${r} ${c}`
           if (!marked[key]) {
             marked[key] = true
-            tiles[curRow][curCol]++
-            if (tiles[curRow][curCol] > max) max = tiles[curRow][curCol]
+            tiles[r][c]++
+            if (tiles[r][c] > max) max = tiles[r][c]
           }
 
-          const angle = grid[curRow][curCol]
+          const angle = grid[r][c]
           const nextP = coordWithAngleAndDistance(p, angle, lineLength)
 
           p.x = nextP.x
@@ -520,10 +517,10 @@ export default (s) => {
     s.noStroke()
     tiles.forEach((row, r) => {
       row.forEach((cnt, c) => {
-        const loc = getPoint(n, center, totalLength, squareLen, r, c)
-        const p = interpolate([0, max], [0, 1], cnt)
-        s.fill(`rgba(255, 255, 255, ${p})`)
-        s.circle(loc.x, loc.y, squareLen, squareLen)
+        const p = getPoint(n, center, totalLength, squareLen, r, c)
+        const alpha = interpolate([0, max], [0, 1], cnt)
+        s.fill(`rgba(255, 255, 255, ${alpha})`)
+        s.circle(p.x, p.y, squareLen, squareLen)
       })
     })
   }
