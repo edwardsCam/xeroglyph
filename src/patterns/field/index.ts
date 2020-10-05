@@ -26,13 +26,14 @@ type Props = {
   noiseMode: 'perlin' | 'simplex'
   constraintMode: ConstraintMode
   constraintRadius: number
+  maxWidth: number
 }
 
 export default (s) => {
   initProps('field', {
     n: {
       type: 'number',
-      default: 55,
+      default: 90,
       min: 3,
     },
     lineLength: {
@@ -42,7 +43,7 @@ export default (s) => {
     },
     noise: {
       type: 'number',
-      default: 2,
+      default: 5,
       min: 0,
       step: 0.01,
     },
@@ -100,6 +101,11 @@ export default (s) => {
       min: 1,
       when: () => get('constraintMode') === 'circle',
     },
+    maxWidth: {
+      type: 'number',
+      default: 10,
+      min: 1,
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
@@ -115,6 +121,7 @@ export default (s) => {
     constraintMode: get('constraintMode'),
     constraintRadius: get('constraintRadius'),
     withArrows: get('withArrows'),
+    maxWidth: get('maxWidth'),
   })
 
   const drawArrow = (
@@ -142,7 +149,7 @@ export default (s) => {
     }
   }
 
-  const getPoint = (
+  const getPointFromRC = (
     n: number,
     center: Point,
     totalLength: number,
@@ -176,7 +183,7 @@ export default (s) => {
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (Math.random() > density) continue
-        const p: Point = getPoint(n, center, totalLength, squareLen, r, c)
+        const p: Point = getPointFromRC(n, center, totalLength, squareLen, r, c)
         drawArrow(p, noiseFn(p.x, p.y), lineLength, withArrows)
       }
     }
@@ -207,10 +214,13 @@ export default (s) => {
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (Math.random() > density) continue
-        const p = getPoint(n, center, totalLength, squareLen, r, c)
+        const p = getPointFromRC(n, center, totalLength, squareLen, r, c)
         lines.push([])
-        if (constraintMode === 'circle') {
-          if (!inBoundsCircle(p, center, constraintRadius)) continue
+        if (
+          constraintMode === 'circle' &&
+          !inBoundsCircle(p, center, constraintRadius)
+        ) {
+          continue
         }
         while (
           Math.random() < continuation &&
@@ -246,9 +256,54 @@ export default (s) => {
 
     const lines = buildStreamLines(props, totalLength, center, noiseFn)
 
+    // const minX = center.x - totalLength / 2
+    // const maxX = center.x + totalLength / 2
+    // const minY = center.y - totalLength / 2
+    // const maxY = center.y + totalLength / 2
+
+    const colors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
+
     s.noFill()
+    // const avg = (a: number, b: number): number => (a + b) / 2
     lines.forEach((line) => {
       s.beginShape()
+      s.strokeWeight(Math.random() * props.maxWidth)
+      s.stroke(colors[Math.floor(Math.random() * (colors.length - 1))])
+
+      // const firstPoint = line[0]
+
+      // if (!firstPoint) return
+
+      // const colorX0 = '#48575e' // 23, 35, 71
+      // const colorX1 = '#2d4a1a' // 14, 243, 197
+      // const colorY1 = '#699b2c' // 3, 130, 52
+
+      // const size = totalLength / 3
+      // const xColorR = Math.floor(
+      //   interpolate([minX, maxX - size], [23, 14], firstPoint.x)
+      // )
+      // const xColorG = Math.floor(
+      //   interpolate([minX, maxX - size], [35, 243], firstPoint.x)
+      // )
+      // const xColorB = Math.floor(
+      //   interpolate([minX, maxX - size], [71, 197], firstPoint.x)
+      // )
+
+      // const yColorR = Math.floor(
+      //   interpolate([minX, maxX - size], [23, 3], firstPoint.y)
+      // )
+      // const yColorG = Math.floor(
+      //   interpolate([minX, maxX - size], [35, 130], firstPoint.y)
+      // )
+      // const yColorB = Math.floor(
+      //   interpolate([minX, maxX - size], [71, 52], firstPoint.y)
+      // )
+      // const color = [
+      //   avg(xColorR, yColorR),
+      //   avg(xColorG, yColorG),
+      //   avg(xColorB, yColorB),
+      // ]
+      // s.stroke(...color)
       line.forEach((point) => {
         s.vertex(point.x, point.y)
       })
@@ -273,7 +328,7 @@ export default (s) => {
 
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'alpha', Math.cos(s.frameCount / 100) / 2.2 + 0.5)
-    // setProp('field', 'distortion', interpolate([-1, 1], [0, Math.PI /3], Math.sin(s.frameCount / 200)))
+    // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
     s.clear()
     const { distortion, noise, noiseMode, alpha, drawMode } = props
     s.stroke(`rgba(255, 255, 255, ${alpha})`)
