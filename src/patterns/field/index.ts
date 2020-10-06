@@ -223,7 +223,7 @@ export default (s) => {
           continue
         }
         while (
-          Math.random() < continuation &&
+          Math.random() < continuation - 0.1 &&
           p.x >= minX &&
           p.x <= maxX &&
           p.y >= minY &&
@@ -263,6 +263,7 @@ export default (s) => {
 
     const colors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
 
+    s.push()
     s.noFill()
     // const avg = (a: number, b: number): number => (a + b) / 2
     lines.forEach((line) => {
@@ -309,6 +310,7 @@ export default (s) => {
       })
       s.endShape()
     })
+    s.pop()
   }
 
   let simplex: SimplexNoise
@@ -344,7 +346,8 @@ export default (s) => {
       noiseMode == 'perlin'
         ? (x: number, y: number) => {
             const angle = s.noise(x * normalizedNoise, y * normalizedNoise)
-            return s.map(distortionFn(angle), 0, 1, 0, Math.PI * 2)
+            const distortedAngle = distortionFn(angle)
+            return s.map(distortedAngle, 0, 1, 0, Math.PI * 2)
           }
         : (x: number, y: number) =>
             distortionFn(

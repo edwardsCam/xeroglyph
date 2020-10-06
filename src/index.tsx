@@ -97,9 +97,9 @@ type State = {
 
 class App extends React.Component<{}, State> {
   state: State = {
-    init: false,
+    init: true,
     pattern: null,
-    isShowingHelpModal: false,
+    isShowingHelpModal: true,
     isShowingKnobs: false,
   }
 
