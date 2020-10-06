@@ -17,7 +17,6 @@ type Props = {
   n: number
   noise: number
   distortion: number
-  alpha: number
   density: number
   continuation: number
   lineLength: number
@@ -28,13 +27,17 @@ type Props = {
   constraintRadius: number
   maxWidth: number
   pepperStrength: number
+  colorScheme: 'cool' | 'hot'
 }
+
+const coolColors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
+const hotColors = ['#801100', '#D73502', '#FAC000', '#A8A9AD', '#CB4446']
 
 export default (s) => {
   initProps('field', {
     n: {
       type: 'number',
-      default: 90,
+      default: 100,
       min: 3,
     },
     lineLength: {
@@ -45,14 +48,14 @@ export default (s) => {
     noise: {
       type: 'number',
       default: 5,
-      min: 0,
+      min: Number.NEGATIVE_INFINITY,
       step: 0.01,
     },
     distortion: {
       type: 'number',
       default: 0,
       min: 0,
-      step: Math.PI / 2048,
+      step: Math.PI / 5096,
     },
     density: {
       type: 'number',
@@ -63,18 +66,11 @@ export default (s) => {
     },
     continuation: {
       type: 'number',
-      default: 0.9,
+      default: 0.85,
       min: 0,
       max: 1,
       step: 0.025,
       when: () => get('drawMode') === 'streams',
-    },
-    alpha: {
-      type: 'number',
-      default: 1,
-      min: 0,
-      max: 1,
-      step: 0.01,
     },
     drawMode: {
       type: 'dropdown',
@@ -104,7 +100,7 @@ export default (s) => {
     },
     maxWidth: {
       type: 'number',
-      default: 10,
+      default: 8,
       min: 1,
     },
     pepperStrength: {
@@ -114,13 +110,17 @@ export default (s) => {
       max: 1,
       step: 0.05,
     },
+    colorScheme: {
+      type: 'dropdown',
+      default: 'cool',
+      options: ['cool', 'hot'],
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
     n: get('n'),
     lineLength: get('lineLength'),
     noise: get('noise'),
-    alpha: get('alpha'),
     density: get('density'),
     continuation: get('continuation'),
     drawMode: get('drawMode'),
@@ -131,6 +131,7 @@ export default (s) => {
     withArrows: get('withArrows'),
     maxWidth: get('maxWidth'),
     pepperStrength: get('pepperStrength'),
+    colorScheme: get('colorScheme'),
   })
 
   const drawArrow = (
@@ -187,6 +188,8 @@ export default (s) => {
     totalLength: number,
     noiseFn: NoiseFn
   ) => {
+    s.stroke(255, 255, 255)
+    s.strokeWeight(props.maxWidth)
     const { n, lineLength, withArrows, density } = props
     const squareLen = totalLength / n
     for (let r = 0; r < n; r++) {
@@ -255,7 +258,12 @@ export default (s) => {
     center: Point,
     noiseFn: NoiseFn
   ) => {
-    const { constraintMode, constraintRadius, pepperStrength } = props
+    const {
+      constraintMode,
+      constraintRadius,
+      pepperStrength,
+      colorScheme,
+    } = props
 
     if (constraintMode === 'circle') {
       s.noFill()
@@ -271,7 +279,7 @@ export default (s) => {
     // const maxY = center.y + totalLength / 2
     // const size = totalLength / 3
 
-    const colors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
+    const colors = colorScheme === 'cool' ? coolColors : hotColors
     const randomColor = () =>
       colors[Math.floor(Math.random() * (colors.length - 1))]
 
@@ -279,7 +287,12 @@ export default (s) => {
     s.noFill()
     lines.forEach((line) => {
       s.strokeWeight(Math.random() * props.maxWidth)
-      s.stroke(randomColor())
+      const a = 100 // Math.round(Math.random() + 99)
+      if (a == 100) {
+        s.stroke(randomColor())
+      } else {
+        s.stroke(`${randomColor()}${a}`)
+      }
 
       // const firstPoint = line[0]
       // if (!firstPoint) return
@@ -303,7 +316,7 @@ export default (s) => {
             s.push()
             s.noStroke()
             s.fill(`${randomColor()}90`)
-            s.circle(point.x, point.y, Math.random() * 4)
+            s.circle(point.x, point.y, (Math.random() * props.maxWidth) / 3)
             s.pop()
           }
         })
@@ -328,11 +341,9 @@ export default (s) => {
       return
 
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
-    // setProp('field', 'alpha', Math.cos(s.frameCount / 100) / 2.2 + 0.5)
     // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
     s.clear()
-    const { distortion, noise, noiseMode, alpha, drawMode } = props
-    s.stroke(`rgba(255, 255, 255, ${alpha})`)
+    const { distortion, noise, noiseMode, drawMode } = props
     const totalLength = Math.min(window.innerWidth, window.innerHeight)
     const center = {
       x: window.innerWidth / 2,
@@ -341,10 +352,16 @@ export default (s) => {
     const normalizedNoise = noise / 1000
     const distortionFn = (angle: number): number =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
+    const minX = center.x - totalLength / 2
+    const maxX = center.x + totalLength / 2
+    const minY = center.y - totalLength / 2
+    const maxY = center.y + totalLength / 2
     const noiseFn: NoiseFn =
       noiseMode == 'perlin'
         ? (x: number, y: number) => {
-            const angle = s.noise(x * normalizedNoise, y * normalizedNoise)
+            let angle = s.noise(x * normalizedNoise, y * normalizedNoise)
+            angle = interpolate([minX, maxX], [angle / 10, angle * 1.7], x)
+            angle = interpolate([minY, maxY], [angle / 3, angle * 1.2], y)
             const distortedAngle = distortionFn(angle)
             return s.map(distortedAngle, 0, 1, 0, Math.PI * 2)
           }
