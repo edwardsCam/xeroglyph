@@ -27,6 +27,7 @@ type Props = {
   constraintMode: ConstraintMode
   constraintRadius: number
   maxWidth: number
+  pepperStrength: number
 }
 
 export default (s) => {
@@ -82,7 +83,7 @@ export default (s) => {
     },
     withArrows: {
       type: 'boolean',
-      default: false,
+      default: true,
       when: () => get('drawMode') === 'arrows',
     },
     noiseMode: {
@@ -106,6 +107,13 @@ export default (s) => {
       default: 10,
       min: 1,
     },
+    pepperStrength: {
+      type: 'number',
+      default: 0.25,
+      min: 0,
+      max: 1,
+      step: 0.05,
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
@@ -122,6 +130,7 @@ export default (s) => {
     constraintRadius: get('constraintRadius'),
     withArrows: get('withArrows'),
     maxWidth: get('maxWidth'),
+    pepperStrength: get('pepperStrength'),
   })
 
   const drawArrow = (
@@ -246,7 +255,7 @@ export default (s) => {
     center: Point,
     noiseFn: NoiseFn
   ) => {
-    const { constraintMode, constraintRadius } = props
+    const { constraintMode, constraintRadius, pepperStrength } = props
 
     if (constraintMode === 'circle') {
       s.noFill()
@@ -260,55 +269,45 @@ export default (s) => {
     // const maxX = center.x + totalLength / 2
     // const minY = center.y - totalLength / 2
     // const maxY = center.y + totalLength / 2
+    // const size = totalLength / 3
 
     const colors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
+    const randomColor = () =>
+      colors[Math.floor(Math.random() * (colors.length - 1))]
 
     s.push()
     s.noFill()
-    // const avg = (a: number, b: number): number => (a + b) / 2
     lines.forEach((line) => {
-      s.beginShape()
       s.strokeWeight(Math.random() * props.maxWidth)
-      s.stroke(colors[Math.floor(Math.random() * (colors.length - 1))])
+      s.stroke(randomColor())
 
       // const firstPoint = line[0]
-
       // if (!firstPoint) return
-
-      // const colorX0 = '#48575e' // 23, 35, 71
-      // const colorX1 = '#2d4a1a' // 14, 243, 197
-      // const colorY1 = '#699b2c' // 3, 130, 52
-
-      // const size = totalLength / 3
-      // const xColorR = Math.floor(
-      //   interpolate([minX, maxX - size], [23, 14], firstPoint.x)
-      // )
-      // const xColorG = Math.floor(
-      //   interpolate([minX, maxX - size], [35, 243], firstPoint.x)
-      // )
-      // const xColorB = Math.floor(
-      //   interpolate([minX, maxX - size], [71, 197], firstPoint.x)
-      // )
-
-      // const yColorR = Math.floor(
-      //   interpolate([minX, maxX - size], [23, 3], firstPoint.y)
-      // )
-      // const yColorG = Math.floor(
-      //   interpolate([minX, maxX - size], [35, 130], firstPoint.y)
-      // )
-      // const yColorB = Math.floor(
-      //   interpolate([minX, maxX - size], [71, 52], firstPoint.y)
-      // )
-      // const color = [
-      //   avg(xColorR, yColorR),
-      //   avg(xColorG, yColorG),
-      //   avg(xColorB, yColorB),
-      // ]
-      // s.stroke(...color)
-      line.forEach((point) => {
-        s.vertex(point.x, point.y)
-      })
+      // const { x, y } = firstPoint
+      // const xdomain: [number, number] = [minX, maxX - size]
+      // const ydomain: [number, number] = [minY, maxY - size]
+      // const xr = Math.floor(interpolate(xdomain, [23, 14], x))
+      // const xg = Math.floor(interpolate(xdomain, [35, 243], x))
+      // const xb = Math.floor(interpolate(xdomain, [71, 197], x))
+      // const yr = Math.floor(interpolate(ydomain, [23, 3], y))
+      // const yg = Math.floor(interpolate(ydomain, [35, 130], y))
+      // const yb = Math.floor(interpolate(ydomain, [71, 52], y))
+      // s.stroke((xr + yr) / 2, (xg + yg) / 2, (xb + yb) / 2)
+      s.beginShape()
+      line.forEach((point) => s.vertex(point.x, point.y))
       s.endShape()
+
+      if (pepperStrength > 0) {
+        line.forEach((point) => {
+          if (Math.random() < pepperStrength) {
+            s.push()
+            s.noStroke()
+            s.fill(`${randomColor()}90`)
+            s.circle(point.x, point.y, Math.random() * 4)
+            s.pop()
+          }
+        })
+      }
     })
     s.pop()
   }
