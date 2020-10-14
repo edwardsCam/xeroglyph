@@ -11,7 +11,15 @@ import SimplexNoise from 'simplex-noise'
 type DrawMode = 'arrows' | 'streams'
 type ConstraintMode = 'none' | 'circle'
 
+type Bounds = {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+}
+
 type NoiseFn = (x: number, y: number) => number
+type NumberConversionFn = (n: number) => number
 
 type Props = {
   n: number
@@ -47,7 +55,7 @@ export default (s) => {
     },
     noise: {
       type: 'number',
-      default: 5,
+      default: 2,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
     },
@@ -161,30 +169,31 @@ export default (s) => {
 
   const getPointFromRC = (
     n: number,
-    center: Point,
     totalLength: number,
     squareLen: number,
     r: number,
     c: number
-  ): Point => ({
-    x: interpolate(
-      [0, n - 1],
-      [center.x - totalLength / 2, center.x + totalLength / 2 - squareLen],
-      c
-    ),
-    y: interpolate(
-      [0, n - 1],
-      [center.y - totalLength / 2, center.y + totalLength / 2 - squareLen],
-      r
-    ),
-  })
+  ): Point => {
+    const center = getCenter()
+    return {
+      x: interpolate(
+        [0, n - 1],
+        [center.x - totalLength / 2, center.x + totalLength / 2 - squareLen],
+        c
+      ),
+      y: interpolate(
+        [0, n - 1],
+        [center.y - totalLength / 2, center.y + totalLength / 2 - squareLen],
+        r
+      ),
+    }
+  }
 
-  const inBoundsCircle = (p: Point, center: Point, maxDist: number): boolean =>
-    distance(p, center) < maxDist
+  const inBoundsCircle = (p: Point, maxDist: number): boolean =>
+    distance(p, getCenter()) < maxDist
 
   const drawAsArrows = (
     props: Props,
-    center: Point,
     totalLength: number,
     noiseFn: NoiseFn
   ) => {
@@ -195,7 +204,7 @@ export default (s) => {
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (Math.random() > density) continue
-        const p: Point = getPointFromRC(n, center, totalLength, squareLen, r, c)
+        const p: Point = getPointFromRC(n, totalLength, squareLen, r, c)
         drawArrow(p, noiseFn(p.x, p.y), lineLength, withArrows)
       }
     }
@@ -204,15 +213,11 @@ export default (s) => {
   const buildStreamLines = (
     props: Props,
     totalLength: number,
-    center: Point,
     noiseFn: NoiseFn
   ): Point[][] => {
     const lines: Point[][] = []
 
-    const minX = center.x - totalLength / 2
-    const maxX = center.x + totalLength / 2
-    const minY = center.y - totalLength / 2
-    const maxY = center.y + totalLength / 2
+    const { minX, maxX, minY, maxY } = getBounds(totalLength)
     const {
       n,
       density,
@@ -226,14 +231,10 @@ export default (s) => {
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (Math.random() > density) continue
-        const p = getPointFromRC(n, center, totalLength, squareLen, r, c)
+        const p = getPointFromRC(n, totalLength, squareLen, r, c)
         lines.push([])
-        if (
-          constraintMode === 'circle' &&
-          !inBoundsCircle(p, center, constraintRadius)
-        ) {
+        if (constraintMode === 'circle' && !inBoundsCircle(p, constraintRadius))
           continue
-        }
         while (
           Math.random() < continuation - 0.1 &&
           p.x >= minX &&
@@ -255,7 +256,6 @@ export default (s) => {
   const drawAsStreams = (
     props: Props,
     totalLength: number,
-    center: Point,
     noiseFn: NoiseFn
   ) => {
     const {
@@ -266,17 +266,14 @@ export default (s) => {
     } = props
 
     if (constraintMode === 'circle') {
+      const center = getCenter()
       s.noFill()
       s.strokeWeight(2)
       s.circle(center.x, center.y, constraintRadius * 2)
     }
 
-    const lines = buildStreamLines(props, totalLength, center, noiseFn)
+    const lines = buildStreamLines(props, totalLength, noiseFn)
 
-    // const minX = center.x - totalLength / 2
-    // const maxX = center.x + totalLength / 2
-    // const minY = center.y - totalLength / 2
-    // const maxY = center.y + totalLength / 2
     // const size = totalLength / 3
 
     const colors = colorScheme === 'cool' ? coolColors : hotColors
@@ -325,6 +322,42 @@ export default (s) => {
     s.pop()
   }
 
+  const getCenter = (): Point => ({
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2,
+  })
+
+  const getBounds = (totalLength: number): Bounds => {
+    const center = getCenter()
+    return {
+      minX: center.x - totalLength / 2,
+      maxX: center.x + totalLength / 2,
+      minY: center.y - totalLength / 2,
+      maxY: center.y + totalLength / 2,
+    }
+  }
+
+  const normalizeAngle: NumberConversionFn = (angle) =>
+    s.map(angle, 0, 1, 0, Math.PI * 2)
+
+  const perlinNoiseFn = (
+    totalLength: number,
+    distortionFn: NumberConversionFn,
+    noise: number
+  ): NoiseFn => (x: number, y: number) => {
+    const { minX, maxX, minY, maxY } = getBounds(totalLength)
+    let angle = s.noise(x * noise, y * noise)
+    angle = interpolate([minX, maxX], [angle / 10, angle * 1.7], x)
+    angle = interpolate([minY, maxY], [angle / 3, angle * 1.2], y)
+    return normalizeAngle(distortionFn(angle))
+  }
+
+  const simplexNoiseFn = (
+    distortionFn: NumberConversionFn,
+    noise: number
+  ): NoiseFn => (x: number, y: number) =>
+    normalizeAngle(distortionFn(simplex.noise2D(x * noise, y * noise)))
+
   let simplex: SimplexNoise
 
   s.setup = () => {
@@ -345,37 +378,27 @@ export default (s) => {
     s.clear()
     const { distortion, noise, noiseMode, drawMode } = props
     const totalLength = Math.min(window.innerWidth, window.innerHeight)
-    const center = {
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
-    }
     const normalizedNoise = noise / 1000
-    const distortionFn = (angle: number): number =>
+    const distortionFn: NumberConversionFn = (angle) =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
-    const minX = center.x - totalLength / 2
-    const maxX = center.x + totalLength / 2
-    const minY = center.y - totalLength / 2
-    const maxY = center.y + totalLength / 2
-    const noiseFn: NoiseFn =
-      noiseMode == 'perlin'
-        ? (x: number, y: number) => {
-            let angle = s.noise(x * normalizedNoise, y * normalizedNoise)
-            angle = interpolate([minX, maxX], [angle / 10, angle * 1.7], x)
-            angle = interpolate([minY, maxY], [angle / 3, angle * 1.2], y)
-            const distortedAngle = distortionFn(angle)
-            return s.map(distortedAngle, 0, 1, 0, Math.PI * 2)
-          }
-        : (x: number, y: number) =>
-            distortionFn(
-              simplex.noise2D(x * normalizedNoise, y * normalizedNoise)
-            )
+    let noiseFn: NoiseFn
+    switch (noiseMode) {
+      case 'perlin': {
+        noiseFn = perlinNoiseFn(totalLength, distortionFn, normalizedNoise)
+        break
+      }
+      case 'simplex': {
+        noiseFn = simplexNoiseFn(distortionFn, normalizedNoise)
+        break
+      }
+    }
     switch (drawMode) {
       case 'arrows': {
-        drawAsArrows(props, center, totalLength, noiseFn)
+        drawAsArrows(props, totalLength, noiseFn)
         break
       }
       case 'streams': {
-        drawAsStreams(props, totalLength, center, noiseFn)
+        drawAsStreams(props, totalLength, noiseFn)
         break
       }
     }
