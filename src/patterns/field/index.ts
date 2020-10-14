@@ -30,7 +30,7 @@ type Props = {
   lineLength: number
   drawMode: DrawMode
   withArrows: boolean
-  noiseMode: 'perlin' | 'simplex'
+  noiseMode: 'perlin' | 'simplex' | 'curl'
   constraintMode: ConstraintMode
   constraintRadius: number
   maxWidth: number
@@ -92,8 +92,8 @@ export default (s) => {
     },
     noiseMode: {
       type: 'dropdown',
-      default: 'perlin',
-      options: ['perlin', 'simplex'],
+      default: 'curl',
+      options: ['perlin', 'simplex', 'curl'],
     },
     constraintMode: {
       type: 'dropdown',
@@ -358,6 +358,30 @@ export default (s) => {
   ): NoiseFn => (x: number, y: number) =>
     normalizeAngle(distortionFn(simplex.noise2D(x * noise, y * noise)))
 
+  const curlNoiseFn = (
+    distortionFn: NumberConversionFn,
+    noise: number
+  ): NoiseFn => (x: number, y: number) => {
+    const eps = 0.0001
+    const eps2 = 2 * eps
+
+    // x rate of change
+    const x1 = s.noise((x + eps) * noise, y * noise)
+    const x2 = s.noise((x - eps) * noise, y * noise)
+
+    // x derivative
+    var dx = (x1 - x2) / eps2
+
+    // y rate of change
+    const y1 = s.noise(x * noise, (y + eps) * noise)
+    const y2 = s.noise(x * noise, (y - eps) * noise)
+
+    // y derivative
+    var dy = (y1 - y2) / eps2
+
+    return distortionFn(Math.atan2(dx, dy))
+  }
+
   let simplex: SimplexNoise
 
   s.setup = () => {
@@ -389,6 +413,10 @@ export default (s) => {
       }
       case 'simplex': {
         noiseFn = simplexNoiseFn(distortionFn, normalizedNoise)
+        break
+      }
+      case 'curl': {
+        noiseFn = curlNoiseFn(distortionFn, normalizedNoise)
         break
       }
     }
