@@ -10,6 +10,7 @@ import SimplexNoise from 'simplex-noise'
 
 type DrawMode = 'arrows' | 'streams'
 type ConstraintMode = 'none' | 'circle'
+type ColorMode = 'random' | 'sectors'
 
 type Bounds = {
   minX: number
@@ -36,6 +37,7 @@ type Props = {
   maxWidth: number
   pepperStrength: number
   colorScheme: 'cool' | 'hot'
+  colorMode: ColorMode
 }
 
 const coolColors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
@@ -97,12 +99,12 @@ export default (s) => {
     },
     constraintMode: {
       type: 'dropdown',
-      default: 'none',
+      default: 'circle',
       options: ['none', 'circle'],
     },
     constraintRadius: {
       type: 'number',
-      default: 100,
+      default: 375,
       min: 1,
       when: () => get('constraintMode') === 'circle',
     },
@@ -123,6 +125,11 @@ export default (s) => {
       default: 'cool',
       options: ['cool', 'hot'],
     },
+    colorMode: {
+      type: 'dropdown',
+      default: 'sectors',
+      options: ['random', 'sectors'],
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
@@ -140,6 +147,7 @@ export default (s) => {
     maxWidth: get('maxWidth'),
     pepperStrength: get('pepperStrength'),
     colorScheme: get('colorScheme'),
+    colorMode: get('colorMode'),
   })
 
   const drawArrow = (
@@ -236,7 +244,7 @@ export default (s) => {
         if (constraintMode === 'circle' && !inBoundsCircle(p, constraintRadius))
           continue
         while (
-          Math.random() < continuation - 0.1 &&
+          Math.random() < continuation - 0.05 &&
           p.x >= minX &&
           p.x <= maxX &&
           p.y >= minY &&
@@ -263,6 +271,7 @@ export default (s) => {
       constraintRadius,
       pepperStrength,
       colorScheme,
+      colorMode,
     } = props
 
     if (constraintMode === 'circle') {
@@ -275,7 +284,10 @@ export default (s) => {
     const lines = buildStreamLines(props, totalLength, noiseFn)
 
     // const size = totalLength / 3
+    // const { minX, maxX, minY, maxY } = getBounds(totalLength)
 
+    const noiseDampX = 300
+    const noiseDampY = 200
     const colors = colorScheme === 'cool' ? coolColors : hotColors
     const randomColor = () =>
       colors[Math.floor(Math.random() * (colors.length - 1))]
@@ -283,28 +295,35 @@ export default (s) => {
     s.push()
     s.noFill()
     lines.forEach((line) => {
-      s.strokeWeight(Math.random() * props.maxWidth)
-      const a = 100 // Math.round(Math.random() + 99)
-      if (a == 100) {
+      const [firstPoint] = line
+      if (!firstPoint) return
+      const { x, y } = firstPoint
+
+      s.strokeWeight(/*Math.random() * */ props.maxWidth)
+      if (colorMode === 'random') {
         s.stroke(randomColor())
+      } else if (colorMode === 'sectors') {
+        const colorNoise: number = s.noise(x / noiseDampX, y / noiseDampY)
+        const quadrant = Math.floor(
+          interpolate([0, 1], [0, colors.length - 1], colorNoise)
+        )
+        const alpha = interpolate([0, 1], [200, 255], Math.random())
+        const alphaHex = Math.round(alpha).toString(16)
+        s.stroke(`${colors[quadrant]}${alphaHex}`)
       } else {
-        s.stroke(`${randomColor()}${a}`)
+        // const xdomain: [number, number] = [minX, maxX - size]
+        // const ydomain: [number, number] = [minY, maxY - size]
+        // const xr = Math.floor(interpolate(xdomain, [23, 14], x))
+        // const xg = Math.floor(interpolate(xdomain, [35, 243], x))
+        // const xb = Math.floor(interpolate(xdomain, [71, 197], x))
+        // const yr = Math.floor(interpolate(ydomain, [23, 3], y))
+        // const yg = Math.floor(interpolate(ydomain, [35, 130], y))
+        // const yb = Math.floor(interpolate(ydomain, [71, 52], y))
+        // s.stroke((xr + yr) / 2, (xg + yg) / 2, (xb + yb) / 2)
       }
 
-      // const firstPoint = line[0]
-      // if (!firstPoint) return
-      // const { x, y } = firstPoint
-      // const xdomain: [number, number] = [minX, maxX - size]
-      // const ydomain: [number, number] = [minY, maxY - size]
-      // const xr = Math.floor(interpolate(xdomain, [23, 14], x))
-      // const xg = Math.floor(interpolate(xdomain, [35, 243], x))
-      // const xb = Math.floor(interpolate(xdomain, [71, 197], x))
-      // const yr = Math.floor(interpolate(ydomain, [23, 3], y))
-      // const yg = Math.floor(interpolate(ydomain, [35, 130], y))
-      // const yb = Math.floor(interpolate(ydomain, [71, 52], y))
-      // s.stroke((xr + yr) / 2, (xg + yg) / 2, (xb + yb) / 2)
       s.beginShape()
-      line.forEach((point) => s.vertex(point.x, point.y))
+      line.forEach(({ x, y }) => s.vertex(x, y))
       s.endShape()
 
       if (pepperStrength > 0) {
@@ -346,7 +365,7 @@ export default (s) => {
     noise: number
   ): NoiseFn => (x: number, y: number) => {
     const { minX, maxX, minY, maxY } = getBounds(totalLength)
-    let angle = s.noise(x * noise, y * noise)
+    let angle: number = s.noise(x * noise, y * noise)
     angle = interpolate([minX, maxX], [angle / 10, angle * 1.7], x)
     angle = interpolate([minY, maxY], [angle / 3, angle * 1.2], y)
     return normalizeAngle(distortionFn(angle))
@@ -366,15 +385,15 @@ export default (s) => {
     const eps2 = 2 * eps
 
     // x rate of change
-    const x1 = s.noise((x + eps) * noise, y * noise)
-    const x2 = s.noise((x - eps) * noise, y * noise)
+    const x1: number = s.noise((x + eps) * noise, y * noise)
+    const x2: number = s.noise((x - eps) * noise, y * noise)
 
     // x derivative
     var dx = (x1 - x2) / eps2
 
     // y rate of change
-    const y1 = s.noise(x * noise, (y + eps) * noise)
-    const y2 = s.noise(x * noise, (y - eps) * noise)
+    const y1: number = s.noise(x * noise, (y + eps) * noise)
+    const y2: number = s.noise(x * noise, (y - eps) * noise)
 
     // y derivative
     var dy = (y1 - y2) / eps2
