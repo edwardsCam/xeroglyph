@@ -8,9 +8,10 @@ import {
 
 import SimplexNoise from 'simplex-noise'
 
-type DrawMode = 'arrows' | 'streams'
+type DrawMode = 'arrows' | 'streams' | 'fluid'
 type ConstraintMode = 'none' | 'circle'
 type ColorMode = 'random' | 'sectors'
+type ColorScheme = 'cool' | 'hot'
 
 type Bounds = {
   minX: number
@@ -36,7 +37,7 @@ type Props = {
   constraintRadius: number
   maxWidth: number
   pepperStrength: number
-  colorScheme: 'cool' | 'hot'
+  colorScheme: ColorScheme
   colorMode: ColorMode
 }
 
@@ -45,19 +46,24 @@ const hotColors = ['#801100', '#D73502', '#FAC000', '#A8A9AD', '#CB4446']
 
 export default (s) => {
   initProps('field', {
+    restaart: {
+      type: 'func',
+      label: 'Restart',
+      callback: initialize,
+    },
     n: {
       type: 'number',
-      default: 100,
+      default: 90,
       min: 3,
     },
     lineLength: {
       type: 'number',
-      default: 10,
+      default: 1.5,
       min: 1,
     },
     noise: {
       type: 'number',
-      default: 2,
+      default: 1,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
     },
@@ -82,16 +88,6 @@ export default (s) => {
       step: 0.025,
       when: () => get('drawMode') === 'streams',
     },
-    drawMode: {
-      type: 'dropdown',
-      default: 'streams',
-      options: ['arrows', 'streams'],
-    },
-    withArrows: {
-      type: 'boolean',
-      default: true,
-      when: () => get('drawMode') === 'arrows',
-    },
     noiseMode: {
       type: 'dropdown',
       default: 'curl',
@@ -99,7 +95,7 @@ export default (s) => {
     },
     constraintMode: {
       type: 'dropdown',
-      default: 'circle',
+      default: 'none',
       options: ['none', 'circle'],
     },
     constraintRadius: {
@@ -110,19 +106,30 @@ export default (s) => {
     },
     maxWidth: {
       type: 'number',
-      default: 8,
+      default: 11,
       min: 1,
     },
     pepperStrength: {
       type: 'number',
-      default: 0.25,
+      default: 0,
       min: 0,
       max: 1,
       step: 0.05,
     },
+    drawMode: {
+      type: 'dropdown',
+      default: 'fluid',
+      options: ['arrows', 'streams', 'fluid'],
+      onChange: initialize,
+    },
+    withArrows: {
+      type: 'boolean',
+      default: true,
+      when: () => get('drawMode') === 'arrows',
+    },
     colorScheme: {
       type: 'dropdown',
-      default: 'cool',
+      default: 'hot',
       options: ['cool', 'hot'],
     },
     colorMode: {
@@ -218,13 +225,15 @@ export default (s) => {
     }
   }
 
+  let points: Point[]
+  let firstPoints: Point[]
+
   const buildStreamLines = (
     props: Props,
     totalLength: number,
     noiseFn: NoiseFn
   ): Point[][] => {
     const lines: Point[][] = []
-
     const { minX, maxX, minY, maxY } = getBounds(totalLength)
     const {
       n,
@@ -239,10 +248,15 @@ export default (s) => {
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (Math.random() > density) continue
+
         const p = getPointFromRC(n, totalLength, squareLen, r, c)
         lines.push([])
-        if (constraintMode === 'circle' && !inBoundsCircle(p, constraintRadius))
+        if (
+          constraintMode === 'circle' &&
+          !inBoundsCircle(p, constraintRadius)
+        ) {
           continue
+        }
         while (
           Math.random() < continuation - 0.05 &&
           p.x >= minX &&
@@ -261,6 +275,46 @@ export default (s) => {
     return lines
   }
 
+  const getWidth = (maxWidth: number): number => Math.random() * maxWidth
+
+  const getColor = (
+    { colorMode, colorScheme }: Props,
+    x: number,
+    y: number
+  ): string => {
+    if (colorMode === 'random') {
+      return randomColor(colorScheme)
+    } else if (colorMode === 'sectors') {
+      const colors = getColors(colorScheme)
+      const colorNoise: number = s.noise(x / 200, y / 100)
+      const quadrant = Math.floor(
+        interpolate([0, 1], [0, colors.length - 1], colorNoise)
+      )
+      const alpha = interpolate([0, 1], [200, 255], Math.random())
+      const alphaHex = Math.round(alpha).toString(16)
+      return `${colors[quadrant]}${alphaHex}`
+    } else {
+      // const xdomain: [number, number] = [minX, maxX - size]
+      // const ydomain: [number, number] = [minY, maxY - size]
+      // const xr = Math.floor(interpolate(xdomain, [23, 14], x))
+      // const xg = Math.floor(interpolate(xdomain, [35, 243], x))
+      // const xb = Math.floor(interpolate(xdomain, [71, 197], x))
+      // const yr = Math.floor(interpolate(ydomain, [23, 3], y))
+      // const yg = Math.floor(interpolate(ydomain, [35, 130], y))
+      // const yb = Math.floor(interpolate(ydomain, [71, 52], y))
+      // s.stroke((xr + yr) / 2, (xg + yg) / 2, (xb + yb) / 2)
+    }
+    return ''
+  }
+
+  const getColors = (colorScheme: ColorScheme): string[] =>
+    colorScheme === 'cool' ? coolColors : hotColors
+
+  const randomColor = (colorScheme: ColorScheme): string => {
+    const colors = getColors(colorScheme)
+    return colors[Math.floor(Math.random() * (colors.length - 1))]
+  }
+
   const drawAsStreams = (
     props: Props,
     totalLength: number,
@@ -271,7 +325,6 @@ export default (s) => {
       constraintRadius,
       pepperStrength,
       colorScheme,
-      colorMode,
     } = props
 
     if (constraintMode === 'circle') {
@@ -283,15 +336,6 @@ export default (s) => {
 
     const lines = buildStreamLines(props, totalLength, noiseFn)
 
-    // const size = totalLength / 3
-    // const { minX, maxX, minY, maxY } = getBounds(totalLength)
-
-    const noiseDampX = 300
-    const noiseDampY = 200
-    const colors = colorScheme === 'cool' ? coolColors : hotColors
-    const randomColor = () =>
-      colors[Math.floor(Math.random() * (colors.length - 1))]
-
     s.push()
     s.noFill()
     lines.forEach((line) => {
@@ -299,28 +343,8 @@ export default (s) => {
       if (!firstPoint) return
       const { x, y } = firstPoint
 
-      s.strokeWeight(/*Math.random() * */ props.maxWidth)
-      if (colorMode === 'random') {
-        s.stroke(randomColor())
-      } else if (colorMode === 'sectors') {
-        const colorNoise: number = s.noise(x / noiseDampX, y / noiseDampY)
-        const quadrant = Math.floor(
-          interpolate([0, 1], [0, colors.length - 1], colorNoise)
-        )
-        const alpha = interpolate([0, 1], [200, 255], Math.random())
-        const alphaHex = Math.round(alpha).toString(16)
-        s.stroke(`${colors[quadrant]}${alphaHex}`)
-      } else {
-        // const xdomain: [number, number] = [minX, maxX - size]
-        // const ydomain: [number, number] = [minY, maxY - size]
-        // const xr = Math.floor(interpolate(xdomain, [23, 14], x))
-        // const xg = Math.floor(interpolate(xdomain, [35, 243], x))
-        // const xb = Math.floor(interpolate(xdomain, [71, 197], x))
-        // const yr = Math.floor(interpolate(ydomain, [23, 3], y))
-        // const yg = Math.floor(interpolate(ydomain, [35, 130], y))
-        // const yb = Math.floor(interpolate(ydomain, [71, 52], y))
-        // s.stroke((xr + yr) / 2, (xg + yg) / 2, (xb + yb) / 2)
-      }
+      s.strokeWeight(getWidth(props.maxWidth))
+      s.stroke(getColor(props, x, y))
 
       s.beginShape()
       line.forEach(({ x, y }) => s.vertex(x, y))
@@ -331,7 +355,7 @@ export default (s) => {
           if (Math.random() < pepperStrength) {
             s.push()
             s.noStroke()
-            s.fill(`${randomColor()}90`)
+            s.fill(`${randomColor(colorScheme)}AA`)
             s.circle(point.x, point.y, (Math.random() * props.maxWidth) / 3)
             s.pop()
           }
@@ -339,6 +363,20 @@ export default (s) => {
       }
     })
     s.pop()
+  }
+
+  const drawFlow = (props: Props, noiseFn: NoiseFn): void => {
+    const { lineLength, maxWidth } = props
+    points.forEach((p, i) => {
+      const angle = noiseFn(p.x, p.y)
+      const nextP = coordWithAngleAndDistance(p, angle, lineLength)
+      points[i] = nextP
+
+      const firstPoint = firstPoints[i]
+      s.stroke(getColor(props, firstPoint.x, firstPoint.y))
+      s.strokeWeight(maxWidth)
+      s.line(p.x, p.y, nextP.x, nextP.y)
+    })
   }
 
   const getCenter = (): Point => ({
@@ -403,22 +441,45 @@ export default (s) => {
 
   let simplex: SimplexNoise
 
+  function initialize() {
+    s.clear()
+    simplex = new SimplexNoise()
+    points = []
+    firstPoints = []
+    const props = getProps()
+    const { n, density } = props
+    const totalLength = Math.min(window.innerWidth, window.innerHeight)
+    const squareLen = totalLength / n
+
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (Math.random() > density) continue
+        const p = getPointFromRC(n, totalLength, squareLen, r, c)
+        points.push(p)
+        firstPoints.push(p)
+      }
+    }
+  }
+
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
     s.frameRate(60)
-    simplex = new SimplexNoise()
+    initialize()
   }
 
   let last: Props
 
   s.draw = () => {
     const props = getProps()
-    if (last && Object.keys(last).every((prop) => last[prop] === props[prop]))
+    if (
+      (props.drawMode === 'arrows' || props.drawMode === 'streams') &&
+      last &&
+      Object.keys(last).every((prop) => last[prop] === props[prop])
+    )
       return
 
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
-    s.clear()
     const { distortion, noise, noiseMode, drawMode } = props
     const totalLength = Math.min(window.innerWidth, window.innerHeight)
     const normalizedNoise = noise / 1000
@@ -441,11 +502,22 @@ export default (s) => {
     }
     switch (drawMode) {
       case 'arrows': {
+        s.clear()
         drawAsArrows(props, totalLength, noiseFn)
         break
       }
       case 'streams': {
+        s.clear()
         drawAsStreams(props, totalLength, noiseFn)
+        break
+      }
+      case 'fluid': {
+        s.push()
+        s.noStroke()
+        s.fill('rgba(0, 0, 0, 0.025)')
+        s.rect(0, 0, window.innerWidth, window.innerHeight)
+        s.pop()
+        drawFlow(props, noiseFn)
         break
       }
     }
