@@ -115,6 +115,7 @@ export default (s) => {
       min: 0,
       max: 1,
       step: 0.05,
+      when: () => get('drawMode') === 'streams',
     },
     drawMode: {
       type: 'dropdown',
@@ -204,9 +205,6 @@ export default (s) => {
     }
   }
 
-  const inBoundsCircle = (p: Point, maxDist: number): boolean =>
-    distance(p, getCenter()) < maxDist
-
   const drawAsArrows = (
     props: Props,
     totalLength: number,
@@ -234,7 +232,8 @@ export default (s) => {
     noiseFn: NoiseFn
   ): Point[][] => {
     const lines: Point[][] = []
-    const { minX, maxX, minY, maxY } = getBounds(totalLength)
+    const center = getCenter()
+    const { minX, maxX, minY, maxY } = getBounds(totalLength, center)
     const {
       n,
       density,
@@ -251,19 +250,18 @@ export default (s) => {
 
         const p = getPointFromRC(n, totalLength, squareLen, r, c)
         lines.push([])
-        if (
-          constraintMode === 'circle' &&
-          !inBoundsCircle(p, constraintRadius)
-        ) {
+        const circleConstraint = constraintMode === 'circle'
+        if (circleConstraint && distance(p, center) >= constraintRadius) {
           continue
         }
-        while (
-          Math.random() < continuation - 0.05 &&
-          p.x >= minX &&
-          p.x <= maxX &&
-          p.y >= minY &&
-          p.y <= maxY
-        ) {
+        const inBounds = () =>
+          circleConstraint
+            ? p.x >= 0 &&
+              p.x <= window.innerWidth &&
+              p.y >= 0 &&
+              p.y <= window.innerHeight
+            : p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY
+        while (Math.random() < continuation - 0.05 && inBounds()) {
           const angle = noiseFn(p.x, p.y)
           const nextP = coordWithAngleAndDistance(p, angle, lineLength)
           lines[lines.length - 1].push(nextP)
@@ -384,8 +382,8 @@ export default (s) => {
     y: window.innerHeight / 2,
   })
 
-  const getBounds = (totalLength: number): Bounds => {
-    const center = getCenter()
+  const getBounds = (totalLength: number, _center?: Point): Bounds => {
+    const center = _center || getCenter()
     return {
       minX: center.x - totalLength / 2,
       maxX: center.x + totalLength / 2,
@@ -398,15 +396,12 @@ export default (s) => {
     s.map(angle, 0, 1, 0, Math.PI * 2)
 
   const perlinNoiseFn = (
-    totalLength: number,
     distortionFn: NumberConversionFn,
     noise: number
   ): NoiseFn => (x: number, y: number) => {
-    const { minX, maxX, minY, maxY } = getBounds(totalLength)
-    let angle: number = s.noise(x * noise, y * noise)
-    angle = interpolate([minX, maxX], [angle / 10, angle * 1.7], x)
-    angle = interpolate([minY, maxY], [angle / 3, angle * 1.2], y)
-    return normalizeAngle(distortionFn(angle))
+    const angle: number = s.noise(x * noise, y * noise)
+    const distorted = distortionFn(angle)
+    return normalizeAngle(distorted)
   }
 
   const simplexNoiseFn = (
@@ -488,7 +483,7 @@ export default (s) => {
     let noiseFn: NoiseFn
     switch (noiseMode) {
       case 'perlin': {
-        noiseFn = perlinNoiseFn(totalLength, distortionFn, normalizedNoise)
+        noiseFn = perlinNoiseFn(distortionFn, normalizedNoise)
         break
       }
       case 'simplex': {
