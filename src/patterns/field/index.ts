@@ -8,10 +8,11 @@ import {
 
 import SimplexNoise from 'simplex-noise'
 
+type NoiseMode = 'perlin' | 'simplex' | 'curl' | 'image'
 type DrawMode = 'arrows' | 'streams' | 'fluid'
 type ConstraintMode = 'none' | 'circle'
 type ColorMode = 'random' | 'sectors'
-type ColorScheme = 'cool' | 'hot'
+type ColorScheme = 'cool' | 'hot' | 'oceanscape'
 
 type Bounds = {
   minX: number
@@ -32,17 +33,26 @@ type Props = {
   lineLength: number
   drawMode: DrawMode
   withArrows: boolean
-  noiseMode: 'perlin' | 'simplex' | 'curl'
+  noiseMode: NoiseMode
   constraintMode: ConstraintMode
   constraintRadius: number
   maxWidth: number
   pepperStrength: number
   colorScheme: ColorScheme
   colorMode: ColorMode
+  showImage: boolean
 }
 
 const coolColors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
 const hotColors = ['#801100', '#D73502', '#FAC000', '#A8A9AD', '#CB4446']
+const oceanScapeColors = [
+  '#c71585',
+  '#4a2e76',
+  '#365086',
+  '#ff6edf',
+  '#0AA9A1',
+  '#D8F8F5',
+]
 
 export default (s) => {
   initProps('field', {
@@ -53,17 +63,17 @@ export default (s) => {
     },
     n: {
       type: 'number',
-      default: 90,
+      default: 100,
       min: 3,
     },
     lineLength: {
       type: 'number',
-      default: 1.5,
+      default: 3,
       min: 1,
     },
     noise: {
       type: 'number',
-      default: 1,
+      default: 3,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
     },
@@ -75,14 +85,14 @@ export default (s) => {
     },
     density: {
       type: 'number',
-      default: 0.5,
+      default: 1,
       min: 0,
       max: 1,
       step: 0.025,
     },
     continuation: {
       type: 'number',
-      default: 0.85,
+      default: 1,
       min: 0,
       max: 1,
       step: 0.025,
@@ -90,8 +100,8 @@ export default (s) => {
     },
     noiseMode: {
       type: 'dropdown',
-      default: 'curl',
-      options: ['perlin', 'simplex', 'curl'],
+      default: 'image',
+      options: ['perlin', 'simplex', 'curl', 'image'],
     },
     constraintMode: {
       type: 'dropdown',
@@ -106,7 +116,7 @@ export default (s) => {
     },
     maxWidth: {
       type: 'number',
-      default: 11,
+      default: 1,
       min: 1,
     },
     pepperStrength: {
@@ -119,7 +129,7 @@ export default (s) => {
     },
     drawMode: {
       type: 'dropdown',
-      default: 'fluid',
+      default: 'streams',
       options: ['arrows', 'streams', 'fluid'],
       onChange: initialize,
     },
@@ -130,13 +140,18 @@ export default (s) => {
     },
     colorScheme: {
       type: 'dropdown',
-      default: 'hot',
-      options: ['cool', 'hot'],
+      default: 'oceanscape',
+      options: ['cool', 'hot', 'oceanscape'],
     },
     colorMode: {
       type: 'dropdown',
-      default: 'sectors',
+      default: 'random',
       options: ['random', 'sectors'],
+    },
+    showImage: {
+      type: 'boolean',
+      default: true,
+      when: () => get('noiseMode') === 'image',
     },
   })
   const get = (prop: string) => getProp('field', prop)
@@ -156,6 +171,7 @@ export default (s) => {
     pepperStrength: get('pepperStrength'),
     colorScheme: get('colorScheme'),
     colorMode: get('colorMode'),
+    showImage: get('showImage'),
   })
 
   const drawArrow = (
@@ -292,21 +308,31 @@ export default (s) => {
       const alphaHex = Math.round(alpha).toString(16)
       return `${colors[quadrant]}${alphaHex}`
     } else {
-      // const xdomain: [number, number] = [minX, maxX - size]
-      // const ydomain: [number, number] = [minY, maxY - size]
-      // const xr = Math.floor(interpolate(xdomain, [23, 14], x))
-      // const xg = Math.floor(interpolate(xdomain, [35, 243], x))
-      // const xb = Math.floor(interpolate(xdomain, [71, 197], x))
-      // const yr = Math.floor(interpolate(ydomain, [23, 3], y))
-      // const yg = Math.floor(interpolate(ydomain, [35, 130], y))
-      // const yb = Math.floor(interpolate(ydomain, [71, 52], y))
-      // s.stroke((xr + yr) / 2, (xg + yg) / 2, (xb + yb) / 2)
+      /*
+      const xdomain: [number, number] = [minX, maxX - size]
+      const ydomain: [number, number] = [minY, maxY - size]
+      const xr = Math.floor(interpolate(xdomain, [23, 14], x))
+      const xg = Math.floor(interpolate(xdomain, [35, 243], x))
+      const xb = Math.floor(interpolate(xdomain, [71, 197], x))
+      const yr = Math.floor(interpolate(ydomain, [23, 3], y))
+      const yg = Math.floor(interpolate(ydomain, [35, 130], y))
+      const yb = Math.floor(interpolate(ydomain, [71, 52], y))
+      s.stroke((xr + yr) / 2, (xg + yg) / 2, (xb + yb) / 2)
+      */
     }
     return ''
   }
 
-  const getColors = (colorScheme: ColorScheme): string[] =>
-    colorScheme === 'cool' ? coolColors : hotColors
+  const getColors = (colorScheme: ColorScheme): string[] => {
+    switch (colorScheme) {
+      case 'cool':
+        return coolColors
+      case 'hot':
+        return hotColors
+      case 'oceanscape':
+        return oceanScapeColors
+    }
+  }
 
   const randomColor = (colorScheme: ColorScheme): string => {
     const colors = getColors(colorScheme)
@@ -316,7 +342,8 @@ export default (s) => {
   const drawAsStreams = (
     props: Props,
     totalLength: number,
-    noiseFn: NoiseFn
+    noiseFn: NoiseFn,
+    beforeDraw?: () => any
   ) => {
     const {
       constraintMode,
@@ -333,6 +360,8 @@ export default (s) => {
     }
 
     const lines = buildStreamLines(props, totalLength, noiseFn)
+
+    if (beforeDraw) beforeDraw()
 
     s.push()
     s.noFill()
@@ -397,36 +426,36 @@ export default (s) => {
 
   const perlinNoiseFn = (
     distortionFn: NumberConversionFn,
-    noise: number
+    noiseDamp: number
   ): NoiseFn => (x: number, y: number) => {
-    const angle: number = s.noise(x * noise, y * noise)
+    const angle: number = s.noise(x * noiseDamp, y * noiseDamp)
     const distorted = distortionFn(angle)
     return normalizeAngle(distorted)
   }
 
   const simplexNoiseFn = (
     distortionFn: NumberConversionFn,
-    noise: number
+    noiseDamp: number
   ): NoiseFn => (x: number, y: number) =>
-    normalizeAngle(distortionFn(simplex.noise2D(x * noise, y * noise)))
+    normalizeAngle(distortionFn(simplex.noise2D(x * noiseDamp, y * noiseDamp)))
 
   const curlNoiseFn = (
     distortionFn: NumberConversionFn,
-    noise: number
+    noiseDamp: number
   ): NoiseFn => (x: number, y: number) => {
     const eps = 0.0001
     const eps2 = 2 * eps
 
     // x rate of change
-    const x1: number = s.noise((x + eps) * noise, y * noise)
-    const x2: number = s.noise((x - eps) * noise, y * noise)
+    const x1: number = s.noise((x + eps) * noiseDamp, y * noiseDamp)
+    const x2: number = s.noise((x - eps) * noiseDamp, y * noiseDamp)
 
     // x derivative
     var dx = (x1 - x2) / eps2
 
     // y rate of change
-    const y1: number = s.noise(x * noise, (y + eps) * noise)
-    const y2: number = s.noise(x * noise, (y - eps) * noise)
+    const y1: number = s.noise(x * noiseDamp, (y + eps) * noiseDamp)
+    const y2: number = s.noise(x * noiseDamp, (y - eps) * noiseDamp)
 
     // y derivative
     var dy = (y1 - y2) / eps2
@@ -434,11 +463,29 @@ export default (s) => {
     return distortionFn(Math.atan2(dx, dy))
   }
 
+  const imageNoiseFn = (
+    distortionFn: NumberConversionFn,
+    noiseDamp: number
+  ): NoiseFn => (x: number, y: number) => {
+    const [r, g, b] = s.get(x, y)
+    const avg = (r + g + b) / 3
+    const angle = interpolate([0, 255], [0, Math.PI * noiseDamp], avg)
+    return distortionFn(angle)
+  }
+
   let simplex: SimplexNoise
+  let img
+  const images: string[] = [
+    'spaghetti_memoirs.jpg',
+    'cale.jpg',
+    'marshall_1.jpg',
+    'selfie.jpg',
+  ]
 
   function initialize() {
     s.clear()
     simplex = new SimplexNoise()
+
     points = []
     firstPoints = []
     const props = getProps()
@@ -462,6 +509,12 @@ export default (s) => {
     initialize()
   }
 
+  s.preload = () => {
+    img = s.loadImage(
+      `src/patterns/field/${images[Math.floor(Math.random() * images.length)]}`
+    )
+  }
+
   let last: Props
 
   s.draw = () => {
@@ -481,6 +534,9 @@ export default (s) => {
     const distortionFn: NumberConversionFn = (angle) =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
     let noiseFn: NoiseFn
+    if (drawMode === 'arrows' || drawMode === 'streams') {
+      s.clear()
+    }
     switch (noiseMode) {
       case 'perlin': {
         noiseFn = perlinNoiseFn(distortionFn, normalizedNoise)
@@ -494,16 +550,24 @@ export default (s) => {
         noiseFn = curlNoiseFn(distortionFn, normalizedNoise)
         break
       }
+      case 'image': {
+        const { minX, minY } = getBounds(totalLength)
+        // s.push()
+        s.image(img, minX, minY, totalLength, totalLength)
+        // s.filter(s.DILATE)
+        // s.pop()
+        noiseFn = imageNoiseFn(distortionFn, noise)
+      }
     }
     switch (drawMode) {
       case 'arrows': {
-        s.clear()
         drawAsArrows(props, totalLength, noiseFn)
         break
       }
       case 'streams': {
-        s.clear()
-        drawAsStreams(props, totalLength, noiseFn)
+        drawAsStreams(props, totalLength, noiseFn, () => {
+          if (!props.showImage) s.clear()
+        })
         break
       }
       case 'fluid': {
