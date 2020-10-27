@@ -8,11 +8,11 @@ import {
 
 import SimplexNoise from 'simplex-noise'
 
-const _COLOR_SCHEMES_ = ['cool', 'hot', 'oceanscape'] as const
+const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
 const _NOISE_MODE_ = ['perlin', 'simplex', 'curl', 'image'] as const
 const _DRAW_MODE_ = ['arrows', 'streams', 'fluid'] as const
 const _CONSTRAINT_MODE_ = ['none', 'circle'] as const
-const _COLOR_MODE_ = ['random', 'sectors'] as const
+const _COLOR_MODE_ = ['random', 'sectors', 'monochrome'] as const
 
 type ColorScheme = typeof _COLOR_SCHEMES_[number]
 type NoiseMode = typeof _NOISE_MODE_[number]
@@ -148,6 +148,7 @@ export default (s) => {
       type: 'dropdown',
       default: 'oceanscape',
       options: [..._COLOR_SCHEMES_],
+      when: () => get('colorMode') !== 'monochrome',
     },
     colorMode: {
       type: 'dropdown',
@@ -156,7 +157,7 @@ export default (s) => {
     },
     showImage: {
       type: 'boolean',
-      default: true,
+      default: false,
       when: () => get('noiseMode') === 'image',
     },
   })
@@ -302,6 +303,9 @@ export default (s) => {
     x: number,
     y: number
   ): string => {
+    if (colorMode === 'monochrome') {
+      return '#fff'
+    }
     if (colorMode === 'random') {
       return randomColor(colorScheme)
     } else if (colorMode === 'sectors') {
@@ -331,9 +335,9 @@ export default (s) => {
 
   const getColors = (colorScheme: ColorScheme): string[] => {
     switch (colorScheme) {
-      case 'cool':
+      case 'iceland':
         return coolColors
-      case 'hot':
+      case 'fieryFurnace':
         return hotColors
       case 'oceanscape':
         return oceanScapeColors
