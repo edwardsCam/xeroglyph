@@ -8,11 +8,17 @@ import {
 
 import SimplexNoise from 'simplex-noise'
 
-type NoiseMode = 'perlin' | 'simplex' | 'curl' | 'image'
-type DrawMode = 'arrows' | 'streams' | 'fluid'
-type ConstraintMode = 'none' | 'circle'
-type ColorMode = 'random' | 'sectors'
-type ColorScheme = 'cool' | 'hot' | 'oceanscape'
+const _COLOR_SCHEMES_ = ['cool', 'hot', 'oceanscape'] as const
+const _NOISE_MODE_ = ['perlin', 'simplex', 'curl', 'image'] as const
+const _DRAW_MODE_ = ['arrows', 'streams', 'fluid'] as const
+const _CONSTRAINT_MODE_ = ['none', 'circle'] as const
+const _COLOR_MODE_ = ['random', 'sectors'] as const
+
+type ColorScheme = typeof _COLOR_SCHEMES_[number]
+type NoiseMode = typeof _NOISE_MODE_[number]
+type DrawMode = typeof _DRAW_MODE_[number]
+type ConstraintMode = typeof _CONSTRAINT_MODE_[number]
+type ColorMode = typeof _COLOR_MODE_[number]
 
 type Bounds = {
   minX: number
@@ -101,12 +107,12 @@ export default (s) => {
     noiseMode: {
       type: 'dropdown',
       default: 'image',
-      options: ['perlin', 'simplex', 'curl', 'image'],
+      options: [..._NOISE_MODE_],
     },
     constraintMode: {
       type: 'dropdown',
       default: 'none',
-      options: ['none', 'circle'],
+      options: [..._CONSTRAINT_MODE_],
     },
     constraintRadius: {
       type: 'number',
@@ -130,7 +136,7 @@ export default (s) => {
     drawMode: {
       type: 'dropdown',
       default: 'streams',
-      options: ['arrows', 'streams', 'fluid'],
+      options: [..._DRAW_MODE_],
       onChange: initialize,
     },
     withArrows: {
@@ -141,12 +147,12 @@ export default (s) => {
     colorScheme: {
       type: 'dropdown',
       default: 'oceanscape',
-      options: ['cool', 'hot', 'oceanscape'],
+      options: [..._COLOR_SCHEMES_],
     },
     colorMode: {
       type: 'dropdown',
       default: 'random',
-      options: ['random', 'sectors'],
+      options: [..._COLOR_MODE_],
     },
     showImage: {
       type: 'boolean',
