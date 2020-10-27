@@ -478,7 +478,7 @@ export default (s) => {
   const images: string[] = [
     'spaghetti_memoirs.jpg',
     'cale.jpg',
-    'marshall_1.jpg',
+    'marshall.jpg',
     'selfie.jpg',
   ]
 
