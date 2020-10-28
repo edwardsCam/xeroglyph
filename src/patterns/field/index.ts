@@ -6,6 +6,7 @@ import {
   interpolate,
 } from 'utils/math.ts'
 import SimplexNoise from 'simplex-noise'
+import shuffle from 'utils/shuffle.ts'
 import chull from 'hull.js'
 
 const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
@@ -351,42 +352,39 @@ export default (s) => {
 
     if (constraintMode === 'circle') {
       const center = getCenter()
-      s.noFill()
       s.strokeWeight(2)
       s.circle(center.x, center.y, constraintRadius * 2)
     }
 
     const lines = buildStreamLines(props, noiseFn)
-
     if (beforeDraw) beforeDraw()
 
-    s.push()
-    s.noFill()
-    lines.forEach((line) => {
-      const [firstPoint] = line
-      if (!firstPoint) return
-      const { x, y } = firstPoint
+    shuffle(lines).forEach((line) => {
+      setTimeout(() => {
+        const [firstPoint] = line
+        if (!firstPoint) return
+        const { x, y } = firstPoint
 
-      s.strokeWeight(getWidth(props.maxWidth))
-      s.stroke(getColor(props, x, y))
+        s.strokeWeight(getWidth(props.maxWidth))
+        s.stroke(getColor(props, x, y))
 
-      s.beginShape()
-      line.forEach(({ x, y }) => s.vertex(x, y))
-      s.endShape()
+        s.beginShape()
+        line.forEach(({ x, y }) => s.vertex(x, y))
+        s.endShape()
 
-      if (pepperStrength > 0) {
-        line.forEach((point) => {
-          if (Math.random() < pepperStrength) {
-            s.push()
-            s.noStroke()
-            s.fill(`${randomColor(colorScheme)}AA`)
-            s.circle(point.x, point.y, (Math.random() * props.maxWidth) / 3)
-            s.pop()
-          }
-        })
-      }
+        if (pepperStrength > 0) {
+          line.forEach((point) => {
+            if (Math.random() < pepperStrength) {
+              s.push()
+              s.noStroke()
+              s.fill(`${randomColor(colorScheme)}AA`)
+              s.circle(point.x, point.y, (Math.random() * props.maxWidth) / 3)
+              s.pop()
+            }
+          })
+        }
+      })
     })
-    s.pop()
   }
 
   const drawFlow = (props: Props, noiseFn: NoiseFn): void => {
@@ -537,6 +535,7 @@ export default (s) => {
     if (drawMode === 'arrows' || drawMode === 'streams') {
       s.clear()
     }
+    s.noFill()
     switch (noiseMode) {
       case 'perlin': {
         noiseFn = perlinNoiseFn(distortionFn, normalizedNoise)
