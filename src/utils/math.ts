@@ -107,6 +107,7 @@ function interpolate(domain: Range, range: Range, value: number): number {
   const x1 = domain[0]
   const x2 = domain[1]
   const y1 = range[0]
+  if (x1 == x2) return y1
   const y2 = range[1]
   const min = Math.min(y1, y2)
   const max = Math.max(y1, y2)

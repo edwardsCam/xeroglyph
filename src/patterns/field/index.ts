@@ -5,8 +5,8 @@ import {
   distance,
   interpolate,
 } from 'utils/math.ts'
-
 import SimplexNoise from 'simplex-noise'
+import chull from 'hull.js'
 
 const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
 const _NOISE_MODE_ = ['perlin', 'simplex', 'curl', 'image'] as const
@@ -26,6 +26,8 @@ type Bounds = {
   minY: number
   maxY: number
 }
+
+type Shape = Point[]
 
 type NoiseFn = (x: number, y: number) => number
 type NumberConversionFn = (n: number) => number
@@ -62,14 +64,14 @@ const oceanScapeColors = [
 
 export default (s) => {
   initProps('field', {
-    restaart: {
+    restart: {
       type: 'func',
       label: 'Restart',
       callback: initialize,
     },
     n: {
       type: 'number',
-      default: 100,
+      default: 80,
       min: 3,
     },
     lineLength: {
@@ -206,14 +208,10 @@ export default (s) => {
     }
   }
 
-  const getPointFromRC = (
-    n: number,
-    totalLength: number,
-    squareLen: number,
-    r: number,
-    c: number
-  ): Point => {
+  const getPointFromRC = (n: number, r: number, c: number): Point => {
     const center = getCenter()
+    const totalLength = getTotalLen()
+    const squareLen = getSquareLen(n, totalLength)
     return {
       x: interpolate(
         [0, n - 1],
@@ -228,19 +226,14 @@ export default (s) => {
     }
   }
 
-  const drawAsArrows = (
-    props: Props,
-    totalLength: number,
-    noiseFn: NoiseFn
-  ) => {
+  const drawAsArrows = (props: Props, noiseFn: NoiseFn) => {
     s.stroke(255, 255, 255)
     s.strokeWeight(props.maxWidth)
     const { n, lineLength, withArrows, density } = props
-    const squareLen = totalLength / n
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (Math.random() > density) continue
-        const p: Point = getPointFromRC(n, totalLength, squareLen, r, c)
+        const p: Point = getPointFromRC(n, r, c)
         drawArrow(p, noiseFn(p.x, p.y), lineLength, withArrows)
       }
     }
@@ -249,14 +242,10 @@ export default (s) => {
   let points: Point[]
   let firstPoints: Point[]
 
-  const buildStreamLines = (
-    props: Props,
-    totalLength: number,
-    noiseFn: NoiseFn
-  ): Point[][] => {
+  const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
     const lines: Point[][] = []
     const center = getCenter()
-    const { minX, maxX, minY, maxY } = getBounds(totalLength, center)
+    const { minX, maxX, minY, maxY } = getBounds(undefined, center)
     const {
       n,
       density,
@@ -265,13 +254,12 @@ export default (s) => {
       lineLength,
       continuation,
     } = props
-    const squareLen = totalLength / n
 
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (Math.random() > density) continue
 
-        const p = getPointFromRC(n, totalLength, squareLen, r, c)
+        const p = getPointFromRC(n, r, c)
         lines.push([])
         const circleConstraint = constraintMode === 'circle'
         if (circleConstraint && distance(p, center) >= constraintRadius) {
@@ -351,7 +339,6 @@ export default (s) => {
 
   const drawAsStreams = (
     props: Props,
-    totalLength: number,
     noiseFn: NoiseFn,
     beforeDraw?: () => any
   ) => {
@@ -369,7 +356,7 @@ export default (s) => {
       s.circle(center.x, center.y, constraintRadius * 2)
     }
 
-    const lines = buildStreamLines(props, totalLength, noiseFn)
+    const lines = buildStreamLines(props, noiseFn)
 
     if (beforeDraw) beforeDraw()
 
@@ -421,7 +408,13 @@ export default (s) => {
     y: window.innerHeight / 2,
   })
 
-  const getBounds = (totalLength: number, _center?: Point): Bounds => {
+  const getTotalLen = (): number =>
+    Math.min(window.innerHeight, window.innerWidth)
+  const getSquareLen = (n: number, totalLength?: number): number =>
+    (totalLength == null ? getTotalLen() : totalLength) / n
+
+  const getBounds = (_totalLength?: number, _center?: Point): Bounds => {
+    const totalLength = _totalLength == null ? getTotalLen() : _totalLength
     const center = _center || getCenter()
     return {
       minX: center.x - totalLength / 2,
@@ -500,13 +493,11 @@ export default (s) => {
     firstPoints = []
     const props = getProps()
     const { n, density } = props
-    const totalLength = Math.min(window.innerWidth, window.innerHeight)
-    const squareLen = totalLength / n
 
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (Math.random() > density) continue
-        const p = getPointFromRC(n, totalLength, squareLen, r, c)
+        const p = getPointFromRC(n, r, c)
         points.push(p)
         firstPoints.push(p)
       }
@@ -521,7 +512,7 @@ export default (s) => {
 
   s.preload = () => {
     img = s.loadImage(
-      `src/patterns/field/${images[Math.floor(Math.random() * images.length)]}`
+      `assets/${images[Math.floor(Math.random() * images.length)]}`
     )
   }
 
@@ -539,7 +530,6 @@ export default (s) => {
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
     const { distortion, noise, noiseMode, drawMode } = props
-    const totalLength = Math.min(window.innerWidth, window.innerHeight)
     const normalizedNoise = noise / 1000
     const distortionFn: NumberConversionFn = (angle) =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
@@ -561,6 +551,7 @@ export default (s) => {
         break
       }
       case 'image': {
+        const totalLength = getTotalLen()
         const { minX, minY } = getBounds(totalLength)
         // s.push()
         s.image(img, minX, minY, totalLength, totalLength)
@@ -571,11 +562,11 @@ export default (s) => {
     }
     switch (drawMode) {
       case 'arrows': {
-        drawAsArrows(props, totalLength, noiseFn)
+        drawAsArrows(props, noiseFn)
         break
       }
       case 'streams': {
-        drawAsStreams(props, totalLength, noiseFn, () => {
+        drawAsStreams(props, noiseFn, () => {
           if (!props.showImage) s.clear()
         })
         break

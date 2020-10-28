@@ -6,6 +6,11 @@ const infoMap = {
     instructions: [],
     description: [],
   },
+  chonks: {
+    title: 'Chonks',
+    instructions: [],
+    description: [],
+  },
   poi: {
     title: 'Poi',
     instructions: [],
