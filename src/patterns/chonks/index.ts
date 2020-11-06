@@ -1,5 +1,6 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { Point, interpolate } from 'utils/math.ts'
+import getCenter from 'utils/getCenter.ts'
 import chull from 'hull.js'
 // import densityClustering from 'density-clustering'
 
@@ -192,11 +193,6 @@ export default (s) => {
     return []
   }
 
-  const getCenter = (): Point => ({
-    x: window.innerWidth / 2,
-    y: window.innerHeight / 2,
-  })
-
   const getTotalLen = (): number =>
     Math.min(window.innerHeight, window.innerWidth)
 
@@ -221,7 +217,7 @@ export default (s) => {
   }
 
   s.preload = () => {
-    img = s.loadImage(`assets/marshall.jpg`)
+    img = s.loadImage('assets/marshall.jpg')
   }
 
   s.draw = () => {

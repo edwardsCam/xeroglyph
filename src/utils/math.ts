@@ -274,6 +274,35 @@ export const getDirection = (angle: number): 'ne' | 'nw' | 'sw' | 'se' => {
   return 'se'
 }
 
+export const rgb2hsv = ([r, g, b]: [number, number, number]): [
+  number,
+  number,
+  number
+] => {
+  let v = Math.max(r, g, b),
+    c = v - Math.min(r, g, b)
+  let h =
+    c && (v == r ? (g - b) / c : v == g ? 2 + (b - r) / c : 4 + (r - g) / c)
+  return [60 * (h < 0 ? h + 6 : h), v && c / v, v]
+}
+
+export const colorDistance = (
+  c1: [number, number, number],
+  c2: [number, number, number]
+): number =>
+  distance(
+    {
+      x: c1[0],
+      y: c1[1],
+      z: c1[2],
+    },
+    {
+      x: c2[0],
+      y: c2[1],
+      z: c2[2],
+    }
+  )
+
 export {
   getIntersectionPoint,
   clamp,

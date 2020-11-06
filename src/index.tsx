@@ -12,6 +12,7 @@ import Coral3D from 'patterns/coral-3d'
 import Cubes from 'patterns/cubes'
 import Field from 'patterns/field/index.ts'
 import Chonks from 'patterns/chonks/index.ts'
+import PixelSorting from 'patterns/pixel-sorting/index.ts'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -27,6 +28,10 @@ import Knobs from 'components/knobs.tsx'
 import HomepageLink from 'components/homepageLink.tsx'
 
 const patternMap = {
+  pixelSorting: {
+    label: 'Pixel Sorting',
+    component: PixelSorting,
+  },
   chonks: {
     label: 'Chonks',
     component: Chonks,

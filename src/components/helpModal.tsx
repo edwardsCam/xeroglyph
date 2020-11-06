@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  pixelSorting: {
+    title: 'Pixel Sorting',
+    instructions: [],
+    description: [],
+  },
   field: {
     title: 'Field',
     instructions: [],

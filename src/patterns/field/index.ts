@@ -5,9 +5,9 @@ import {
   distance,
   interpolate,
 } from 'utils/math.ts'
+import getCenter from 'utils/getCenter.ts'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle.ts'
-import chull from 'hull.js'
 
 const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
 const _NOISE_MODE_ = ['perlin', 'simplex', 'curl', 'image'] as const
@@ -242,6 +242,7 @@ export default (s) => {
 
   let points: Point[]
   let firstPoints: Point[]
+  let timeouts: number[] = []
 
   const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
     const lines: Point[][] = []
@@ -360,30 +361,32 @@ export default (s) => {
     if (beforeDraw) beforeDraw()
 
     shuffle(lines).forEach((line) => {
-      setTimeout(() => {
-        const [firstPoint] = line
-        if (!firstPoint) return
-        const { x, y } = firstPoint
+      timeouts.push(
+        setTimeout(() => {
+          const [firstPoint] = line
+          if (!firstPoint) return
+          const { x, y } = firstPoint
 
-        s.strokeWeight(getWidth(props.maxWidth))
-        s.stroke(getColor(props, x, y))
+          s.strokeWeight(getWidth(props.maxWidth))
+          s.stroke(getColor(props, x, y))
 
-        s.beginShape()
-        line.forEach(({ x, y }) => s.vertex(x, y))
-        s.endShape()
+          s.beginShape()
+          line.forEach(({ x, y }) => s.vertex(x, y))
+          s.endShape()
 
-        if (pepperStrength > 0) {
-          line.forEach((point) => {
-            if (Math.random() < pepperStrength) {
-              s.push()
-              s.noStroke()
-              s.fill(`${randomColor(colorScheme)}AA`)
-              s.circle(point.x, point.y, (Math.random() * props.maxWidth) / 3)
-              s.pop()
-            }
-          })
-        }
-      })
+          if (pepperStrength > 0) {
+            line.forEach((point) => {
+              if (Math.random() < pepperStrength) {
+                s.push()
+                s.noStroke()
+                s.fill(`${randomColor(colorScheme)}AA`)
+                s.circle(point.x, point.y, (Math.random() * props.maxWidth) / 3)
+                s.pop()
+              }
+            })
+          }
+        })
+      )
     })
   }
 
@@ -400,11 +403,6 @@ export default (s) => {
       s.line(p.x, p.y, nextP.x, nextP.y)
     })
   }
-
-  const getCenter = (): Point => ({
-    x: window.innerWidth / 2,
-    y: window.innerHeight / 2,
-  })
 
   const getTotalLen = (): number =>
     Math.min(window.innerHeight, window.innerWidth)
@@ -485,6 +483,7 @@ export default (s) => {
 
   function initialize() {
     s.clear()
+    clearTimeouts()
     simplex = new SimplexNoise()
 
     points = []
@@ -500,6 +499,11 @@ export default (s) => {
         firstPoints.push(p)
       }
     }
+  }
+
+  const clearTimeouts = () => {
+    timeouts.forEach((timeout) => clearTimeout(timeout))
+    timeouts = []
   }
 
   s.setup = () => {
@@ -524,6 +528,8 @@ export default (s) => {
       Object.keys(last).every((prop) => last[prop] === props[prop])
     )
       return
+
+    clearTimeouts()
 
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
