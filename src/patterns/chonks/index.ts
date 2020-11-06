@@ -168,8 +168,9 @@ export default (s) => {
     const pointsets = Object.values(regions)
     pointsets.slice(0, layers).forEach((pointset) => {
       if (!pointset) return
-      setTimeout(() => {
-        /*
+      timeouts.push(
+        setTimeout(() => {
+          /*
         if (clustering) {
           const clusterFn = new densityClustering.OPTICS()
           const clusters = clusterFn
@@ -183,11 +184,12 @@ export default (s) => {
           })
         } else {
           */
-        drawHull(pointset, randomColor(colorScheme) + 'AA')
-        /*
+          drawHull(pointset, randomColor(colorScheme) + 'AA')
+          /*
         }
         */
-      })
+        })
+      )
     })
 
     return []
@@ -205,9 +207,16 @@ export default (s) => {
 
   let img
   let last: Props
+  let timeouts: number[] = []
+
+  const clearTimeouts = () => {
+    timeouts.forEach((timeout) => clearTimeout(timeout))
+    timeouts = []
+  }
 
   function initialize() {
     s.clear()
+    clearTimeouts()
   }
 
   s.setup = () => {
@@ -225,6 +234,8 @@ export default (s) => {
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop])) {
       return
     }
+
+    clearTimeouts()
 
     const { distortion } = props
     const distortionFn: NumberConversionFn = (angle) =>

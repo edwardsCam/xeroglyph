@@ -481,6 +481,11 @@ export default (s) => {
     'selfie.jpg',
   ]
 
+  const clearTimeouts = () => {
+    timeouts.forEach((timeout) => clearTimeout(timeout))
+    timeouts = []
+  }
+
   function initialize() {
     s.clear()
     clearTimeouts()
@@ -499,11 +504,6 @@ export default (s) => {
         firstPoints.push(p)
       }
     }
-  }
-
-  const clearTimeouts = () => {
-    timeouts.forEach((timeout) => clearTimeout(timeout))
-    timeouts = []
   }
 
   s.setup = () => {
@@ -526,8 +526,11 @@ export default (s) => {
       (props.drawMode === 'arrows' || props.drawMode === 'streams') &&
       last &&
       Object.keys(last).every((prop) => last[prop] === props[prop])
-    )
+    ) {
       return
+    }
+
+    clearTimeouts()
 
     clearTimeouts()
 
