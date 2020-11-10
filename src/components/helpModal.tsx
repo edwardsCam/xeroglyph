@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  mountain: {
+    title: 'Mountain',
+    instructions: [],
+    description: [],
+  },
   pixelSorting: {
     title: 'Pixel Sorting',
     instructions: [],

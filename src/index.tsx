@@ -13,6 +13,7 @@ import Cubes from 'patterns/cubes'
 import Field from 'patterns/field/index.ts'
 import Chonks from 'patterns/chonks/index.ts'
 import PixelSorting from 'patterns/pixel-sorting/index.ts'
+import Mountain from 'patterns/mountain/index.ts'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -28,6 +29,10 @@ import Knobs from 'components/knobs.tsx'
 import HomepageLink from 'components/homepageLink.tsx'
 
 const patternMap = {
+  mountain: {
+    label: 'Mountain',
+    component: Mountain,
+  },
   pixelSorting: {
     label: 'Pixel Sorting',
     component: PixelSorting,
