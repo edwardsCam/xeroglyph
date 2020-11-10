@@ -1,11 +1,12 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { Point, colorDistance } from 'utils/math.ts'
 import getCenter from 'utils/getCenter.ts'
+import shuffle from 'utils/shuffle.ts'
 
 type Props = {
   threshold: number
   mode: 'horizontal' | 'vertical'
-  sweep: boolean
+  drawMode: 'all-at-once' | 'sweep' | 'random'
 }
 
 type Bounds = {
@@ -34,16 +35,17 @@ export default (s) => {
       default: 'horizontal',
       options: ['horizontal', 'vertical'],
     },
-    sweep: {
-      type: 'boolean',
-      default: true,
+    drawMode: {
+      type: 'dropdown',
+      default: 'sweep',
+      options: ['all-at-once', 'sweep', 'random'],
     },
   })
   const get = (prop: string) => getProp('pixelSorting', prop)
   const getProps = (): Props => ({
     threshold: get('threshold'),
     mode: get('mode'),
-    sweep: get('sweep'),
+    drawMode: get('drawMode'),
   })
 
   let timeouts: NodeJS.Timeout[] = []
@@ -88,20 +90,28 @@ export default (s) => {
   }
 
   const pixelSort = (bounds: Bounds, props: Props) => {
-    const { mode, sweep } = props
+    const { mode, drawMode } = props
 
-    if (!sweep) s.loadPixels()
+    if (drawMode === 'all-at-once') s.loadPixels()
     if (mode === 'horizontal') {
       pixelSortHorizontal(bounds, props)
     } else if (mode === 'vertical') {
       pixelSortVertical(bounds, props)
     }
-    if (!sweep) s.updatePixels()
+    if (drawMode === 'all-at-once') s.updatePixels()
   }
 
-  const pixelSortHorizontal = (bounds: Bounds, { threshold, sweep }: Props) => {
+  const pixelSortHorizontal = (
+    bounds: Bounds,
+    { threshold, drawMode }: Props
+  ) => {
     const { minX, minY, maxX, maxY } = bounds
+    let ys: number[] = []
     for (let y = minY; y < maxY; y++) {
+      ys.push(y)
+    }
+    if (drawMode === 'random') ys = shuffle(ys)
+    ys.forEach((y) => {
       const exec = () => {
         let standard: [number, number, number] = s.get(minX, y)
         for (let x = minX; x < maxX; x++) {
@@ -109,7 +119,9 @@ export default (s) => {
           mark(x, y, standard)
         }
       }
-      if (sweep) {
+      if (drawMode === 'all-at-once') {
+        exec()
+      } else {
         timeouts.push(
           setTimeout(() => {
             s.loadPixels()
@@ -117,15 +129,21 @@ export default (s) => {
             s.updatePixels()
           }, 0)
         )
-      } else {
-        exec()
       }
-    }
+    })
   }
 
-  const pixelSortVertical = (bounds: Bounds, { threshold, sweep }: Props) => {
+  const pixelSortVertical = (
+    bounds: Bounds,
+    { threshold, drawMode }: Props
+  ) => {
     const { minX, minY, maxX, maxY } = bounds
+    let xs: number[] = []
     for (let x = minX; x < maxX; x++) {
+      xs.push(x)
+    }
+    if (drawMode === 'random') xs = shuffle(xs)
+    xs.forEach((x) => {
       const exec = () => {
         let standard: [number, number, number] = s.get(x, minY)
         for (let y = minY; y < maxY; y++) {
@@ -133,7 +151,9 @@ export default (s) => {
           mark(x, y, standard)
         }
       }
-      if (sweep) {
+      if (drawMode === 'all-at-once') {
+        exec()
+      } else {
         timeouts.push(
           setTimeout(() => {
             s.loadPixels()
@@ -141,10 +161,8 @@ export default (s) => {
             s.updatePixels()
           }, 0)
         )
-      } else {
-        exec()
       }
-    }
+    })
   }
 
   let img
