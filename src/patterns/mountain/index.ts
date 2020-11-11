@@ -7,6 +7,11 @@ type Props = {
   symmetric: boolean
   clearOnDraw: boolean
   widthPercent: number
+  showStars: boolean
+  starDensityX: number
+  starDensityY: number
+  starDensityFalloff: number
+  starXWiggle: number
 }
 
 export default (s) => {
@@ -18,7 +23,7 @@ export default (s) => {
     },
     n: {
       type: 'number',
-      default: 50,
+      default: 40,
       min: 1,
     },
     spikiness: {
@@ -29,17 +34,45 @@ export default (s) => {
     },
     symmetric: {
       type: 'boolean',
-      default: true,
+      default: false,
     },
     'clear on draw': {
       type: 'boolean',
-      default: false,
+      default: true,
     },
     'width (%)': {
       type: 'number',
       default: 50,
       min: 0,
       max: 100,
+    },
+    'show stars': {
+      type: 'boolean',
+      default: true,
+    },
+    'star density (x)': {
+      type: 'number',
+      default: 100,
+      min: 1,
+      when: () => get('show stars'),
+    },
+    'star density (y)': {
+      type: 'number',
+      default: 500,
+      min: 1,
+      when: () => get('show stars'),
+    },
+    starDensityFalloff: {
+      type: 'number',
+      default: 100,
+      min: 0,
+      when: () => get('show stars'),
+    },
+    starXWiggle: {
+      type: 'number',
+      default: 10,
+      min: 0,
+      when: () => get('show stars'),
     },
   })
 
@@ -52,40 +85,68 @@ export default (s) => {
     symmetric: get('symmetric'),
     clearOnDraw: get('clear on draw'),
     widthPercent: get('width (%)'),
+    showStars: get('show stars'),
+    starDensityX: get('star density (x)'),
+    starDensityY: get('star density (y)'),
+    starDensityFalloff: get('starDensityFalloff'),
+    starXWiggle: get('starXWiggle'),
   })
 
-  const buildMtn = ({
-    n,
-    spikiness,
-    symmetric,
-    widthPercent,
-  }: Props): Point[] => {
+  const getXposAt = (
+    i: number,
+    { widthPercent, n }: Props,
+    _minX?: number,
+    _step?: number
+  ): number => {
+    if (_minX == null || _step == null) {
+      const halfPoint = window.innerWidth / 2
+      const width = Math.floor((window.innerWidth * widthPercent) / 100)
+      const halfWidth = width / 2
+      const step = halfWidth / n
+      const minX = halfPoint - halfWidth
+      return minX + step * i
+    } else {
+      return _minX + _step * i
+    }
+  }
+
+  const buildMtn = (props: Props): Point[] => {
     const points: Point[] = []
     const halfPoint = window.innerWidth / 2
-    const width = Math.floor((window.innerWidth * widthPercent) / 100)
+    const width = Math.floor((window.innerWidth * props.widthPercent) / 100)
     const halfWidth = width / 2
-    const step = halfWidth / n
+    const step = halfWidth / props.n
     const minX = halfPoint - halfWidth
 
-    for (let i = 0; i <= n; i++) {
-      const x = minX + step * i
-      const yPreference = interpolate([0, n], [window.innerHeight, 200], i)
-      const variance = interpolate([0, n], [0, 1], i)
-      const noise = s.noise(x, yPreference) - 0.5
-      const y = yPreference + noise * spikiness * variance
+    for (let i = 0; i <= props.n; i++) {
+      const x = getXposAt(i, props, minX, step)
+      const yPreference = interpolate(
+        [0, props.n],
+        [window.innerHeight, 200],
+        i
+      )
+      const variance = interpolate([0, props.n], [0, 1], i)
+      // const noise = s.noise(x, yPreference) - 0.5
+      const noise = Math.random() - 0.5
+      const y = yPreference + noise * props.spikiness * variance
       points.push({ x, y })
     }
 
-    for (let i = 0; i <= n; i++) {
-      const x = halfPoint + step * i
-      if (symmetric) {
-        const y = points[n - i].y
+    for (let i = 0; i <= props.n; i++) {
+      const x = getXposAt(i + props.n, props, minX, step)
+      if (props.symmetric) {
+        const y = points[props.n - i].y
         points.push({ x, y })
       } else {
-        const yPreference = interpolate([0, n], [200, window.innerHeight], i)
-        const variance = interpolate([0, n], [1, 0], i)
-        const noise = s.noise(x, yPreference) - 0.5
-        const y = yPreference + noise * spikiness * variance
+        const yPreference = interpolate(
+          [0, props.n],
+          [200, window.innerHeight],
+          i
+        )
+        const variance = interpolate([0, props.n], [1, 0], i)
+        // const noise = s.noise(x, yPreference) - 0.5
+        const noise = Math.random() - 0.5
+        const y = yPreference + noise * props.spikiness * variance
         points.push({ x, y })
       }
     }
@@ -98,6 +159,34 @@ export default (s) => {
     s.beginShape()
     points.forEach(({ x, y }) => s.vertex(x, y))
     s.endShape()
+  }
+
+  const drawStars = (props: Props): void => {
+    s.push()
+    s.noStroke()
+    s.fill('white')
+    const { innerWidth } = window
+    const step = innerWidth / props.starDensityX
+    for (let x = 0; x < innerWidth; x += step) {
+      const verticalDensity = s.noise(x) * props.starDensityY * 6
+      drawStarLine(x, verticalDensity, props)
+    }
+    s.pop()
+  }
+
+  const drawStarLine = (x: number, density: number, props: Props): void => {
+    const { innerHeight } = window
+    let j = innerHeight
+    const d = innerHeight / density
+    while (j > 0) {
+      const p = interpolate([innerHeight, 0], [0, 1], j)
+      const pureJump = interpolate([0, 1], [d, d * props.starDensityFalloff], p)
+      const random = s.noise(x / 100)
+      const jump = Math.max(1, pureJump + random * d)
+      j -= jump
+      const xWithWiggle = x + (Math.random() - 0.5) * props.starXWiggle
+      s.circle(xWithWiggle, j, 4)
+    }
   }
 
   function initialize() {
@@ -118,6 +207,7 @@ export default (s) => {
 
     s.fill('#000f')
     s.stroke('#ffff')
+    if (props.showStars) drawStars(props)
     drawMtn(props)
 
     last = props
