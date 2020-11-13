@@ -479,6 +479,7 @@ export default (s) => {
     'cale.jpg',
     'marshall.jpg',
     'selfie.jpg',
+    'sand_skiing.jpg',
   ]
 
   const clearTimeouts = () => {
