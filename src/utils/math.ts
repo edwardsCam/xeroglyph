@@ -126,15 +126,7 @@ function interpolate(domain: Range, range: Range, value: number): number {
              /                   /
         ___/                    /
 * */
-function interpolateSmooth({
-  domain,
-  range,
-  value,
-}: {
-  domain: Range
-  range: Range
-  value: number
-}): number {
+function interpolateSmooth(domain: Range, range: Range, value: number): number {
   const x1 = domain[0]
   const x2 = domain[1]
   const y1 = range[0]

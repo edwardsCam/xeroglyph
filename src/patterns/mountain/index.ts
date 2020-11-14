@@ -1,12 +1,14 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
-import { interpolate, Point } from 'utils/math.ts'
+import { interpolate, Point, randomInRange } from 'utils/math.ts'
 
 type Props = {
   n: number
   spikiness: number
   symmetric: boolean
+  curveTightness: number
   clearOnDraw: boolean
   widthPercent: number
+  showMountain: boolean
   showStars: boolean
   starDensityX: number
   starDensityY: number
@@ -36,6 +38,13 @@ export default (s) => {
       type: 'boolean',
       default: false,
     },
+    curveTightness: {
+      type: 'number',
+      min: -5,
+      max: 5,
+      step: 0.2,
+      default: 0,
+    },
     'clear on draw': {
       type: 'boolean',
       default: true,
@@ -45,6 +54,10 @@ export default (s) => {
       default: 50,
       min: 0,
       max: 100,
+    },
+    'show mountain': {
+      type: 'boolean',
+      default: true,
     },
     'show stars': {
       type: 'boolean',
@@ -85,11 +98,13 @@ export default (s) => {
     symmetric: get('symmetric'),
     clearOnDraw: get('clear on draw'),
     widthPercent: get('width (%)'),
+    showMountain: get('show mountain'),
     showStars: get('show stars'),
     starDensityX: get('star density (x)'),
     starDensityY: get('star density (y)'),
     starDensityFalloff: get('starDensityFalloff'),
     starXWiggle: get('starXWiggle'),
+    curveTightness: get('curveTightness'),
   })
 
   const getXposAt = (
@@ -127,12 +142,13 @@ export default (s) => {
       )
       const variance = interpolate([0, props.n], [0, 1], i)
       // const noise = s.noise(x, yPreference) - 0.5
-      const noise = Math.random() - 0.5
+      const noise = randomInRange(-1, 1)
       const y = yPreference + noise * props.spikiness * variance
       points.push({ x, y })
+      if (i === 0) points.push({ x, y })
     }
 
-    for (let i = 0; i <= props.n; i++) {
+    for (let i = 1; i <= props.n; i++) {
       const x = getXposAt(i + props.n, props, minX, step)
       if (props.symmetric) {
         const y = points[props.n - i].y
@@ -145,9 +161,10 @@ export default (s) => {
         )
         const variance = interpolate([0, props.n], [1, 0], i)
         // const noise = s.noise(x, yPreference) - 0.5
-        const noise = Math.random() - 0.5
+        const noise = randomInRange(-1, 1)
         const y = yPreference + noise * props.spikiness * variance
         points.push({ x, y })
+        if (i === props.n) points.push({ x, y })
       }
     }
 
@@ -157,14 +174,31 @@ export default (s) => {
   const drawMtn = (props: Props): void => {
     const points = buildMtn(props)
     s.beginShape()
-    points.forEach(({ x, y }) => s.vertex(x, y))
+    s.curveTightness(props.curveTightness)
+    points.forEach(({ x, y }) => s.curveVertex(x, y))
     s.endShape()
+  }
+
+  const drawBorealis = (props: Props): void => {
+    s.push()
+    const { innerWidth } = window
+    const halfPoint = innerWidth / 2
+    const step = innerWidth / props.starDensityX
+    for (let x = 0; x < innerWidth; x += step) {
+      const distFromCenter = Math.abs(halfPoint - x)
+      const centerOffset = interpolate([0, halfPoint], [1, 0], distFromCenter)
+      const r = randomInRange(0, 0.2)
+      const a = r + centerOffset / 5
+      s.stroke(`rgba(255, 255, 255, ${a})`)
+      s.strokeWeight(randomInRange(0.2, 1.5))
+      s.line(x, 0, x, window.innerHeight)
+    }
+    s.pop()
   }
 
   const drawStars = (props: Props): void => {
     s.push()
     s.noStroke()
-    s.fill('white')
     const { innerWidth } = window
     const step = innerWidth / props.starDensityX
     for (let x = 0; x < innerWidth; x += step) {
@@ -184,8 +218,11 @@ export default (s) => {
       const random = s.noise(x / 100)
       const jump = Math.max(1, pureJump + random * d)
       j -= jump
-      const xWithWiggle = x + (Math.random() - 0.5) * props.starXWiggle
-      s.circle(xWithWiggle, j, 4)
+      const xWithWiggle = x + randomInRange(-1, 1) * props.starXWiggle
+      const a = randomInRange(0.2, 0.6)
+      const color = `rgba(255, 255, 255, ${a})`
+      s.fill(color)
+      s.circle(xWithWiggle, j, randomInRange(0.5, 4))
     }
   }
 
@@ -207,8 +244,13 @@ export default (s) => {
 
     s.fill('#000f')
     s.stroke('#ffff')
-    if (props.showStars) drawStars(props)
-    drawMtn(props)
+    if (props.showStars) {
+      drawBorealis(props)
+      drawStars(props)
+    }
+    if (props.showMountain) {
+      drawMtn(props)
+    }
 
     last = props
   }

@@ -533,8 +533,6 @@ export default (s) => {
 
     clearTimeouts()
 
-    clearTimeouts()
-
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
     const { distortion, noise, noiseMode, drawMode } = props

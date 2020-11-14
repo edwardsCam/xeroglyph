@@ -26,18 +26,18 @@ export default (s) => {
       for (let i = 0; i < n; i++) {
         const domain = [0, n]
         yRatios.push(
-          interpolateSmooth({
+          interpolateSmooth(
             domain,
-            range: [maxRatio, minRatio],
-            value: Math.abs(yDropzone - i),
-          })
+            [maxRatio, minRatio],
+            Math.abs(yDropzone - i)
+          )
         )
         xRatios.push(
-          interpolateSmooth({
+          interpolateSmooth(
             domain,
-            range: [maxRatio, minRatio],
-            value: Math.abs(xDropzone - i),
-          })
+            [maxRatio, minRatio],
+            Math.abs(xDropzone - i)
+          )
         )
       }
 

@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  starscape: {
+    title: 'Starscape',
+    instructions: [],
+    description: [],
+  },
   mountain: {
     title: 'Mountain',
     instructions: [],
