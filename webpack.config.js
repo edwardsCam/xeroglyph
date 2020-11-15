@@ -29,7 +29,8 @@ module.exports = {
     modules: [
       path.resolve('src'),
       path.resolve('node_modules'),
-    ]
+    ],
+    extensions: ['.js', '.ts', '.tsx'],
   },
   devtool: 'eval-source-map',
   stats: {

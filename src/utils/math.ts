@@ -30,8 +30,14 @@ const coordsFromTheta = (theta: number, radius: number): Point => ({
     thetaFromTwoPoints:
         Given two points, get the angle they make from x-axis.
 * */
-function thetaFromTwoPoints(p1: Point, p2: Point): number {
+function thetaFromTwoPoints_old(p1: Point, p2: Point): number {
   const dy = p2.y - p1.y
+  const dx = p2.x - p1.x
+  return Math.atan2(dy, dx)
+}
+
+function thetaFromTwoPoints(p1: Point, p2: Point): number {
+  const dy = p1.y - p2.y
   const dx = p2.x - p1.x
   return Math.atan2(dy, dx)
 }
@@ -40,7 +46,7 @@ function thetaFromTwoPoints3d(p1: Point, p2: Point) {
   const r = distance(p1, p2)
   const dz = (p2.z || 0) - (p1.z || 0)
   return {
-    phi: thetaFromTwoPoints(p1, p2),
+    phi: thetaFromTwoPoints_old(p1, p2),
     theta: Math.asin(dz / r),
   }
 }
@@ -295,6 +301,16 @@ export const colorDistance = (
     }
   )
 
+export const progressAlongLine = (
+  p1: Point,
+  p2: Point,
+  progress: number
+): Point => {
+  const theta = thetaFromTwoPoints(p1, p2)
+  const len = distance(p1, p2)
+  return coordWithAngleAndDistance(p1, theta, len * progress)
+}
+
 export {
   getIntersectionPoint,
   clamp,
@@ -305,7 +321,7 @@ export {
   normalizeScreenPos,
   denormalizeScreenPos,
   coordsFromTheta,
-  thetaFromTwoPoints,
+  thetaFromTwoPoints_old,
   thetaFromTwoPoints3d,
   interpolate,
   interpolateSmooth,

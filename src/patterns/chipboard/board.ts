@@ -1,7 +1,6 @@
 import { interpolate, diff } from 'utils/math.ts'
 import { init as initProps, getProp } from 'utils/propConfig.ts'
-// @ts-ignore
-import { rir, colorSchemes } from './common.ts'
+import { rir, colorSchemes } from './common'
 import Scribble from '../../p5.scribble'
 
 type Quad = 'tl' | 'tr' | 'br' | 'bl'

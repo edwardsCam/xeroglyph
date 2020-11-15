@@ -2,7 +2,7 @@ import { init as initProps, getProp } from 'utils/propConfig.ts'
 import {
   Point,
   coordWithAngleAndDistance,
-  thetaFromTwoPoints,
+  thetaFromTwoPoints_old,
 } from 'utils/math.ts'
 import { Vector } from 'p5'
 
@@ -84,7 +84,7 @@ export default (s) => {
 
     mutate(damp: number) {
       this.orientation =
-        (thetaFromTwoPoints(center, {
+        (thetaFromTwoPoints_old(center, {
           x: s.mouseX,
           y: s.mouseY,
         }) +

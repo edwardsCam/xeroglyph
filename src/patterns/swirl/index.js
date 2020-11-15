@@ -1,4 +1,9 @@
-import { thetaFromTwoPoints, distance, clamp, interpolate } from 'utils/math.ts'
+import {
+  thetaFromTwoPoints_old,
+  distance,
+  clamp,
+  interpolate,
+} from 'utils/math.ts'
 import { init as initProps, getProp } from 'utils/propConfig.ts'
 import Scribble from '../../p5.scribble'
 
@@ -6,7 +11,7 @@ function calculateGravBetweenTwoBodies(p1, p2, { minGrav, maxGrav }) {
   const d = distance(p1.position, p2.position)
   const massConstant = p1.mass * p2.mass
   return {
-    theta: thetaFromTwoPoints(p1.position, p2.position),
+    theta: thetaFromTwoPoints_old(p1.position, p2.position),
     strength: clamp(minGrav, maxGrav, massConstant / (d * d)),
   }
 }

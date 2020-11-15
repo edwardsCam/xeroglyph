@@ -1,4 +1,4 @@
-import { interpolate, distance, thetaFromTwoPoints } from 'utils/math.ts'
+import { interpolate, distance, thetaFromTwoPoints_old } from 'utils/math.ts'
 import { init as initProps, getProp } from 'utils/propConfig.ts'
 import Scribble from '../../p5.scribble'
 
@@ -101,7 +101,7 @@ export default (s) => {
           if (i === j) continue
           const n2 = nodes[j].position
           const d12 = distance(n1, n2)
-          const theta = thetaFromTwoPoints(n1, n2)
+          const theta = thetaFromTwoPoints_old(n1, n2)
 
           if (this.isWithinRange(i, j, 1)) {
             // immediate neighbor, attract!
@@ -154,7 +154,7 @@ export default (s) => {
                   x: (n2.x + n3.x) / 2,
                   y: (n2.y + n3.y) / 2,
                 }
-                const collisionPushDir = thetaFromTwoPoints(midpoint, n1)
+                const collisionPushDir = thetaFromTwoPoints_old(midpoint, n1)
                 const pushAccelX = cos(collisionPushDir) * collisionPushStr
                 const pushAccelY = sin(collisionPushDir) * collisionPushStr
                 ;(props.randomMode ? acceleration : velocity).add(

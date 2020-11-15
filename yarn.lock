@@ -1431,6 +1431,11 @@ axe-core@^3.5.4:
   resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-3.5.5.tgz#84315073b53fa3c0c51676c588d59da09a192227"
   integrity sha512-5P0QZ6J5xGikH780pghEdbEKijCTrruK9KxtPZCFWUpef0f6GipO+xEZ5GKCb020mmqgbiNO6TcA55CriL784Q==
 
+axis.js@1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/axis.js/-/axis.js-1.2.1.tgz#092de84493789e1f822aa2eee592c7e3bc4de8fb"
+  integrity sha1-CS3oRJN4nh+CKqLu5ZLH47xN6Ps=
+
 axobject-query@^2.1.2:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/axobject-query/-/axobject-query-2.2.0.tgz#943d47e10c0b704aa42275e20edf3722648989be"
@@ -3483,6 +3488,13 @@ homedir-polyfill@^1.0.1:
   integrity sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==
   dependencies:
     parse-passwd "^1.0.0"
+
+honeycomb-grid@^3.1.7:
+  version "3.1.7"
+  resolved "https://registry.yarnpkg.com/honeycomb-grid/-/honeycomb-grid-3.1.7.tgz#1a445bef2ca9c7dbedc29a32c9e4561c65c87317"
+  integrity sha512-SJz1379TYlxfNljL6asdVciwRdqO0hACWcV3//nhf2yZuGJTgH+SmoPKg2E5ctwvYJ3tZz7mKUcrwEKR+0it5Q==
+  dependencies:
+    axis.js "1.2.1"
 
 hosted-git-info@^2.1.4:
   version "2.8.8"

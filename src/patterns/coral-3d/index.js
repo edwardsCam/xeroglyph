@@ -1,7 +1,7 @@
 import {
   interpolate,
   distance,
-  thetaFromTwoPoints,
+  thetaFromTwoPoints_old,
   thetaFromTwoPoints3d,
 } from 'utils/math.ts'
 import { init as initProps, getProp } from 'utils/propConfig.ts'
@@ -164,7 +164,7 @@ export default (s) => {
                   y: (n2.y + n3.y) / 2,
                   // z: (n2.z + n3.z) / 2,
                 }
-                const collisionPushDir = thetaFromTwoPoints(midpoint, n1)
+                const collisionPushDir = thetaFromTwoPoints_old(midpoint, n1)
                 const pushAccelX = cos(collisionPushDir.phi) * collisionPushStr
                 const pushAccelY = sin(collisionPushDir.phi) * collisionPushStr
                 // const pushAccelZ = sin(collisionPushDir.theta) * collisionPushStr

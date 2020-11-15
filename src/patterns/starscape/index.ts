@@ -1,5 +1,10 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
-import { interpolate, interpolateSmooth, randomInRange, Point } from 'utils/math.ts'
+import {
+  interpolate,
+  interpolateSmooth,
+  randomInRange,
+  Point,
+} from 'utils/math.ts'
 import shuffle from 'utils/shuffle.ts'
 
 type Props = {
@@ -93,9 +98,11 @@ export default (s) => {
   const drawSpotlights = (props: Props): void => {
     s.push()
     shuffle(steps(props.spotlightCount)).forEach((x) => {
-      timeouts.push(setTimeout(() => {
-        drawSpotlight(x, props)
-      }, Math.floor(Math.random() * 50)))
+      timeouts.push(
+        setTimeout(() => {
+          drawSpotlight(x, props)
+        }, Math.floor(Math.random() * 50))
+      )
     })
     s.pop()
   }
@@ -142,9 +149,11 @@ export default (s) => {
       )
       const verticalDensity =
         s.noise(x) * props.starDensityY * 10 * centerOffset
-      timeouts.push(setTimeout(() => {
-        drawStarLine(x, verticalDensity, props)
-      }, Math.floor(Math.random() * 50)))
+      timeouts.push(
+        setTimeout(() => {
+          drawStarLine(x, verticalDensity, props)
+        }, Math.floor(Math.random() * 50))
+      )
     })
   }
 
@@ -153,8 +162,8 @@ export default (s) => {
     let j = innerHeight
     const d = innerHeight / density
     const dots: {
-      color: string,
-      point: Point,
+      color: string
+      point: Point
       radius: number
     }[] = []
     while (j > 0) {
@@ -177,21 +186,23 @@ export default (s) => {
         color,
         point: {
           x: xWithWiggle,
-          y: j
+          y: j,
         },
-        radius: randomInRange(0.5, 4)
+        radius: randomInRange(0.5, 4),
       })
     }
-    dots.forEach(dot => {
-      timeouts.push(setTimeout(() => {
-        s.fill(dot.color)
-        s.circle(dot.point.x, dot.point.y, dot.radius)
-      }, Math.floor(Math.random() * 700)))
+    dots.forEach((dot) => {
+      timeouts.push(
+        setTimeout(() => {
+          s.fill(dot.color)
+          s.circle(dot.point.x, dot.point.y, dot.radius)
+        }, Math.floor(Math.random() * 700))
+      )
     })
   }
 
   const clearTimeouts = () => {
-    timeouts.forEach(timeout => clearTimeout(timeout))
+    timeouts.forEach((timeout) => clearTimeout(timeout))
     timeouts = []
   }
 

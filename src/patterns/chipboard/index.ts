@@ -1,6 +1,4 @@
-// @ts-ignore
-import city from './city.ts'
-// @ts-ignore
-import board from './board.ts'
+import city from './city'
+import board from './board'
 
 export { city, board }
