@@ -10,7 +10,7 @@ export type Grid = {
   s3: Line[]
 }
 
-export const _PATTERNS = ['Page 71'] as const
+export const _PATTERNS = ['Zectangle', 'Page 71'] as const
 
 export type Props = {
   pattern: typeof _PATTERNS[number]
@@ -18,6 +18,7 @@ export type Props = {
   innerWeight: number
   borderWeight: number
   n: number
+  degree: number
 }
 
 export const getCenter = (): Point => ({

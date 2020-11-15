@@ -1,6 +1,7 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { Props, _PATTERNS } from './common'
 import page71 from './page-71'
+import zectangles from './zectangle'
 
 export default (s) => {
   initProps('sacredGeometry', {
@@ -16,7 +17,7 @@ export default (s) => {
     },
     len: {
       type: 'number',
-      default: 100,
+      default: 80,
       min: 5,
       step: 5,
     },
@@ -25,17 +26,27 @@ export default (s) => {
       default: 1,
       min: 0,
       step: 0.1,
+      when: () => get('pattern') === 'Page 71',
     },
     borderWeight: {
       type: 'number',
       default: 0.5,
       min: 0,
       step: 0.1,
+      when: () => get('pattern') === 'Page 71',
     },
     n: {
       type: 'number',
       default: 6,
       min: 1,
+      when: () => get('pattern') === 'Page 71',
+    },
+    degree: {
+      type: 'number',
+      default: 9,
+      min: 1,
+      step: 0.05,
+      when: () => get('pattern') === 'Zectangle',
     },
   })
 
@@ -48,6 +59,7 @@ export default (s) => {
     innerWeight: get('innerWeight'),
     borderWeight: get('borderWeight'),
     n: get('n'),
+    degree: get('degree'),
   })
 
   const drawPattern = (props: Props): void => {
@@ -55,6 +67,10 @@ export default (s) => {
     switch (props.pattern) {
       case 'Page 71': {
         page71(s, props)
+        break
+      }
+      case 'Zectangle': {
+        zectangles(s, props)
         break
       }
     }
