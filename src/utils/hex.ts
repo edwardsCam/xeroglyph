@@ -1,7 +1,7 @@
 import { Point } from 'utils/math.ts'
 import { defineGrid, extendHex, Hex } from 'honeycomb-grid'
 
-type HexData = {
+export type HexData = {
   raw: Hex<{ size: number }>
   rectCorner: Point
   corners: Point[]

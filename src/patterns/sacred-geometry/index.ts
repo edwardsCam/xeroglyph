@@ -1,5 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
-import { Props, _PATTERNS } from './common'
+import { Props, _PATTERNS, _ZECTANGLE_SHAPES } from './common'
 import page71 from './page-71'
 import zectangles from './zectangle'
 
@@ -45,7 +45,12 @@ export default (s) => {
       type: 'number',
       default: 9,
       min: 1,
-      step: 0.05,
+      when: () => get('pattern') === 'Zectangle',
+    },
+    shape: {
+      type: 'dropdown',
+      default: _ZECTANGLE_SHAPES[0],
+      options: [..._ZECTANGLE_SHAPES],
       when: () => get('pattern') === 'Zectangle',
     },
   })
@@ -60,6 +65,7 @@ export default (s) => {
     borderWeight: get('borderWeight'),
     n: get('n'),
     degree: get('degree'),
+    shape: get('shape'),
   })
 
   const drawPattern = (props: Props): void => {

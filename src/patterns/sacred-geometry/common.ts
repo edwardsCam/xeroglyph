@@ -11,6 +11,7 @@ export type Grid = {
 }
 
 export const _PATTERNS = ['Zectangle', 'Page 71'] as const
+export const _ZECTANGLE_SHAPES = ['hex', 'square'] as const
 
 export type Props = {
   pattern: typeof _PATTERNS[number]
@@ -19,6 +20,7 @@ export type Props = {
   borderWeight: number
   n: number
   degree: number
+  shape: typeof _ZECTANGLE_SHAPES[number]
 }
 
 export const getCenter = (): Point => ({
