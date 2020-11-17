@@ -1,4 +1,11 @@
-import { Props, drawHex, addTimeout, clearTimeouts } from './common'
+import {
+  Props,
+  drawHex,
+  addTimeout,
+  clearTimeouts,
+  drawLine as _drawLine,
+} from './common'
+import Scribble from '../../p5.scribble'
 import {
   progressAlongLine,
   Point,
@@ -12,7 +19,7 @@ const TWO_THIRDS = 2 / 3
 export default (s, props: Props) => {
   clearTimeouts()
 
-  const drawLine = (p1: Point, p2: Point) => s.line(p1.x, p1.y, p2.x, p2.y)
+  const drawLine = (p1: Point, p2: Point) => _drawLine(p1, p2, s, scribble)
 
   const drawArrows = ({ corners: c, sideLen, apothem }: HexData) => {
     const p1 = progressAlongLine(c[0], c[1], ONE_THIRD)
@@ -41,6 +48,9 @@ export default (s, props: Props) => {
     const a = ONE_THIRD_SIDE / Math.sqrt(3)
     const outsidePercentage = (sideToSide + a) / sideToSide
     const insidePercentage = a / sideToSide
+
+    s.push()
+    s.strokeWeight(props.strokeWeight)
 
     // c1 - c6 intersection
     const c1c6int = getIntersectionPoint(c1, c6)
@@ -80,19 +90,23 @@ export default (s, props: Props) => {
       drawLine(p3, inside)
       drawLine(inside, c[1])
     }
+    s.pop()
   }
 
-  const { len } = props
+  const { len, roughness } = props
   if (len === 0) return
-  s.push()
+
+  let scribble: Scribble
+  if (roughness > 0) {
+    scribble = new Scribble(s)
+    scribble.roughness = roughness
+  }
   const hexLen = len / Math.sqrt(3)
   const rows = Math.ceil(window.innerHeight / hexLen)
   const cols = Math.ceil(window.innerWidth / hexLen)
   const hexes = hexGrid(hexLen, cols, rows)
-  s.strokeWeight(2)
   hexes.forEach((hex) => {
     // drawHex(s, hex.corners)
     addTimeout(() => drawArrows(hex))
   })
-  s.pop()
 }

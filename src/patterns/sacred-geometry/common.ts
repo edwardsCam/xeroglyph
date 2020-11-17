@@ -1,4 +1,5 @@
 import { Point, progressAlongLine, Line } from 'utils/math.ts'
+import Scribble from '../../p5.scribble'
 
 export type Triangle = [Point, Point, Point]
 
@@ -24,10 +25,11 @@ export type Props = {
   pattern: typeof _PATTERNS[number]
   len: number
   innerWeight: number
-  borderWeight: number
+  strokeWeight: number
   n: number
   degree: number
   shape: typeof _ZECTANGLE_SHAPES[number]
+  roughness: number
 }
 
 export const getCenter = (): Point => ({
@@ -67,19 +69,6 @@ export const getTriangle = (
   }
 }
 
-export const drawTriangle = (
-  s: any,
-  [p1, p2, p3]: Triangle,
-  width: number = 1
-): void => {
-  s.push()
-  s.strokeWeight(width)
-  s.line(p1.x, p1.y, p2.x, p2.y)
-  s.line(p2.x, p2.y, p3.x, p3.y)
-  s.line(p3.x, p3.y, p1.x, p1.y)
-  s.pop()
-}
-
 export const getTriangleGrid = ([p1, p2, p3]: Triangle, n: number): Grid => {
   const grid: Grid = {
     s1: [],
@@ -104,9 +93,21 @@ export const getTriangleGrid = ([p1, p2, p3]: Triangle, n: number): Grid => {
   return grid
 }
 
-export const drawHex = (s: any, corners: Point[]): void => {
+export const drawHex = (
+  corners: Point[],
+  s: any,
+  scribble?: Scribble
+): void => {
   corners.forEach((corner, i) => {
     const nextCorner = i === corners.length - 1 ? corners[0] : corners[i + 1]
-    s.line(corner.x, corner.y, nextCorner.x, nextCorner.y)
+    drawLine(corner, nextCorner, s, scribble)
   })
+}
+
+export const drawLine = (p1: Point, p2: Point, s: any, scribble?: Scribble) => {
+  if (scribble) {
+    scribble.scribbleLine(p1.x, p1.y, p2.x, p2.y)
+  } else {
+    s.line(p1.x, p1.y, p2.x, p2.y)
+  }
 }

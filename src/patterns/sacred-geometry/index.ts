@@ -29,12 +29,11 @@ export default (s) => {
       step: 0.1,
       when: () => get('pattern') === 'Page 71',
     },
-    borderWeight: {
+    strokeWeight: {
       type: 'number',
-      default: 0.5,
+      default: 1,
       min: 0,
       step: 0.1,
-      when: () => get('pattern') === 'Page 71',
     },
     n: {
       type: 'number',
@@ -54,6 +53,12 @@ export default (s) => {
       options: [..._ZECTANGLE_SHAPES],
       when: () => get('pattern') === 'Zectangle',
     },
+    roughness: {
+      type: 'number',
+      min: 0,
+      step: 0.25,
+      default: 0,
+    },
   })
 
   let last: Props | undefined
@@ -63,10 +68,11 @@ export default (s) => {
     pattern: get('pattern'),
     len: get('len'),
     innerWeight: get('innerWeight'),
-    borderWeight: get('borderWeight'),
+    strokeWeight: get('strokeWeight'),
     n: get('n'),
     degree: get('degree'),
     shape: get('shape'),
+    roughness: get('roughness'),
   })
 
   const drawPattern = (props: Props): void => {

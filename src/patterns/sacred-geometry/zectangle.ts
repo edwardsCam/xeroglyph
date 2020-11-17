@@ -1,19 +1,33 @@
 // based on this reddit post: https://www.reddit.com/r/oddlysatisfying/comments/90t9oe/zectangles/
 
-import { Props, drawHex, addTimeout, clearTimeouts } from './common'
+import {
+  Props,
+  drawHex,
+  addTimeout,
+  clearTimeouts,
+  drawLine as _drawLine,
+} from './common'
 import { Point, progressAlongLine, distance } from 'utils/math'
 import { HexData, hexGrid } from 'utils/hex'
+import Scribble from '../../p5.scribble'
 
 export default (s, props: Props) => {
+  const drawLine = (p1: Point, p2: Point) => _drawLine(p1, p2, s, scribble)
+
   const drawSquare = (tl: Point, tr: Point, br: Point, bl: Point) => {
-    s.line(tl.x, tl.y, tr.x, tr.y)
-    s.line(tr.x, tr.y, br.x, br.y)
-    s.line(br.x, br.y, bl.x, bl.y)
-    s.line(bl.x, bl.y, tl.x, tl.y)
+    s.push()
+    s.strokeWeight(props.strokeWeight)
+    drawLine(tl, tr)
+    drawLine(tr, br)
+    drawLine(br, bl)
+    drawLine(bl, tl)
+    s.pop()
   }
 
   const drawZexagon = (hex: HexData, degree: number, inverted: boolean) => {
-    drawHex(s, hex.corners)
+    s.push()
+    s.strokeWeight(props.strokeWeight)
+    drawHex(hex.corners, s, scribble)
 
     if (degree === 0) return
     const p = 1 / degree
@@ -48,8 +62,14 @@ export default (s, props: Props) => {
       hexes.push(corners)
     }
     hexes.forEach((hex, i) => {
-      addTimeout(() => drawHex(s, hex), i * 10)
+      addTimeout(() => {
+        s.push()
+        s.strokeWeight(props.strokeWeight)
+        drawHex(hex, s, scribble)
+        s.pop()
+      }, i * 10)
     })
+    s.pop()
   }
 
   const drawZectangle = (
@@ -114,8 +134,14 @@ export default (s, props: Props) => {
 
   clearTimeouts()
 
-  const { len, degree, shape } = props
+  const { len, degree, shape, roughness } = props
   if (len === 0) return
+
+  let scribble: Scribble
+  if (roughness > 0) {
+    scribble = new Scribble(s)
+    scribble.roughness = roughness
+  }
 
   s.push()
   if (shape === 'square') {
