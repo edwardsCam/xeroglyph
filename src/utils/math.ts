@@ -13,6 +13,7 @@ export const TWO_PI = Math.PI * 2
 export const PI_HALVES = Math.PI / 2
 
 type Range = [number, number]
+export type Line = [Point, Point]
 
 const toRadians = (d: number): number => (d * Math.PI) / 180
 const toDegrees = (r: number): number => (r * 180) / Math.PI
@@ -211,10 +212,7 @@ function smoothToStep(value: number, step: number): number {
   return step * Math.round(value / step)
 }
 
-function getIntersectionPoint(
-  [v1, v2]: [Point, Point],
-  [v3, v4]: [Point, Point]
-): null | Point {
+function getIntersectionPoint([v1, v2]: Line, [v3, v4]: Line): null | Point {
   const a1 = v2.y - v1.y
   const b1 = v1.x - v2.x
   const c1 = a1 * v1.x + b1 * v1.y

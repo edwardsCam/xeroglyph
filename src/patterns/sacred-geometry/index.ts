@@ -2,6 +2,7 @@ import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { Props, _PATTERNS, _ZECTANGLE_SHAPES } from './common'
 import page71 from './page-71'
 import zectangles from './zectangle'
+import arrows from './arrows'
 
 export default (s) => {
   initProps('sacredGeometry', {
@@ -77,6 +78,10 @@ export default (s) => {
       }
       case 'Zectangle': {
         zectangles(s, props)
+        break
+      }
+      case 'Arrows': {
+        arrows(s, props)
         break
       }
     }

@@ -8,6 +8,7 @@ export type HexData = {
   center: Point
   apothem: number
   rectLen: number
+  sideLen: number
 }
 
 export const hexGrid = (
@@ -41,6 +42,7 @@ export const hexGrid = (
       center,
       apothem,
       rectLen: apothem * 2,
+      sideLen,
     }
   }) as HexData[]
 }

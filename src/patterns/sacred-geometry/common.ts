@@ -1,8 +1,6 @@
-import { Point, progressAlongLine } from 'utils/math.ts'
+import { Point, progressAlongLine, Line } from 'utils/math.ts'
 
 export type Triangle = [Point, Point, Point]
-
-export type Line = [Point, Point]
 
 export type Grid = {
   s1: Line[]
@@ -10,8 +8,8 @@ export type Grid = {
   s3: Line[]
 }
 
-export const _PATTERNS = ['Zectangle', 'Page 71'] as const
-export const _ZECTANGLE_SHAPES = ['hex', 'square'] as const
+export const _PATTERNS = ['Zectangle', 'Arrows', 'Page 71'] as const
+export const _ZECTANGLE_SHAPES = ['square', 'hex'] as const
 
 export type Props = {
   pattern: typeof _PATTERNS[number]
@@ -95,4 +93,11 @@ export const getTriangleGrid = ([p1, p2, p3]: Triangle, n: number): Grid => {
     grid.s3.push([g1, g2])
   }
   return grid
+}
+
+export const drawHex = (s: any, corners: Point[]): void => {
+  corners.forEach((corner, i) => {
+    const nextCorner = i === corners.length - 1 ? corners[0] : corners[i + 1]
+    s.line(corner.x, corner.y, nextCorner.x, nextCorner.y)
+  })
 }

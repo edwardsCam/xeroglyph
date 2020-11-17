@@ -1,6 +1,6 @@
 // based on this reddit post: https://www.reddit.com/r/oddlysatisfying/comments/90t9oe/zectangles/
 
-import { Props } from './common'
+import { Props, drawHex } from './common'
 import { Point, progressAlongLine, distance } from 'utils/math'
 import { HexData, hexGrid } from 'utils/hex'
 
@@ -14,15 +14,8 @@ export default (s, props: Props) => {
     s.line(bl.x, bl.y, tl.x, tl.y)
   }
 
-  const drawHex = (corners: Point[]): void => {
-    corners.forEach((corner, i) => {
-      const nextCorner = i === corners.length - 1 ? corners[0] : corners[i + 1]
-      s.line(corner.x, corner.y, nextCorner.x, nextCorner.y)
-    })
-  }
-
   const drawZexagon = (hex: HexData, degree: number, inverted: boolean) => {
-    drawHex(hex.corners)
+    drawHex(s, hex.corners)
 
     if (degree === 0) return
     const p = 1 / degree
@@ -59,7 +52,7 @@ export default (s, props: Props) => {
     hexes.forEach((hex, i) => {
       timeouts.push(
         setTimeout(() => {
-          drawHex(hex)
+          drawHex(s, hex)
         }, i * 10)
       )
     })
