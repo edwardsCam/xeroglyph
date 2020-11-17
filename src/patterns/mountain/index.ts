@@ -89,7 +89,7 @@ export default (s) => {
     },
   })
 
-  let last: Props
+  let last: Props | undefined
 
   const get = (prop: string) => getProp('mountain', prop)
   const getProps = (): Props => ({
@@ -228,6 +228,7 @@ export default (s) => {
 
   function initialize() {
     s.clear()
+    last = undefined
   }
 
   s.setup = () => {

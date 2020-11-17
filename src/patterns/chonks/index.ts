@@ -206,7 +206,7 @@ export default (s) => {
   })
 
   let img
-  let last: Props
+  let last: Props | undefined
   let timeouts: number[] = []
 
   const clearTimeouts = () => {
@@ -217,6 +217,7 @@ export default (s) => {
   function initialize() {
     s.clear()
     clearTimeouts()
+    last = undefined
   }
 
   s.setup = () => {

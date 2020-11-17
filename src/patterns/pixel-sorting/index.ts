@@ -49,6 +49,8 @@ export default (s) => {
   })
 
   let timeouts: NodeJS.Timeout[] = []
+  let img
+  let last: Props | undefined
 
   const getTotalLen = (): number =>
     Math.min(window.innerHeight, window.innerWidth)
@@ -165,9 +167,6 @@ export default (s) => {
     })
   }
 
-  let img
-  let last: Props
-
   const clearTimeouts = () => {
     timeouts.forEach((timeout) => clearTimeout(timeout))
     timeouts = []
@@ -176,6 +175,7 @@ export default (s) => {
   function initialize() {
     s.clear()
     clearTimeouts()
+    last = undefined
   }
 
   s.preload = () => {

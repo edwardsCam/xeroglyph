@@ -505,6 +505,7 @@ export default (s) => {
         firstPoints.push(p)
       }
     }
+    last = undefined
   }
 
   s.setup = () => {
@@ -519,7 +520,7 @@ export default (s) => {
     )
   }
 
-  let last: Props
+  let last: Props | undefined
 
   s.draw = () => {
     const props = getProps()

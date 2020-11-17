@@ -67,7 +67,7 @@ export default (s) => {
     },
   })
 
-  let last: Props
+  let last: Props | undefined
   let timeouts: NodeJS.Timeout[] = []
 
   const get = (prop: string) => getProp('starscape', prop)
@@ -209,6 +209,7 @@ export default (s) => {
   function initialize() {
     s.clear()
     clearTimeouts()
+    last = undefined
   }
 
   s.setup = () => {
