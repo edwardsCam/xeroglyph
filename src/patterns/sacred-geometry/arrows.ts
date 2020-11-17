@@ -1,4 +1,4 @@
-import { Props, drawHex } from './common'
+import { Props, drawHex, addTimeout, clearTimeouts } from './common'
 import {
   progressAlongLine,
   Point,
@@ -7,13 +7,10 @@ import {
 } from 'utils/math'
 import { hexGrid, HexData } from 'utils/hex'
 
-let timeouts: NodeJS.Timeout[] = []
-
 const ONE_THIRD = 1 / 3
 const TWO_THIRDS = 2 / 3
 export default (s, props: Props) => {
-  timeouts.forEach((timeout) => clearTimeout(timeout))
-  timeouts = []
+  clearTimeouts()
 
   const drawLine = (p1: Point, p2: Point) => s.line(p1.x, p1.y, p2.x, p2.y)
 
@@ -86,6 +83,8 @@ export default (s, props: Props) => {
   }
 
   const { len } = props
+  if (len === 0) return
+  s.push()
   const hexLen = len / Math.sqrt(3)
   const rows = Math.ceil(window.innerHeight / hexLen)
   const cols = Math.ceil(window.innerWidth / hexLen)
@@ -93,10 +92,7 @@ export default (s, props: Props) => {
   s.strokeWeight(2)
   hexes.forEach((hex) => {
     // drawHex(s, hex.corners)
-    timeouts.push(
-      setTimeout(() => {
-        drawArrows(hex)
-      }, 0)
-    )
+    addTimeout(() => drawArrows(hex))
   })
+  s.pop()
 }

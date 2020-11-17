@@ -11,6 +11,15 @@ export type Grid = {
 export const _PATTERNS = ['Zectangle', 'Arrows', 'Page 71'] as const
 export const _ZECTANGLE_SHAPES = ['square', 'hex'] as const
 
+let timeouts: number[] = []
+export const addTimeout = (fn: Function, timeout: number = 0) => {
+  timeouts.push(setTimeout(fn, timeout))
+}
+export const clearTimeouts = () => {
+  timeouts.forEach((timeout) => clearTimeout(timeout))
+  timeouts = []
+}
+
 export type Props = {
   pattern: typeof _PATTERNS[number]
   len: number

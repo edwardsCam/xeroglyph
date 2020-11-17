@@ -1,15 +1,14 @@
-import { progressAlongLine, Point } from 'utils/math'
+import { progressAlongLine, Point, Line } from 'utils/math'
 import { hexGrid } from 'utils/hex'
 import {
   getTriangle,
   getTriangleGrid,
   Grid,
   drawTriangle,
-  Line,
   Props,
+  addTimeout,
+  clearTimeouts,
 } from './common'
-
-let timeouts: NodeJS.Timeout[] = []
 
 export default (s, props: Props) => {
   const drawHook1 = (grid: Grid): void => {
@@ -49,9 +48,9 @@ export default (s, props: Props) => {
     drawHook3(grid)
   }
 
-  timeouts.forEach((timeout) => clearTimeout(timeout))
-  timeouts = []
+  clearTimeouts()
 
+  s.push()
   const { len } = props
   const hexSizeLen = len / Math.sqrt(3)
   const hexes = hexGrid(
@@ -61,11 +60,10 @@ export default (s, props: Props) => {
   )
   s.strokeWeight(props.innerWeight)
   hexes.forEach(({ center }) => {
-    timeouts.push(
-      setTimeout(() => {
-        drawTile(center, false)
-        drawTile(center, true)
-      }, 0)
-    )
+    addTimeout(() => {
+      drawTile(center, false)
+      drawTile(center, true)
+    })
   })
+  s.pop()
 }

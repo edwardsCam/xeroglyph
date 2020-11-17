@@ -1,10 +1,8 @@
 // based on this reddit post: https://www.reddit.com/r/oddlysatisfying/comments/90t9oe/zectangles/
 
-import { Props, drawHex } from './common'
+import { Props, drawHex, addTimeout, clearTimeouts } from './common'
 import { Point, progressAlongLine, distance } from 'utils/math'
 import { HexData, hexGrid } from 'utils/hex'
-
-let timeouts: NodeJS.Timeout[] = []
 
 export default (s, props: Props) => {
   const drawSquare = (tl: Point, tr: Point, br: Point, bl: Point) => {
@@ -50,11 +48,7 @@ export default (s, props: Props) => {
       hexes.push(corners)
     }
     hexes.forEach((hex, i) => {
-      timeouts.push(
-        setTimeout(() => {
-          drawHex(s, hex)
-        }, i * 10)
-      )
+      addTimeout(() => drawHex(s, hex), i * 10)
     })
   }
 
@@ -112,20 +106,18 @@ export default (s, props: Props) => {
       squares.push(corners)
     }
     squares.forEach((square, i) => {
-      timeouts.push(
-        setTimeout(() => {
-          drawSquare(...square)
-        }, i * 50)
-      )
+      addTimeout(() => {
+        drawSquare(...square)
+      }, i * 50)
     })
   }
 
-  timeouts.forEach((timeout) => clearTimeout(timeout))
-  timeouts = []
+  clearTimeouts()
 
   const { len, degree, shape } = props
   if (len === 0) return
 
+  s.push()
   if (shape === 'square') {
     const rows = Math.ceil(window.innerHeight / len)
     const cols = Math.ceil(window.innerWidth / len)
@@ -139,14 +131,12 @@ export default (s, props: Props) => {
     points
       .sort((a, b) => a.r * a.c - b.r * b.c)
       .forEach(({ r, c }) => {
-        timeouts.push(
-          setTimeout(() => {
-            const x = c * len
-            const y = r * len
-            const inverted = !((r + c) % 2)
-            drawZectangle({ x, y }, len, degree, inverted)
-          }, 0)
-        )
+        addTimeout(() => {
+          const x = c * len
+          const y = r * len
+          const inverted = !((r + c) % 2)
+          drawZectangle({ x, y }, len, degree, inverted)
+        })
       })
   } else if (shape === 'hex') {
     const hexLen = len / Math.sqrt(3)
@@ -154,11 +144,10 @@ export default (s, props: Props) => {
     const cols = Math.ceil(window.innerWidth / hexLen)
     const hexes = hexGrid(hexLen, cols, rows)
     hexes.forEach((hex, i) => {
-      timeouts.push(
-        setTimeout(() => {
-          drawZexagon(hex, degree, !(i % 2))
-        }, 0)
-      )
+      addTimeout(() => {
+        drawZexagon(hex, degree, !(i % 2))
+      })
     })
   }
+  s.pop()
 }
