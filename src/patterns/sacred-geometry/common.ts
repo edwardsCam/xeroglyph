@@ -9,7 +9,12 @@ export type Grid = {
   s3: Line[]
 }
 
-export const _PATTERNS = ['Zectangle', 'Arrows', 'Page 71'] as const
+export const _PATTERNS = [
+  'Zectangle',
+  'Snowflake',
+  'Arrows',
+  'Page 71',
+] as const
 export const _ZECTANGLE_SHAPES = ['square', 'hex'] as const
 
 let timeouts: number[] = []
