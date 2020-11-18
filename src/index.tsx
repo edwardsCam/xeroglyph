@@ -136,6 +136,7 @@ class App extends React.Component<{}, State> {
         init: false,
       })
       window.removeEventListener('click', begin)
+      window.addEventListener('click', () => this.toggleOptions())
     }
 
     setTimeout(() => {
@@ -154,16 +155,20 @@ class App extends React.Component<{}, State> {
             }
             break
           case 'o':
-            if (!this.state.init) {
-              this.setState((prevState) => ({
-                isShowingKnobs: !prevState.isShowingKnobs,
-                isShowingHelpModal: false,
-              }))
-            }
+            this.toggleOptions()
             break
         }
       })
     })
+  }
+
+  toggleOptions = () => {
+    if (!this.state.init) {
+      this.setState((prevState) => ({
+        isShowingKnobs: !prevState.isShowingKnobs,
+        isShowingHelpModal: false,
+      }))
+    }
   }
 
   componentDidMount() {

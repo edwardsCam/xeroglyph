@@ -100,6 +100,10 @@ export default class Knobs extends React.Component<{ pattern: string }> {
           return null
       }
     })
-    return <div className="knobs">{knobs}</div>
+    return (
+      <div className="knobs" onClick={(e) => e.stopPropagation()}>
+        {knobs}
+      </div>
+    )
   }
 }

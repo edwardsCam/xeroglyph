@@ -13,6 +13,11 @@ export default (s) => {
       label: 'Redraw!',
       callback: initialize,
     },
+    pause: {
+      type: 'func',
+      label: 'Pause',
+      callback: togglePause,
+    },
     'Smallest Allowed Width': {
       type: 'number',
       default: 12,
@@ -112,16 +117,16 @@ export default (s) => {
       }
     })
 
-    canvas.addEventListener('click', togglePause)
+    // canvas.addEventListener('click', togglePause)
     s.createCanvas(window.innerWidth, window.innerHeight)
     initialize()
+  }
 
-    function togglePause() {
-      isPaused = !isPaused
-      if (!isPaused) {
-        lastKnowns.forEach((lastKnown) => createChipboard(...lastKnown))
-        lastKnowns = []
-      }
+  function togglePause() {
+    isPaused = !isPaused
+    if (!isPaused) {
+      lastKnowns.forEach((lastKnown) => createChipboard(...lastKnown))
+      lastKnowns = []
     }
   }
 

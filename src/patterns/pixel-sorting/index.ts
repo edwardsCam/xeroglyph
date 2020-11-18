@@ -199,6 +199,7 @@ export default (s) => {
     const bounds = getBounds(totalLength, center)
     const { minX, minY } = bounds
     s.image(img, minX, minY, totalLength, totalLength)
+    debugger
     pixelSort(bounds, props)
 
     last = props

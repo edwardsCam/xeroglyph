@@ -13,7 +13,6 @@ import {
   getIntersectionPoint,
 } from 'utils/math'
 import { hexGrid, HexData } from 'utils/hex'
-import { draw } from '../vida/progressive-camera'
 
 const ONE_THIRD = 1 / 3
 const TWO_THIRDS = 2 / 3
@@ -22,7 +21,7 @@ export default (s, props: Props) => {
 
   const drawLine = (p1: Point, p2: Point) => _drawLine(p1, p2, s, scribble)
 
-  const drawSnowflake = ({ corners: c, sideLen, apothem }: HexData) => {
+  const drawSnowflake = ({ corners: c }: HexData) => {
     const p1 = progressAlongLine(c[0], c[1], ONE_THIRD)
     const p2 = progressAlongLine(c[0], c[1], TWO_THIRDS)
     const p3 = progressAlongLine(c[1], c[2], ONE_THIRD)
@@ -42,13 +41,6 @@ export default (s, props: Props) => {
     const c4: Line = [p10, p3]
     const c5: Line = [p11, p6]
     const c6: Line = [p12, p5]
-
-    const ONE_THIRD_SIDE = sideLen / 3
-    const sideToSide = apothem * 2
-
-    const a = ONE_THIRD_SIDE / Math.sqrt(3)
-    // const outsidePercentage = (sideToSide + a) / sideToSide
-    // const insidePercentage = a / sideToSide
 
     s.push()
     s.strokeWeight(props.strokeWeight)
