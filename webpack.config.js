@@ -2,12 +2,9 @@ var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
-  entry: './src/index.tsx',
   mode: 'development',
   output: {
-    path: path.resolve(__dirname, 'dist'),
     publicPath: '/assets/',
-    filename: 'main.js',
   },
   module: {
     rules: [
@@ -20,26 +17,23 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: "babel-loader"
-        }
-      }
-    ]
+          loader: 'babel-loader',
+        },
+      },
+    ],
   },
   resolve: {
-    modules: [
-      path.resolve('src'),
-      path.resolve('node_modules'),
-    ],
+    modules: [path.resolve('src'), path.resolve('node_modules')],
     extensions: ['.js', '.ts', '.tsx'],
   },
   devtool: 'eval-source-map',
   stats: {
-    colors: true
+    colors: true,
   },
   devServer: {
     hot: true,
     inline: true,
     publicPath: '/dist/',
     historyApiFallback: true,
-  },
-};
+  }
+}
