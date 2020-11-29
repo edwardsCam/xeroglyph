@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  pandemic: {
+    title: 'Pandemic',
+    instructions: [],
+    description: [],
+  },
   sacredGeometry: {
     title: 'Sacred Geometry',
     instructions: [],

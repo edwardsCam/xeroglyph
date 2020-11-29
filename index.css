@@ -97,6 +97,9 @@ body {
   outline: none;
 }
 
+.homepage-link.pandemic::before {
+  background-image: url('assets/example_pandemic.png');
+}
 .homepage-link.field::before {
   background-image: url('assets/example_field.png');
 }

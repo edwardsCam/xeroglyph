@@ -156,10 +156,19 @@ function interpolateSmooth(domain: Range, range: Range, value: number): number {
 
   @param {boolean} round - if true, return an integer (truncated)
 * */
-function randomInRange(min: number, max: number, round?: boolean): number {
+export function randomInRange(
+  min: number,
+  max: number,
+  round?: boolean
+): number {
   const result = min + Math.random() * (max - min)
   return round ? Math.floor(result) : result
 }
+
+export const randomPoint = (): Point => ({
+  x: Math.floor(randomInRange(0, window.innerWidth)),
+  y: Math.floor(randomInRange(0, window.innerHeight)),
+})
 
 /**
     coordWithAngleAndDistance:
@@ -323,7 +332,6 @@ export {
   thetaFromTwoPoints3d,
   interpolate,
   interpolateSmooth,
-  randomInRange,
   coordWithAngleAndDistance,
   coinToss,
   percentWithinRange,

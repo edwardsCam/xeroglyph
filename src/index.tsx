@@ -16,6 +16,7 @@ import PixelSorting from 'patterns/pixel-sorting/index.ts'
 import Mountain from 'patterns/mountain/index.ts'
 import Starscape from 'patterns/starscape/index.ts'
 import SacredGeometry from 'patterns/sacred-geometry/index.ts'
+import Pandemic from 'patterns/pandemic/index.ts'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -31,6 +32,10 @@ import Knobs from 'components/knobs.tsx'
 import HomepageLink from 'components/homepageLink.tsx'
 
 const patternMap = {
+  pandemic: {
+    label: 'Pandemic',
+    component: Pandemic,
+  },
   sacredGeometry: {
     label: 'Sacred Geometry',
     component: SacredGeometry,
