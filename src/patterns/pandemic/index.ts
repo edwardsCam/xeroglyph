@@ -6,6 +6,7 @@ import {
   coordWithAngleAndDistance,
   distance,
   interpolate,
+  thetaFromTwoPoints_old,
 } from 'utils/math.ts'
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
   spreadRadius: number
   recoveryTime: number
   deathTime: number
+  socialDistance: number
 }
 
 type Info = {
@@ -21,6 +23,7 @@ type Info = {
   healthy: number
   infected: number
   dead: number
+  r: number
 }
 
 type InfectionStatus = 'healthy' | 'infected' // | 'immune'
@@ -52,7 +55,7 @@ export default (s) => {
     },
     n: {
       type: 'number',
-      default: 400,
+      default: 500,
       min: 5,
       step: 10,
     },
@@ -69,7 +72,7 @@ export default (s) => {
     },
     recoveryTime: {
       type: 'number',
-      default: 1.5,
+      default: 3,
       min: 1,
       step: 0.5,
     },
@@ -77,6 +80,11 @@ export default (s) => {
       type: 'number',
       default: 20,
       min: 3,
+    },
+    socialDistance: {
+      type: 'number',
+      default: 30,
+      min: 0,
     },
   })
 
@@ -87,6 +95,7 @@ export default (s) => {
     spreadRadius: get('spreadRadius'),
     recoveryTime: get('recoveryTime'),
     deathTime: get('deathTime'),
+    socialDistance: get('socialDistance'),
   })
 
   class Population {
@@ -108,7 +117,14 @@ export default (s) => {
           this.possiblyInfectOthers(individual, props.spreadRadius)
         }
 
-        individual.mutate(props)
+        let othersWithinSocialDistanceRange: Individual[] = []
+        if (props.socialDistance > 0) {
+          othersWithinSocialDistanceRange = this.getOthersWithinRange(
+            individual,
+            props.socialDistance
+          )
+        }
+        individual.mutate(props, othersWithinSocialDistanceRange)
         if (individual.isDead(props)) {
           bringOutYourDead.push(i)
           this.deathCount++
@@ -118,12 +134,18 @@ export default (s) => {
     }
 
     possiblyInfectOthers(individual: Individual, spreadRadius: number) {
-      const peopleWithinProximity = this.indivs.filter((other) => {
-        if (individual.id === other.id) return false
-        return distance(individual.location, other.location) < spreadRadius
+      this.getOthersWithinRange(individual, spreadRadius).forEach((other) => {
+        if (Math.random() < individual.infectiousness) {
+          other.infect()
+          individual.infectionCount++
+        }
       })
-      peopleWithinProximity.forEach((nearbyIndividual) => {
-        nearbyIndividual.infect()
+    }
+
+    getOthersWithinRange(individual: Individual, radius: number): Individual[] {
+      return this.indivs.filter((other) => {
+        if (individual.id === other.id) return false
+        return distance(individual.location, other.location) < radius
       })
     }
 
@@ -131,18 +153,24 @@ export default (s) => {
       this.indivs.forEach((individual) => individual.draw(props))
     }
 
-    getInfo(): Info {
+    getInfo(n: number): Info {
       const infected = this.indivs.reduce((count, individual) => {
         if (individual.status === 'infected') return count + 1
         return count
       }, 0)
       const total = this.indivs.length
       const healthy = total - infected
+      const averageInfectionCount =
+        this.indivs.reduce(
+          (total, individual) => total + individual.infectionCount,
+          0
+        ) / n
       return {
         total,
         healthy,
         infected,
         dead: this.deathCount,
+        r: averageInfectionCount,
       }
     }
   }
@@ -155,6 +183,8 @@ export default (s) => {
     mostRecentInfection: Date | null
     ticksSurvived: number
     id: number
+    infectiousness: number
+    infectionCount: number
 
     constructor(props: Props, startPoint: Point) {
       this.location = startPoint
@@ -162,6 +192,8 @@ export default (s) => {
       this.acceleration = { x: 0, y: 0 }
       this.ticksSurvived = 0
       this.id = _id++
+      this.infectiousness = randomInRange(0, 0.1)
+      this.infectionCount = 0
       if (Math.random() < 0.95) {
         this.status = 'healthy'
         this.mostRecentInfection = null
@@ -171,7 +203,7 @@ export default (s) => {
       }
     }
 
-    mutate(props: Props) {
+    mutate(props: Props, othersWithinSocialDistanceRange: Individual[]) {
       if (this.status === 'infected' && this.mostRecentInfection) {
         this.ticksSurvived++
         const infectionTime = timeDifference(this.mostRecentInfection)
@@ -179,10 +211,10 @@ export default (s) => {
           this.recover()
         }
       }
-      this.move(props)
+      this.move(props, othersWithinSocialDistanceRange)
     }
 
-    move(props: Props) {
+    move(props: Props, othersWithinSocialDistanceRange: Individual[]) {
       const randomTheta = randomInRange(0, Math.PI * 2)
       const randomSpeed = randomInRange(0, props.moveSpeed)
       const accelMax = randomSpeed / 15
@@ -212,6 +244,25 @@ export default (s) => {
         this.location.y = window.innerHeight
         this.velocity.y *= -1
       }
+
+      const pushVector: Point = othersWithinSocialDistanceRange.reduce(
+        (vector, other) => {
+          debugger
+          const t = thetaFromTwoPoints_old(other.location, this.location)
+          const d = distance(other.location, this.location)
+          const str = props.socialDistance / (d * 25)
+          const xAccel = Math.cos(t) * str
+          const yAccel = Math.sin(t) * str
+          return {
+            x: vector.x + xAccel,
+            y: vector.y + yAccel,
+          }
+        },
+        { x: 0, y: 0 }
+      )
+
+      this.velocity.x += pushVector.x
+      this.velocity.y += pushVector.y
 
       this.location.x += this.velocity.x
       this.location.y += this.velocity.y
@@ -262,11 +313,11 @@ export default (s) => {
     s.fill('grey')
     s.strokeWeight(2)
     s.stroke('black')
-    s.rect(topLeft, MARGIN, 100, 85)
+    s.rect(topLeft, MARGIN, 100, 97)
     s.noStroke()
     s.fill('black')
 
-    const info = population.getInfo()
+    const info = population.getInfo(n)
     s.text('Population: ' + info.total, topLeft + 5, MARGIN + 15)
     s.text('Healthy: ' + info.healthy, topLeft + 5, MARGIN + 27)
     s.text('Infected: ' + info.infected, topLeft + 5, MARGIN + 39)
@@ -281,6 +332,7 @@ export default (s) => {
       topLeft + 5,
       MARGIN + 75
     )
+    s.text('r: ' + info.r.toFixed(2), topLeft + 5, MARGIN + 87)
     s.pop()
   }
 
