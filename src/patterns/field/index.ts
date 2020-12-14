@@ -5,7 +5,7 @@ import {
   distance,
   interpolate,
 } from 'utils/math.ts'
-import getCenter from 'utils/getCenter.ts'
+import { getCenter, getBoundedSize } from 'utils/window.ts'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle.ts'
 
@@ -27,8 +27,6 @@ type Bounds = {
   minY: number
   maxY: number
 }
-
-type Shape = Point[]
 
 type NoiseFn = (x: number, y: number) => number
 type NumberConversionFn = (n: number) => number
@@ -211,7 +209,7 @@ export default (s) => {
 
   const getPointFromRC = (n: number, r: number, c: number): Point => {
     const center = getCenter()
-    const totalLength = getTotalLen()
+    const totalLength = getBoundedSize()
     const squareLen = getSquareLen(n, totalLength)
     return {
       x: interpolate(
@@ -404,13 +402,11 @@ export default (s) => {
     })
   }
 
-  const getTotalLen = (): number =>
-    Math.min(window.innerHeight, window.innerWidth)
   const getSquareLen = (n: number, totalLength?: number): number =>
-    (totalLength == null ? getTotalLen() : totalLength) / n
+    (totalLength == null ? getBoundedSize() : totalLength) / n
 
   const getBounds = (_totalLength?: number, _center?: Point): Bounds => {
-    const totalLength = _totalLength == null ? getTotalLen() : _totalLength
+    const totalLength = _totalLength == null ? getBoundedSize() : _totalLength
     const center = _center || getCenter()
     return {
       minX: center.x - totalLength / 2,
@@ -559,7 +555,7 @@ export default (s) => {
         break
       }
       case 'image': {
-        const totalLength = getTotalLen()
+        const totalLength = getBoundedSize()
         const { minX, minY } = getBounds(totalLength)
         // s.push()
         s.image(img, minX, minY, totalLength, totalLength)

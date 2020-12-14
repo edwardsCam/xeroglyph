@@ -1,6 +1,6 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { Point, colorDistance } from 'utils/math.ts'
-import getCenter from 'utils/getCenter.ts'
+import { getCenter, getBoundedSize } from 'utils/window.ts'
 import shuffle from 'utils/shuffle.ts'
 
 type Props = {
@@ -51,9 +51,6 @@ export default (s) => {
   let timeouts: NodeJS.Timeout[] = []
   let img
   let last: Props | undefined
-
-  const getTotalLen = (): number =>
-    Math.min(window.innerHeight, window.innerWidth)
 
   const getBounds = (totalLength: number, center: Point): Bounds => ({
     minX: Math.floor(center.x - totalLength / 2),
@@ -194,12 +191,11 @@ export default (s) => {
       return
     }
     clearTimeouts()
-    const totalLength = getTotalLen()
+    const totalLength = getBoundedSize()
     const center = getCenter()
     const bounds = getBounds(totalLength, center)
     const { minX, minY } = bounds
     s.image(img, minX, minY, totalLength, totalLength)
-    debugger
     pixelSort(bounds, props)
 
     last = props

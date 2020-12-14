@@ -8,6 +8,7 @@ export interface Point {
   y: number
   z?: number
 }
+export type PolarCoord = [number, number]
 
 export const TWO_PI = Math.PI * 2
 export const PI_HALVES = Math.PI / 2
@@ -316,6 +317,30 @@ export const progressAlongLine = (
   const theta = thetaFromTwoPoints(p1, p2)
   const len = distance(p1, p2)
   return coordWithAngleAndDistance(p1, theta, len * progress)
+}
+
+// copypasta https://www.eecs.umich.edu/courses/eecs380/HANDOUTS/PROJ2/InsidePoly.html#:~:text=To%20determine%20the%20status%20of,point%20is%20outside%20the%20polygon.
+export const withinPolygonBounds = (
+  { x, y }: Point,
+  polygon: Point[]
+): boolean => {
+  let i: number
+  let j: number
+  let c = false
+  const n = polygon.length
+  for (i = 0, j = n - 1; i < n; j = i++) {
+    const x1 = polygon[i].x
+    const y1 = polygon[i].y
+    const x2 = polygon[j].x
+    const y2 = polygon[j].y
+    if (
+      ((y1 <= y && y < y2) || (y2 <= y && y < y1)) &&
+      x < ((x2 - x1) * (y - y1)) / (y2 - y1) + x1
+    ) {
+      c = !c
+    }
+  }
+  return c
 }
 
 export {

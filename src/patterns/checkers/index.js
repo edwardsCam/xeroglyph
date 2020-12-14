@@ -18,9 +18,6 @@ export default (s) => {
       const xRatios = []
       const yRatios = []
 
-      if (s.mouseY > 0) {
-        // debugger
-      }
       const yDropzone = interpolate([0, window.innerHeight], [0, n], s.mouseY)
       const xDropzone = interpolate([0, window.innerWidth], [0, n], s.mouseX)
       for (let i = 0; i < n; i++) {

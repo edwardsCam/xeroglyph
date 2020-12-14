@@ -247,7 +247,6 @@ export default (s) => {
 
       const pushVector: Point = othersWithinSocialDistanceRange.reduce(
         (vector, other) => {
-          debugger
           const t = thetaFromTwoPoints_old(other.location, this.location)
           const d = distance(other.location, this.location)
           const str = props.socialDistance / (d * 25)

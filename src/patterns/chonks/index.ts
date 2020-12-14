@@ -1,6 +1,6 @@
 import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { Point, interpolate } from 'utils/math.ts'
-import getCenter from 'utils/getCenter.ts'
+import { getCenter, getBoundedSize } from 'utils/window.ts'
 import chull from 'hull.js'
 // import densityClustering from 'density-clustering'
 
@@ -150,7 +150,7 @@ export default (s) => {
       [angle: string]: [number, number][]
     } = {}
 
-    const totalLength = getTotalLen()
+    const totalLength = getBoundedSize()
     const center = getCenter()
 
     for (let r = 0; r < n; r++) {
@@ -194,9 +194,6 @@ export default (s) => {
 
     return []
   }
-
-  const getTotalLen = (): number =>
-    Math.min(window.innerHeight, window.innerWidth)
 
   const getBounds = (totalLength: number, center: Point): Bounds => ({
     minX: center.x - totalLength / 2,
@@ -242,7 +239,7 @@ export default (s) => {
     const distortionFn: NumberConversionFn = (angle) =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
 
-    const totalLength = getTotalLen()
+    const totalLength = getBoundedSize()
     const center = getCenter()
     const { minX, minY } = getBounds(totalLength, center)
     s.image(img, minX, minY, totalLength, totalLength)
