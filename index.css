@@ -97,6 +97,24 @@ body {
   outline: none;
 }
 
+.homepage-link.chonks::before {
+  background-image: url('assets/example_chonks.png');
+}
+.homepage-link.mountain::before {
+  background-image: url('assets/example_mountain.png');
+}
+.homepage-link.starscape::before {
+  background-image: url('assets/example_starscape.png');
+}
+.homepage-link.flower::before {
+  background-image: url('assets/example_flower.png');
+}
+.homepage-link.sacredGeometry::before {
+  background-image: url('assets/example_sacred_geometry.png');
+}
+.homepage-link.pixelSorting::before {
+  background-image: url('assets/example_pixel_sorting.png');
+}
 .homepage-link.pandemic::before {
   background-image: url('assets/example_pandemic.png');
 }
