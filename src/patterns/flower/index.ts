@@ -6,9 +6,22 @@ import {
   interpolate,
   coordWithAngleAndDistance,
 } from 'utils/math.ts'
-import { randomColor } from 'utils/color.ts'
 import { getCenter, getBoundedSize } from 'utils/window.ts'
 import Venation from 'utils/space-colonization/venation.ts'
+
+const randomLeafyGreenHue = (
+  range = 17,
+  brightness = 70
+): [number, number, number] => {
+  const baseH = 86
+  const baseS = 88
+  const baseB = brightness
+  return [
+    randomInRange(baseH - range, baseH + range, true),
+    randomInRange(baseS - range, baseS + range, true),
+    randomInRange(baseB - range, baseB + range, true),
+  ]
+}
 
 const _DRAW_MODES_ = ['Space Colonization', 'Solid Color'] as const
 
@@ -39,19 +52,19 @@ export default (s) => {
     },
     'New Leaf Timer': {
       type: 'number',
-      default: 1,
-      step: 0.25,
+      default: 0.3,
+      step: 0.1,
       min: 0,
     },
     'Max Leaves': {
       type: 'number',
-      default: 5,
-      min: 1,
+      default: 7,
+      min: 0,
     },
     'Growth Rate': {
       type: 'number',
       min: 0,
-      default: 1,
+      default: 1.5,
       step: 0.1,
     },
     'Draw Mode': {
@@ -100,7 +113,7 @@ export default (s) => {
     }
 
     removeLeaf() {
-      const randomIdx = Math.floor(randomInRange(0, this.leaves.length))
+      const randomIdx = randomInRange(0, this.leaves.length, true)
       this.leaves.splice(randomIdx, 1)
     }
 
@@ -160,19 +173,20 @@ export default (s) => {
     venation: Venation
 
     constructor(props: Props) {
-      const boundedSize = getBoundedSize() * 0.495
+      const boundedSize = getBoundedSize() * 0.6
       this.rotation = randomInRange(0, Math.PI * 2)
-      this.maxLen = Math.floor(randomInRange(boundedSize / 3.5, boundedSize))
+      this.maxLen = randomInRange(boundedSize / 2.5, boundedSize, true)
       this.len = 0
       this.growthRateVariance = randomInRange(0.05, 2)
       this.root = center
       this.cells = 0
       this.border = []
-      this.color = randomColor()
+      this.color = randomLeafyGreenHue()
       this.venation = new Venation(
         props.branchResolution,
         props.branchLength,
-        center
+        center,
+        0.2
       )
     }
 
@@ -196,33 +210,35 @@ export default (s) => {
       const tip: PolarCoord = [0, this.len]
       this.border = [
         root,
-        [Math.PI / 5, this.len / 3],
+        [Math.PI / 5, this.len / 4],
+        [Math.PI / 7, this.len / 3],
         [Math.PI / 20, this.len / 2],
         tip,
         [Math.PI * 2 - Math.PI / 20, this.len / 2],
-        [Math.PI * 2 - Math.PI / 5, this.len / 3],
+        [Math.PI * 2 - Math.PI / 7, this.len / 3],
+        [Math.PI * 2 - Math.PI / 5, this.len / 4],
         root,
       ]
     }
 
     drawBorder(props: Props) {
-      s.strokeWeight(1.5)
-      if (props.drawMode === 'Solid Color') {
-        s.fill(...this.color)
-        s.stroke('black')
-      } else {
-        s.fill('black')
-      }
+      s.push()
+      s.strokeWeight(2.5)
+      s.stroke(...randomLeafyGreenHue(10, 15))
+      s.fill(...this.color)
       s.beginShape()
       this.border.forEach((point) => {
         const cart = this.toCartesian(point)
         s.vertex(cart.x, cart.y)
       })
       s.endShape()
+      s.pop()
     }
 
     drawBranches() {
       s.push()
+      s.stroke('black')
+      s.noFill()
       s.strokeWeight(0.5)
       this.venation.branches.forEach((branch) => {
         s.beginShape()
@@ -266,6 +282,7 @@ export default (s) => {
 
   s.draw = () => {
     s.clear()
+    s.colorMode(s.HSB, 255)
     center = getCenter()
     const props = getProps()
     s.stroke('white')

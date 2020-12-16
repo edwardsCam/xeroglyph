@@ -114,14 +114,14 @@ export default (s) => {
       distFromCenter(x)
     )
     // rgb(0, 206, 209)
-    const r = Math.floor(randomInRange(0, 15))
-    const g = Math.floor(randomInRange(200, 220))
-    const b = Math.floor(randomInRange(205, 255))
+    const r = randomInRange(0, 15, true)
+    const g = randomInRange(200, 220, true)
+    const b = randomInRange(205, 255, true)
     const a = randomInRange(0, 0.13) + centerOffset / 5
     s.stroke(`rgba(${r}, ${g}, ${b}, ${a})`)
     s.strokeWeight(randomInRange(0.2, 1.5))
 
-    const n = Math.floor(randomInRange(3, 50))
+    const n = randomInRange(3, 50, true)
     s.noFill()
     s.beginShape()
     const { spotlightBrambliness } = props
@@ -177,9 +177,9 @@ export default (s) => {
       const jump = Math.max(1, pureJump + random * d)
       j -= jump
       const xWithWiggle = x + randomInRange(-1, 1) * props.starXWiggle
-      const r = Math.floor(randomInRange(200, 255))
-      const g = Math.floor(randomInRange(200, 255))
-      const b = Math.floor(randomInRange(200, 255))
+      const r = randomInRange(200, 255, true)
+      const g = randomInRange(200, 255, true)
+      const b = randomInRange(200, 255, true)
       const a = randomInRange(0.2, 0.6)
       const color = `rgba(${r}, ${g}, ${b}, ${a})`
       dots.push({

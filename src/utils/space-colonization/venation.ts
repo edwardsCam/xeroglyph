@@ -21,17 +21,32 @@ export default class Venation {
   branchResolution: number
   branchLength: number
 
-  constructor(branchResolution: number, branchLength: number, origin: Point) {
+  constructor(
+    branchResolution: number,
+    branchLength: number,
+    origin: Point,
+    variance = 0
+  ) {
     this.branches = [new Branch([0, branchResolution])]
     this.origin = origin
     this.claimedCells = []
     this.branchResolution = Math.max(
       1,
-      randomInRange(branchResolution - 1, branchResolution + 1)
+      variance
+        ? randomInRange(
+            branchResolution - branchResolution * variance,
+            branchResolution + branchResolution * variance
+          )
+        : branchResolution
     )
     this.branchLength = Math.max(
-      1,
-      randomInRange(branchLength - 10, branchLength + 10)
+      Math.max(1, branchResolution + 1),
+      variance
+        ? randomInRange(
+            branchLength - branchLength * variance,
+            branchLength + branchLength * variance
+          )
+        : branchLength
     )
   }
 

@@ -167,8 +167,8 @@ export function randomInRange(
 }
 
 export const randomPoint = (): Point => ({
-  x: Math.floor(randomInRange(0, window.innerWidth)),
-  y: Math.floor(randomInRange(0, window.innerHeight)),
+  x: randomInRange(0, window.innerWidth, true),
+  y: randomInRange(0, window.innerHeight, true),
 })
 
 /**
