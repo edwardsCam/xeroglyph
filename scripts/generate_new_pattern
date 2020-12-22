@@ -1,0 +1,3 @@
+#!/bin/bash -e
+
+read -p 'Pattern name (PascalCase): ' pattern

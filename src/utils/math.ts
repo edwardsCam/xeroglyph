@@ -1,3 +1,5 @@
+import { Vector } from 'p5'
+
 /**
   mathUtil:
     Extensions to the Math class.
@@ -15,6 +17,8 @@ export const PI_HALVES = Math.PI / 2
 
 type Range = [number, number]
 export type Line = [Point, Point]
+
+export const PHI = (1 + Math.sqrt(5)) / 2
 
 const toRadians = (d: number): number => (d * Math.PI) / 180
 const toDegrees = (r: number): number => (r * 180) / Math.PI
@@ -38,7 +42,7 @@ function thetaFromTwoPoints_old(p1: Point, p2: Point): number {
   return Math.atan2(dy, dx)
 }
 
-function thetaFromTwoPoints(p1: Point, p2: Point): number {
+export function thetaFromTwoPoints(p1: Point, p2: Point): number {
   const dy = p1.y - p2.y
   const dx = p2.x - p1.x
   return Math.atan2(dy, dx)
@@ -184,11 +188,19 @@ export const randomPoint = (): Point => ({
 * */
 function coordWithAngleAndDistance(
   start: Point,
-  theta: number,
+  dir: number | Vector,
   distanceFromCenter: number
 ): Point {
+  let theta: number
+  if (typeof dir == 'number') {
+    theta = dir
+  } else {
+    theta = thetaFromTwoPoints({ x: 0, y: 0 }, dir)
+  }
+
   const xdist = distanceFromCenter * Math.cos(theta)
   const ydist = distanceFromCenter * Math.sin(theta)
+
   return {
     x: start.x + xdist,
     y: start.y - ydist,

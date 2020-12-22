@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  spaceColonization: {
+    title: 'Space Colonization',
+    instructions: [],
+    description: [],
+  },
   flower: {
     title: 'Flower',
     instructions: [],

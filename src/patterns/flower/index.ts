@@ -5,6 +5,7 @@ import {
   PolarCoord,
   interpolate,
   coordWithAngleAndDistance,
+  PHI,
 } from 'utils/math.ts'
 import { getCenter, getBoundedSize } from 'utils/window.ts'
 import Venation from 'utils/space-colonization/venation.ts'
@@ -208,6 +209,7 @@ export default (s) => {
     buildBorder() {
       const root: PolarCoord = [0, 0]
       const tip: PolarCoord = [0, this.len]
+
       this.border = [
         root,
         [Math.PI / 5, this.len / 4],
@@ -219,6 +221,22 @@ export default (s) => {
         [Math.PI * 2 - Math.PI / 5, this.len / 4],
         root,
       ]
+
+      // const x = this.len / Math.pow(PHI, 5)
+      // this.border = [
+      //   [Math.PI * 0 / 6, x * Math.pow(PHI, 2)],
+      //   [Math.PI * 1 / 6, x * Math.pow(PHI, 3)],
+      //   [Math.PI * 2 / 6, x * Math.pow(PHI, 4)],
+      //   [Math.PI * 3 / 6, x * Math.pow(PHI, 5)],
+      //   [Math.PI * 4 / 6, x * Math.pow(PHI, 4)],
+      //   [Math.PI * 5 / 6, x * Math.pow(PHI, 3)],
+      //   [Math.PI * 6 / 6, x * Math.pow(PHI, 2)],
+      //   [Math.PI * 7 / 6, x * PHI],
+      //   [Math.PI * 8 / 6, x],
+      //   [Math.PI * 9 / 6, 0],
+      //   [Math.PI * 10 / 6, x],
+      //   [Math.PI * 11 / 6, x * PHI],
+      // ]
     }
 
     drawBorder(props: Props) {

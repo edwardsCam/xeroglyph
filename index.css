@@ -97,6 +97,9 @@ body {
   outline: none;
 }
 
+.homepage-link.spaceColonization::before {
+  background-image: url('assets/example_space_colonization.png');
+}
 .homepage-link.chonks::before {
   background-image: url('assets/example_chonks.png');
 }

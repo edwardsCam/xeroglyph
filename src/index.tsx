@@ -18,6 +18,7 @@ import Starscape from 'patterns/starscape/index.ts'
 import SacredGeometry from 'patterns/sacred-geometry/index.ts'
 import Pandemic from 'patterns/pandemic/index.ts'
 import Flower from 'patterns/flower/index.ts'
+import SpaceColonization from 'patterns/space-colonization/index.ts'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -33,6 +34,10 @@ import Knobs from 'components/knobs.tsx'
 import HomepageLink from 'components/homepageLink.tsx'
 
 const patternMap = {
+  spaceColonization: {
+    label: 'Space Colonization',
+    component: SpaceColonization,
+  },
   flower: {
     label: 'Flower',
     component: Flower,
