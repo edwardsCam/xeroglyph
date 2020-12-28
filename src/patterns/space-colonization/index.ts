@@ -84,10 +84,7 @@ export default (s) => {
       min: 2,
       step: 2,
       default: 90,
-      when: () => {
-        const mode = get('Leaf Mode')
-        return mode === 'circle' || mode === 'cross' || mode === 'perimeter'
-      },
+      when: () => get('Leaf Mode') !== 'random',
     },
   })
 

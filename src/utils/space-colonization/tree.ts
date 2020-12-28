@@ -1,7 +1,21 @@
 import { Vector } from 'p5'
-import { randomInRange, distance, interpolate, Point } from '../math'
+import {
+  randomInRange,
+  distance,
+  interpolate,
+  Point,
+  coinToss,
+  interpolateWithCustomFunction,
+} from '../math'
 
-export const LeafMode = ['random', 'cross', 'circle', 'perimeter'] as const
+export const LeafMode = [
+  'random',
+  'cross',
+  'circle',
+  'perimeter',
+  'dense center',
+  'dense exterior',
+] as const
 
 export class Leaf {
   pos: Vector
@@ -94,6 +108,53 @@ const getPerimeterCoords = (i: number, numLeaves: number, r: number): Point => {
   return { x, y }
 }
 
+const getDenseCenterCoords = (r: number): Point => {
+  const halfWidth = window.innerWidth / 2
+  const halfHeight = window.innerHeight / 2
+
+  const fn = (x: number): number => Math.pow(x, 5)
+  const randomdx = interpolateWithCustomFunction(
+    [0, 1],
+    [0, halfWidth - r],
+    Math.random(),
+    fn
+  )
+  const randomdy = interpolateWithCustomFunction(
+    [0, 1],
+    [0, halfHeight - r],
+    Math.random(),
+    fn
+  )
+
+  return {
+    x: coinToss() ? halfWidth - randomdx : halfWidth + randomdx,
+    y: coinToss() ? halfHeight - randomdy : halfHeight + randomdy,
+  }
+}
+
+const getDenseExteriorCoords = (r: number): Point => {
+  const fn = (x: number): number => Math.pow(x, 5)
+  const randomdx =
+    interpolateWithCustomFunction(
+      [0, 1],
+      [0, window.innerWidth / 2],
+      Math.random(),
+      fn
+    ) + r
+  const randomdy =
+    interpolateWithCustomFunction(
+      [0, 1],
+      [0, window.innerHeight / 2],
+      Math.random(),
+      fn
+    ) + r
+
+  return {
+    x: coinToss() ? randomdx : window.innerWidth - randomdx,
+    y: coinToss() ? randomdy : window.innerHeight - randomdy,
+  }
+}
+
 export default class Tree {
   leaves: Leaf[]
   root: Branch
@@ -137,6 +198,14 @@ export default class Tree {
         y = p.y
       } else if (leafMode === 'perimeter') {
         const p = getPerimeterCoords(i, numLeaves, randomRange)
+        x = p.x
+        y = p.y
+      } else if (leafMode === 'dense center') {
+        const p = getDenseCenterCoords(randomRange)
+        x = p.x
+        y = p.y
+      } else if (leafMode === 'dense exterior') {
+        const p = getDenseExteriorCoords(randomRange)
         x = p.x
         y = p.y
       } else {

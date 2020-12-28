@@ -115,12 +115,8 @@ const denormalizeScreenPos = (x: number, y: number): Point => ({
         value: 6
         output: 60
 * */
-function interpolate(domain: Range, range: Range, value: number): number {
-  const x1 = domain[0]
-  const x2 = domain[1]
-  const y1 = range[0]
+function interpolate([x1, x2]: Range, [y1, y2]: Range, value: number): number {
   if (x1 == x2) return y1
-  const y2 = range[1]
   const min = Math.min(y1, y2)
   const max = Math.max(y1, y2)
   const result = y1 + ((y2 - y1) * (value - x1)) / (x2 - x1)
@@ -153,6 +149,27 @@ function interpolateSmooth(domain: Range, range: Range, value: number): number {
   const min = Math.min(y1, y2)
   const max = Math.max(y1, y2)
   return clamp(min, max, result)
+}
+
+export function interpolateQuadratic(
+  domain: Range,
+  range: Range,
+  value: number
+): number {
+  return interpolateWithCustomFunction(domain, range, value, (x) =>
+    Math.pow(x, 2)
+  )
+}
+
+export function interpolateWithCustomFunction(
+  [x1, x2]: Range,
+  range: Range,
+  value: number,
+  fn: (x: number) => number
+): number {
+  const mapped = (value - x1) / (x2 - x1)
+  const clamped = clamp(0, 1, mapped)
+  return interpolate([0, 1], range, fn(clamped))
 }
 
 /**
