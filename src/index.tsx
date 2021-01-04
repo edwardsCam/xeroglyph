@@ -19,6 +19,7 @@ import SacredGeometry from 'patterns/sacred-geometry/index.ts'
 import Pandemic from 'patterns/pandemic/index.ts'
 import Flower from 'patterns/flower/index.ts'
 import SpaceColonization from 'patterns/space-colonization/index.ts'
+import Castles from 'patterns/castles/index.ts'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -34,6 +35,10 @@ import Knobs from 'components/knobs.tsx'
 import HomepageLink from 'components/homepageLink.tsx'
 
 const patternMap = {
+  castles: {
+    label: 'Castles',
+    component: Castles,
+  },
   spaceColonization: {
     label: 'Space Colonization',
     component: SpaceColonization,

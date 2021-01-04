@@ -97,6 +97,9 @@ body {
   outline: none;
 }
 
+.homepage-link.castles::before {
+  background-image: url('assets/example_castles.png');
+}
 .homepage-link.spaceColonization::before {
   background-image: url('assets/example_space_colonization.png');
 }

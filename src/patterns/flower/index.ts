@@ -75,14 +75,14 @@ export default (s) => {
     },
     'Branch Resolution': {
       type: 'number',
-      default: 4,
+      default: 10,
       min: 0.5,
       step: 0.5,
       when: () => get('Draw Mode') === 'Space Colonization',
     },
     'Branch Length': {
       type: 'number',
-      default: 15,
+      default: 35,
       min: 1,
       when: () => get('Draw Mode') === 'Space Colonization',
     },
