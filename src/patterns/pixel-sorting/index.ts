@@ -2,6 +2,7 @@ import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { Point, colorDistance } from 'utils/math.ts'
 import { getCenter, getBoundedSize } from 'utils/window.ts'
 import shuffle from 'utils/shuffle.ts'
+import { getRandomImage } from '../images'
 
 type Props = {
   threshold: number
@@ -176,7 +177,7 @@ export default (s) => {
   }
 
   s.preload = () => {
-    img = s.loadImage('assets/marshall.jpg')
+    img = s.loadImage(getRandomImage())
   }
 
   s.setup = () => {

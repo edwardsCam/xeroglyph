@@ -8,6 +8,7 @@ import {
 import { getCenter, getBoundedSize } from 'utils/window.ts'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle.ts'
+import { getRandomImage } from '../images'
 
 const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
 const _NOISE_MODE_ = ['perlin', 'simplex', 'curl', 'image'] as const
@@ -470,13 +471,6 @@ export default (s) => {
 
   let simplex: SimplexNoise
   let img
-  const images: string[] = [
-    'spaghetti_memoirs.jpg',
-    'cale.jpg',
-    'marshall.jpg',
-    'selfie.jpg',
-    'sand_skiing.jpg',
-  ]
 
   const clearTimeouts = () => {
     timeouts.forEach((timeout) => clearTimeout(timeout))
@@ -512,7 +506,7 @@ export default (s) => {
 
   s.preload = () => {
     img = s.loadImage(
-      `assets/${images[Math.floor(Math.random() * images.length)]}`
+      getRandomImage()
     )
   }
 

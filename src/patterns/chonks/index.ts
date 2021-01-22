@@ -2,6 +2,7 @@ import { init as initProps, getProp } from 'utils/propConfig.ts'
 import { Point, interpolate } from 'utils/math.ts'
 import { getCenter, getBoundedSize } from 'utils/window.ts'
 import chull from 'hull.js'
+import { getRandomImage } from '../images'
 // import densityClustering from 'density-clustering'
 
 const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
@@ -224,7 +225,7 @@ export default (s) => {
   }
 
   s.preload = () => {
-    img = s.loadImage('assets/marshall.jpg')
+    img = s.loadImage(getRandomImage())
   }
 
   s.draw = () => {
