@@ -11,8 +11,8 @@ import shuffle from 'utils/shuffle.ts'
 import { getRandomImage } from '../images'
 
 const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
-const _NOISE_MODE_ = ['perlin', 'simplex', 'curl', 'image'] as const
-const _DRAW_MODE_ = ['arrows', 'streams', 'fluid'] as const
+const _NOISE_MODE_ = ['simplex', 'perlin', 'curl', 'image'] as const
+const _DRAW_MODE_ = ['streams', 'arrows', 'fluid'] as const
 const _CONSTRAINT_MODE_ = ['none', 'circle'] as const
 const _COLOR_MODE_ = ['random', 'sectors', 'monochrome'] as const
 
@@ -74,113 +74,113 @@ export default (s) => {
       default: 80,
       min: 3,
     },
-    lineLength: {
+    'Line Length': {
       type: 'number',
       default: 3,
       min: 1,
     },
-    noise: {
+    Noise: {
       type: 'number',
-      default: 3,
+      default: 2,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
     },
-    distortion: {
+    Distortion: {
       type: 'number',
       default: 0,
       min: 0,
       step: Math.PI / 5096,
     },
-    density: {
+    Density: {
       type: 'number',
       default: 1,
       min: 0,
       max: 1,
       step: 0.025,
     },
-    continuation: {
+    Continuation: {
       type: 'number',
       default: 1,
       min: 0,
       max: 1,
       step: 0.025,
-      when: () => get('drawMode') === 'streams',
+      when: () => get('Draw Mode') === 'streams',
     },
-    noiseMode: {
-      type: 'dropdown',
-      default: 'image',
-      options: [..._NOISE_MODE_],
-    },
-    constraintMode: {
-      type: 'dropdown',
-      default: 'none',
-      options: [..._CONSTRAINT_MODE_],
-    },
-    constraintRadius: {
+    'Max Width': {
       type: 'number',
-      default: 375,
-      min: 1,
-      when: () => get('constraintMode') === 'circle',
-    },
-    maxWidth: {
-      type: 'number',
-      default: 1,
+      default: 2,
       min: 1,
     },
-    pepperStrength: {
+    'Pepper Strength': {
       type: 'number',
       default: 0,
       min: 0,
       max: 1,
       step: 0.05,
-      when: () => get('drawMode') === 'streams',
+      when: () => get('Draw Mode') === 'streams',
     },
-    drawMode: {
+    'Noise Mode': {
       type: 'dropdown',
-      default: 'streams',
+      default: _NOISE_MODE_[0],
+      options: [..._NOISE_MODE_],
+    },
+    'Draw Mode': {
+      type: 'dropdown',
+      default: _DRAW_MODE_[0],
       options: [..._DRAW_MODE_],
       onChange: initialize,
     },
-    withArrows: {
+    'With Arrows': {
       type: 'boolean',
       default: true,
-      when: () => get('drawMode') === 'arrows',
+      when: () => get('Draw Mode') === 'arrows',
     },
-    colorScheme: {
+    'Constraint Mode': {
+      type: 'dropdown',
+      default: 'none',
+      options: [..._CONSTRAINT_MODE_],
+    },
+    'Constraint Radius': {
+      type: 'number',
+      default: 375,
+      min: 1,
+      when: () => get('Constraint Mode') === 'circle',
+    },
+    'Color Scheme': {
       type: 'dropdown',
       default: 'oceanscape',
       options: [..._COLOR_SCHEMES_],
-      when: () => get('colorMode') !== 'monochrome',
+      when: () => get('Color Mode') !== 'monochrome',
     },
-    colorMode: {
+    'Color Mode': {
       type: 'dropdown',
       default: 'random',
       options: [..._COLOR_MODE_],
     },
-    showImage: {
+    'Show Image': {
       type: 'boolean',
       default: false,
-      when: () => get('noiseMode') === 'image',
+      when: () => get('Noise Mode') === 'image',
     },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
     n: get('n'),
-    lineLength: get('lineLength'),
-    noise: get('noise'),
-    density: get('density'),
-    continuation: get('continuation'),
-    drawMode: get('drawMode'),
-    noiseMode: get('noiseMode'),
-    distortion: get('distortion'),
-    constraintMode: get('constraintMode'),
-    constraintRadius: get('constraintRadius'),
-    withArrows: get('withArrows'),
-    maxWidth: get('maxWidth'),
-    pepperStrength: get('pepperStrength'),
-    colorScheme: get('colorScheme'),
-    colorMode: get('colorMode'),
-    showImage: get('showImage'),
+    lineLength: get('Line Length'),
+    noise: get('Noise'),
+    density: get('Density'),
+    continuation: get('Continuation'),
+    drawMode: get('Draw Mode'),
+    noiseMode: get('Noise Mode'),
+    distortion: get('Distortion'),
+    constraintMode: get('Constraint Mode'),
+    constraintRadius: get('Constraint Radius'),
+    withArrows: get('With Arrows'),
+    maxWidth: get('Max Width'),
+    pepperStrength: get('Pepper Strength'),
+    colorScheme: get('Color Scheme'),
+    colorMode: get('Color Mode'),
+    showImage: get('Show Image'),
   })
 
   const drawArrow = (
@@ -505,9 +505,7 @@ export default (s) => {
   }
 
   s.preload = () => {
-    img = s.loadImage(
-      getRandomImage()
-    )
+    img = s.loadImage(getRandomImage())
   }
 
   let last: Props | undefined

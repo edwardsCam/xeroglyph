@@ -7,4 +7,5 @@ const images: string[] = [
   'bernie.jpg',
 ]
 
-export const getRandomImage = (): string => `assets/${images[Math.floor(Math.random() * images.length)]}`
+export const getRandomImage = (): string =>
+  `assets/${images[Math.floor(Math.random() * images.length)]}`

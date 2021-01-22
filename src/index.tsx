@@ -230,27 +230,38 @@ class App extends React.Component<{}, State> {
 
   renderIndex() {
     const patterns = Object.keys(patternMap)
+
     return (
-      <div className="index-list">
-        <div className="index-column">
-          {patterns
-            .filter((_p, i) => !(i % 2))
-            .map((pattern) => (
-              <HomepageLink
-                key={pattern}
-                {...this.generateLinkProps(pattern)}
-              />
-            ))}
+      <div className="index">
+        <div className="index-list">
+          <div className="index-column">
+            {patterns
+              .filter((_p, i) => !(i % 2))
+              .map((pattern) => (
+                <HomepageLink
+                  key={pattern}
+                  {...this.generateLinkProps(pattern)}
+                />
+              ))}
+          </div>
+          <div className="index-column">
+            {patterns
+              .filter((_p, i) => i % 2)
+              .map((pattern) => (
+                <HomepageLink
+                  key={pattern}
+                  {...this.generateLinkProps(pattern)}
+                />
+              ))}
+          </div>
         </div>
-        <div className="index-column">
-          {patterns
-            .filter((_p, i) => i % 2)
-            .map((pattern) => (
-              <HomepageLink
-                key={pattern}
-                {...this.generateLinkProps(pattern)}
-              />
-            ))}
+        <div className="footer">
+          <a
+            className="footer-link"
+            href="https://github.com/edwardsCam/xeroglyph"
+            target="_blank"
+            children="Code"
+          />
         </div>
       </div>
     )

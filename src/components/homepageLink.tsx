@@ -7,13 +7,10 @@ export default class HomepageLink extends React.Component<{
   label: string
 }> {
   render() {
+    const { className, onClick, href, label } = this.props
     return (
-      <a
-        className={`homepage-link ${this.props.className}`}
-        onClick={this.props.onClick}
-        href={this.props.href}
-      >
-        {this.props.label}
+      <a className={`homepage-link ${className}`} onClick={onClick} href={href}>
+        {label}
       </a>
     )
   }

@@ -42,8 +42,13 @@ const infoMap = {
     description: [],
   },
   field: {
-    title: 'Field',
-    instructions: [],
+    title: 'Flowfield',
+    instructions: [
+      '...',
+      'The "n" parameter controls the number of lines. Larger n values will fill the space more fully, but will take longer.',
+      'Noise Mode: The type of noise we generate to affect the flowfield. Perlin Noise and Simplex Noise are two common functions. We can also feed it an image to generate flow values.',
+      'Draw Mode: "streams" will draw continuous lines that follow the flow. "arrows" will show the flowfield direction at each point, similar to a weather map. "fluid" will animate particles moving along the flow field.',
+    ],
     description: [],
   },
   chonks: {
@@ -165,9 +170,11 @@ const infoMap = {
     description: [],
   },
   tiles: {
-    title: 'tiles',
-    instructions: ['Click or press space to regenerate.'],
-    description: [],
+    title: 'Tiles',
+    instructions: [],
+    description: [
+      'Generate an array of tiles, where each tile takes on some random properties.',
+    ],
   },
   motionDetection: {
     title: 'Motion Detection',
@@ -214,12 +221,21 @@ export default class HelpModal extends React.Component<{
         {info.instructions.map((line, i) => (
           <p key={i}>{line}</p>
         ))}
-        {initial && <p>{'Click anywhere or hit Escape to begin!'}</p>}
+        {initial && (
+          <>
+            <br />
+            <p>{'Click anywhere or hit Escape to begin!'}</p>
+          </>
+        )}
 
-        <br />
-        <h2>{'Description'}</h2>
-        {info.description.map((line, i) =>
-          line === '' ? <hr key={i} /> : <p key={i}>{line}</p>
+        {info.description && !!info.description.length && (
+          <>
+            <br />
+            <h2>{'Description'}</h2>
+            {info.description.map((line, i) =>
+              line === '' ? <hr key={i} /> : <p key={i}>{line}</p>
+            )}
+          </>
         )}
       </div>
     ) : (
