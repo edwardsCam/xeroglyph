@@ -20,6 +20,7 @@ import Pandemic from 'patterns/pandemic/index.ts'
 import Flower from 'patterns/flower/index.ts'
 import SpaceColonization from 'patterns/space-colonization/index.ts'
 import Castles from 'patterns/castles/index.ts'
+import Beads from 'patterns/beads/index.ts'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -74,6 +75,10 @@ const patternMap = {
   field: {
     label: 'Field',
     component: Field,
+  },
+  beads: {
+    label: 'Beads',
+    component: Beads,
   },
   poi: {
     label: 'Poi',

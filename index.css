@@ -140,6 +140,9 @@ body {
 .homepage-link.field::before {
   background-image: url('assets/example_field.png');
 }
+.homepage-link.beads::before {
+  background-image: url('assets/example_beads.png');
+}
 .homepage-link.poi::before {
   background-image: url('assets/example_poi.png');
 }

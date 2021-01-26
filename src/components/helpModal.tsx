@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  beads: {
+    title: 'Beads',
+    instructions: [],
+    description: [],
+  },
   castles: {
     title: 'Castles',
     instructions: [],
