@@ -21,6 +21,7 @@ import Flower from 'patterns/flower/index.ts'
 import SpaceColonization from 'patterns/space-colonization/index.ts'
 import Castles from 'patterns/castles/index.ts'
 import Beads from 'patterns/beads/index.ts'
+import ChaosGame from 'patterns/chaos-game/index.ts'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -36,6 +37,11 @@ import Knobs from 'components/knobs.tsx'
 import HomepageLink from 'components/homepageLink.tsx'
 
 const patternMap = {
+  chaosGame: {
+    label: 'Chaos Game',
+    component: ChaosGame,
+  },
+
   castles: {
     label: 'Castles',
     component: Castles,

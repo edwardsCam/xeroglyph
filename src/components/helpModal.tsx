@@ -1,6 +1,16 @@
 import React from 'react'
 
 const infoMap = {
+  chaosGame: {
+    title: 'Chaos Game',
+    instructions: [],
+    description: [
+      'Start with a set of points (for instance, four points arranged into a diamond).',
+      'Pick any two points at random, and draw a dot HALFWAY between them.',
+      'Now take that dot, pick another point at random, and draw another dot HALFWAY between those.',
+      'Repeat this process forever!',
+    ],
+  },
   beads: {
     title: 'Beads',
     instructions: [],
