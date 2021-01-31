@@ -7,6 +7,7 @@
   "scripts": {
     "build": "webpack",
     "clean": "rm -rf dist/",
+    "new-pattern": "./generate-pattern.sh",
     "lint": "yarn prettier && eslint src && yarn typecheck",
     "prebuild": "yarn clean",
     "prettier": "prettier 'src/**/*.js' 'src/**/*.ts' 'src/**/*.tsx' --write",

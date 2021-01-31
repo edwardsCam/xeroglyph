@@ -22,6 +22,7 @@
 	"exclude": [
     "assets",
 		"coverage",
-		"dist"
+		"dist",
+		"template.ts"
 	],
 }
