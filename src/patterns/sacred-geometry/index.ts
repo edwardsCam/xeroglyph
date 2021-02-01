@@ -77,7 +77,7 @@ export default (s) => {
   })
 
   const drawPattern = (props: Props): void => {
-    s.stroke('white')
+    s.stroke('#d4a45d')
     switch (props.pattern) {
       case 'Page 71': {
         page71(s, props)
