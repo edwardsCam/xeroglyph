@@ -30,7 +30,7 @@ export default (s) => {
     },
     p: {
       type: 'number',
-      default: 0.55,
+      default: 0.44,
       min: 0,
       max: 1,
       step: 0.02,
@@ -86,7 +86,7 @@ export default (s) => {
 
   function iterate(p: number) {
     const target = points[Math.floor(Math.random() * points.length)]
-    cursor = progressAlongLine(cursor, target, p)
+    cursor = progressAlongLine(target, cursor, p)
   }
 
   s.setup = () => {
