@@ -9,6 +9,7 @@ type PatternConfig = {
     onChange?: (e: any) => any
     callback?: () => any
     label?: string
+    labelFn?: () => string
     options?: string[]
   }
 }

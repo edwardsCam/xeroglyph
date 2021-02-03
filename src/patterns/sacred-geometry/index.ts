@@ -44,8 +44,9 @@ export default (s) => {
     },
     degree: {
       type: 'number',
-      default: 9,
+      default: 6,
       min: 1,
+      step: 0.1,
       when: () => get('pattern') === 'Zectangle',
     },
     shape: {
@@ -58,7 +59,7 @@ export default (s) => {
       type: 'number',
       min: 0,
       step: 0.25,
-      default: 0,
+      default: 0.5,
     },
   })
 
@@ -77,7 +78,8 @@ export default (s) => {
   })
 
   const drawPattern = (props: Props): void => {
-    s.stroke('#d4a45d')
+    // s.stroke('#d4a45d')
+    s.stroke('#755dd4')
     switch (props.pattern) {
       case 'Page 71': {
         page71(s, props)
@@ -105,6 +107,7 @@ export default (s) => {
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
+    s.colorMode(s.HSB)
     initialize()
   }
 
@@ -114,6 +117,11 @@ export default (s) => {
       return
     }
     s.clear()
+    s.push()
+    // s.fill('#755dd4')
+    s.fill('#d4a45d')
+    s.rect(0, 0, window.innerWidth, window.innerHeight)
+    s.pop()
     drawPattern(props)
     last = props
   }

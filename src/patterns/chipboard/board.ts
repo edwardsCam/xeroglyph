@@ -98,27 +98,11 @@ export default (s) => {
   let timeouts: NodeJS.Timeout[] = []
   let scribble
 
-  s.setup = () => {
-    const canvas = document.getElementById(
-      'defaultCanvas0'
-    ) as HTMLCanvasElement
-    window.addEventListener('keydown', (e) => {
-      if (canvas && e.ctrlKey && e.altKey && e.code === 'KeyS') {
-        canvas.toBlob((blob) => {
-          const downloadLink = document.createElement('a')
-          downloadLink.href = URL.createObjectURL(blob)
-          downloadLink.download = 'chipboard.png'
-          document.body.appendChild(downloadLink)
-          downloadLink.click()
-          document.body.removeChild(downloadLink)
-        })
-      } else if (e.code === 'Space') {
-        togglePause()
-      }
-    })
+  let width = window.innerWidth
+  let height = window.innerHeight
 
-    // canvas.addEventListener('click', togglePause)
-    s.createCanvas(window.innerWidth, window.innerHeight)
+  s.setup = () => {
+    s.createCanvas(width, height)
     initialize()
   }
 
@@ -149,8 +133,8 @@ export default (s) => {
     createChipboard(
       0,
       0,
-      window.innerWidth,
-      window.innerHeight,
+      width,
+      height,
       // @ts-ignore
       props.bg || 'white',
       'bl'
@@ -219,7 +203,7 @@ export default (s) => {
 
     const delay = props.interpolateDelay
       ? interpolate(
-          [props.minBlankSpace, window.innerWidth * window.innerHeight],
+          [props.minBlankSpace, width * height],
           [props.minDelay, props.maxDelay],
           dx * dy
         )

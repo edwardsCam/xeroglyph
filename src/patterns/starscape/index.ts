@@ -41,7 +41,8 @@ export default (s) => {
     brambliness: {
       type: 'number',
       min: 0,
-      default: 1,
+      default: 2,
+      step: 0.5,
     },
     'star density (x)': {
       type: 'number',
@@ -107,26 +108,25 @@ export default (s) => {
     s.pop()
   }
 
-  const drawSpotlight = (x: number, props: Props) => {
+  const drawSpotlight = (x: number, { spotlightBrambliness }: Props) => {
+    s.push()
     const centerOffset = interpolateSmooth(
       [0, halfPoint()],
       [1, 0],
       distFromCenter(x)
     )
-    // rgb(0, 206, 209)
-    const r = randomInRange(0, 15, true)
-    const g = randomInRange(200, 220, true)
-    const b = randomInRange(205, 255, true)
-    const a = randomInRange(0, 0.13) + centerOffset / 5
-    s.stroke(`rgba(${r}, ${g}, ${b}, ${a})`)
-    s.strokeWeight(randomInRange(0.2, 1.5))
+    const _h = randomInRange(38, 46, true)
+    const _s = randomInRange(62, 65, true)
+    const _b = randomInRange(68, 72, true)
+    const _a = randomInRange(0, 30) + centerOffset * 40
+    s.stroke(_h, _s, _b, _a)
+    s.strokeWeight(randomInRange(0.1, 1.5))
+    s.noFill()
 
     const n = randomInRange(3, 50, true)
-    s.noFill()
-    s.beginShape()
-    const { spotlightBrambliness } = props
     const randomX = (): number =>
       x + randomInRange(-spotlightBrambliness, spotlightBrambliness)
+    s.beginShape()
     s.vertex(randomX(), 0)
     const step = window.innerHeight / n
     for (let i = 1; i < n - 1; i++) {
@@ -135,6 +135,7 @@ export default (s) => {
     s.vertex(randomX(), window.innerHeight)
 
     s.endShape()
+    s.pop()
   }
 
   const drawStars = (props: Props): void => {
@@ -157,33 +158,32 @@ export default (s) => {
     })
   }
 
-  const drawStarLine = (x: number, density: number, props: Props): void => {
+  const drawStarLine = (
+    x: number,
+    density: number,
+    { starDensityFalloff, starXWiggle }: Props
+  ): void => {
     const { innerHeight } = window
     let j = innerHeight
     const d = innerHeight / density
     const dots: {
-      color: string
+      color: [number, number, number, number]
       point: Point
       radius: number
     }[] = []
     while (j > 0) {
       const p = interpolate([innerHeight, 0], [0, 1], j)
-      const pureJump = interpolate(
-        [0, 1],
-        [d, d + d * props.starDensityFalloff],
-        p
-      )
+      const pureJump = interpolate([0, 1], [d, d + d * starDensityFalloff], p)
       const random = s.noise(x / 100)
       const jump = Math.max(1, pureJump + random * d)
       j -= jump
-      const xWithWiggle = x + randomInRange(-1, 1) * props.starXWiggle
-      const r = randomInRange(200, 255, true)
-      const g = randomInRange(200, 255, true)
-      const b = randomInRange(200, 255, true)
-      const a = randomInRange(0.2, 0.6)
-      const color = `rgba(${r}, ${g}, ${b}, ${a})`
+      const xWithWiggle = x + randomInRange(-1, 1) * starXWiggle
+      const _h = randomInRange(47, 53, true)
+      const _s = randomInRange(10, 50, true)
+      const _b = randomInRange(93, 100, true)
+      const _a = randomInRange(40, 99, true)
       dots.push({
-        color,
+        color: [_h, _s, _b, _a],
         point: {
           x: xWithWiggle,
           y: j,
@@ -194,7 +194,7 @@ export default (s) => {
     dots.forEach((dot) => {
       timeouts.push(
         setTimeout(() => {
-          s.fill(dot.color)
+          s.fill(...dot.color)
           s.circle(dot.point.x, dot.point.y, dot.radius)
         }, Math.floor(Math.random() * 700))
       )
@@ -214,6 +214,7 @@ export default (s) => {
 
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
+    s.colorMode(s.HSB, 100)
     initialize()
   }
 

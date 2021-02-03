@@ -34,12 +34,10 @@ export default (s, props: Props) => {
     if (p >= 1) return
 
     let corners: Point[] = [...hex.corners]
-    const minLen = len / (degree * 2)
     const hexes: Point[][] = []
     while (true) {
       const size = distance(corners[0], corners[1])
-      if (size < minLen) break
-
+      if (size < 1) break
       if (inverted) {
         corners = [
           progressAlongLine(corners[1], corners[0], p),
@@ -91,7 +89,7 @@ export default (s, props: Props) => {
       x: corner.x,
       y: corner.y + len,
     }
-    drawSquare(topLeft, topRight, botRight, botLeft)
+    // drawSquare(topLeft, topRight, botRight, botLeft)
 
     if (degree === 0) return
     const p = 1 / degree
@@ -103,11 +101,10 @@ export default (s, props: Props) => {
       botRight,
       botLeft,
     ]
-    const minLen = len / (degree * 2)
     const squares: [Point, Point, Point, Point][] = []
     while (true) {
       const size = distance(corners[0], corners[1])
-      if (size < minLen) break
+      if (size < 1) break
       if (inverted) {
         corners = [
           progressAlongLine(corners[1], corners[0], p),

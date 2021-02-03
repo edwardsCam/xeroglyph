@@ -59,8 +59,13 @@ export default class Knobs extends React.Component<{ pattern: string }> {
             <button
               autoFocus={i === 0}
               key={prop}
-              onClick={propConfig.callback}
-              children={propConfig.label}
+              onClick={() => {
+                propConfig.callback && propConfig.callback()
+                this.forceUpdate()
+              }}
+              children={
+                propConfig.labelFn ? propConfig.labelFn() : propConfig.label
+              }
               className="knob"
             />
           )
