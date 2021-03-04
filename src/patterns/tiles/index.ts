@@ -279,8 +279,6 @@ export default (s) => {
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight)
     initialize()
-    // const canvas = document.getElementById('defaultCanvas0')
-    // if (canvas) canvas.addEventListener('click', initialize)
   }
 
   s.draw = () => {

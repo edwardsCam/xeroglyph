@@ -107,6 +107,24 @@ export default class Knobs extends React.Component<{ pattern: string }> {
     })
     return (
       <div className="knobs" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={() => {
+            const canvas = document.getElementById(
+              'defaultCanvas0'
+            ) as HTMLCanvasElement
+            const time = Date.now()
+            canvas.toBlob((blob) => {
+              const downloadLink = document.createElement('a')
+              downloadLink.href = URL.createObjectURL(blob)
+              downloadLink.download = `xeroglyph_${time}_${pattern}.png`
+              document.body.appendChild(downloadLink)
+              downloadLink.click()
+              document.body.removeChild(downloadLink)
+            })
+          }}
+          children={'Print'}
+          className="knob"
+        />
         {knobs}
       </div>
     )

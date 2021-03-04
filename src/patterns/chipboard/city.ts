@@ -69,20 +69,8 @@ export default (s) => {
   })
 
   s.setup = () => {
-    const canvas = document.getElementById(
-      'defaultCanvas0'
-    ) as HTMLCanvasElement
     window.addEventListener('keydown', (e) => {
-      if (canvas && e.ctrlKey && e.altKey && e.key === 's') {
-        canvas.toBlob((blob) => {
-          const downloadLink = document.createElement('a')
-          downloadLink.href = URL.createObjectURL(blob)
-          downloadLink.download = 'chipboard.png'
-          document.body.appendChild(downloadLink)
-          downloadLink.click()
-          document.body.removeChild(downloadLink)
-        })
-      } else if (e.code === 'Space') {
+      if (e.code === 'Space') {
         isPaused = !isPaused
         if (!isPaused) {
           lastKnowns.forEach((lastKnown) => createChipboard(...lastKnown))
