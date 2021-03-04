@@ -1,6 +1,10 @@
-import { interpolate, distance, thetaFromTwoPoints_old } from 'utils/math.ts'
+import {
+  interpolate,
+  distance,
+  thetaFromTwoPoints_old,
+  randomInRange,
+} from 'utils/math.ts'
 import { init as initProps, getProp } from 'utils/propConfig.ts'
-import Scribble from '../../p5.scribble'
 
 const WIDTH = window.innerWidth
 const HEIGHT = window.innerHeight
@@ -16,11 +20,9 @@ export default (s) => {
     collisionAvoidanceForce: get('collisionAvoidanceForce'),
     foldiness: get('foldiness'),
     stretchiness: get('stretchiness'),
-    randomMode: get('randomMode'),
-    scribble: get('scribble'),
+    electric: get('electric'),
+    strokeWeight: get('stroke weight'),
   })
-  const scribble = new Scribble(s)
-  scribble.roughness = 2
 
   class Node {
     constructor(x, y) {
@@ -91,11 +93,7 @@ export default (s) => {
     mutate(props) {
       const { nodes } = this
       nodes.forEach((node) => {
-        if (props.randomMode) {
-          node.acceleration = s.createVector()
-        } else {
-          node.velocity = s.createVector()
-        }
+        node.velocity = s.createVector()
       })
       for (let i = 0; i < nodes.length; i++) {
         const n1 = nodes[i].position
@@ -112,17 +110,13 @@ export default (s) => {
             const strength = (d12 * delta) / (props.damp * 1000)
             const xAccel = Math.cos(theta) * strength
             const yAccel = Math.sin(theta) * strength
-            ;(props.randomMode ? acceleration : velocity).add(
-              s.createVector(xAccel, yAccel)
-            )
+            velocity.add(s.createVector(xAccel, yAccel))
           } else if (this.isWithinRange(i, j, props.stretchiness)) {
             // within a certain range but not an immediate neighbor, repel!
             const strength = -props.foldiness / d12
             const xAccel = Math.cos(theta) * strength
             const yAccel = Math.sin(theta) * strength
-            ;(props.randomMode ? acceleration : velocity).add(
-              s.createVector(xAccel, yAccel)
-            )
+            velocity.add(s.createVector(xAccel, yAccel))
           }
 
           // avoid collisions
@@ -160,9 +154,7 @@ export default (s) => {
                 const collisionPushDir = thetaFromTwoPoints_old(midpoint, n1)
                 const pushAccelX = cos(collisionPushDir) * collisionPushStr
                 const pushAccelY = sin(collisionPushDir) * collisionPushStr
-                ;(props.randomMode ? acceleration : velocity).add(
-                  s.createVector(pushAccelX, pushAccelY)
-                )
+                velocity.add(s.createVector(pushAccelX, pushAccelY))
               }
             }
           }
@@ -196,14 +188,45 @@ export default (s) => {
 
     draw(props) {
       const { nodes } = this
-      s.stroke(255, 255, 255)
-      for (let i = 0; i < nodes.length; i++) {
-        const n1 = nodes[i].position
-        const n2 = nodes[i === nodes.length - 1 ? 0 : i + 1].position
-        const lineArgs = [n1.x, n1.y, n2.x, n2.y]
-        props.scribble
-          ? scribble.scribbleLine(...lineArgs)
-          : s.line(...lineArgs)
+      if (nodes.length < 2) return
+
+      const drawShape = (randomness, weight, alpha, skip = 0) => {
+        s.push()
+        s.strokeWeight(weight)
+        s.stroke(
+          randomInRange(40, 55, true),
+          randomInRange(18, 22, true),
+          100,
+          alpha
+        )
+        s.beginShape()
+        nodes.forEach((n) => {
+          const { x, y } = n.position
+          if (Math.random() < skip) return
+          if (randomness) {
+            s.curveVertex(
+              x + randomInRange(-randomness, randomness),
+              y + randomInRange(-randomness, randomness)
+            )
+          } else {
+            s.curveVertex(x, y)
+          }
+        })
+        s.endShape(s.CLOSE)
+        s.pop()
+      }
+
+      s.fill(50, 100, 20, 80)
+      drawShape(0, props.strokeWeight, 90)
+      s.noFill()
+
+      if (props.electric) {
+        drawShape(5, 2.5, 50)
+        drawShape(5, 2, 30)
+        drawShape(5, 1.5, 60)
+        drawShape(10, 1, 30)
+        drawShape(10, 1, 20, 0.1)
+        drawShape(10, 1, 20, 0.1)
       }
     }
   }
@@ -234,7 +257,7 @@ export default (s) => {
     },
     nodeChangeTimer: {
       type: 'number',
-      default: 18,
+      default: 15,
       min: 5,
       step: 5,
     },
@@ -262,11 +285,13 @@ export default (s) => {
       min: 2,
       step: 1,
     },
-    scribble: {
-      type: 'boolean',
-      default: false,
+    'stroke weight': {
+      type: 'number',
+      default: 3,
+      min: 0,
+      step: 0.1,
     },
-    randomMode: {
+    electric: {
       type: 'boolean',
       default: false,
     },
@@ -287,6 +312,9 @@ export default (s) => {
         isPaused = !isPaused
       }
     })
+    s.colorMode(s.HSB, 100)
+    s.stroke(255, 255, 255)
+    s.noFill()
     initialize()
   }
 
