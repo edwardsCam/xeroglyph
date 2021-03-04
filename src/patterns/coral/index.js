@@ -2,6 +2,9 @@ import { interpolate, distance, thetaFromTwoPoints_old } from 'utils/math.ts'
 import { init as initProps, getProp } from 'utils/propConfig.ts'
 import Scribble from '../../p5.scribble'
 
+const WIDTH = window.innerWidth
+const HEIGHT = window.innerHeight
+
 export default (s) => {
   const get = (prop) => getProp('coral', prop)
   const getProps = () => ({
@@ -53,8 +56,8 @@ export default (s) => {
       this.nodes = []
 
       const center = {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
+        x: WIDTH / 2,
+        y: HEIGHT / 2,
       }
 
       const arr = []
@@ -278,7 +281,7 @@ export default (s) => {
   }
 
   s.setup = () => {
-    s.createCanvas(window.innerWidth, window.innerHeight)
+    s.createCanvas(WIDTH, HEIGHT)
     window.addEventListener('keydown', function (e) {
       if (e.code === 'Space') {
         isPaused = !isPaused

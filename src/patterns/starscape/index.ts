@@ -18,6 +18,9 @@ type Props = {
   starXWiggle: number
 }
 
+const WIDTH = window.innerWidth
+const HEIGHT = window.innerHeight
+
 export default (s) => {
   initProps('starscape', {
     restart: {
@@ -83,14 +86,14 @@ export default (s) => {
     spotlightBrambliness: get('brambliness'),
   })
 
-  const halfPoint = (): number => window.innerWidth / 2
+  const halfPoint = (): number => WIDTH / 2
 
   const distFromCenter = (x: number): number =>
     Math.abs(halfPoint() - x) * Math.sqrt(2)
 
   const steps = (n: number): number[] => {
     const plusOne = n + 1
-    const step = window.innerWidth / plusOne
+    const step = WIDTH / plusOne
     const result: number[] = []
     for (let i = 1; i <= n; i++) result.push(step * i)
     return result
@@ -128,11 +131,11 @@ export default (s) => {
       x + randomInRange(-spotlightBrambliness, spotlightBrambliness)
     s.beginShape()
     s.vertex(randomX(), 0)
-    const step = window.innerHeight / n
+    const step = HEIGHT / n
     for (let i = 1; i < n - 1; i++) {
       s.vertex(randomX(), i * step)
     }
-    s.vertex(randomX(), window.innerHeight)
+    s.vertex(randomX(), HEIGHT)
 
     s.endShape()
     s.pop()
@@ -163,16 +166,15 @@ export default (s) => {
     density: number,
     { starDensityFalloff, starXWiggle }: Props
   ): void => {
-    const { innerHeight } = window
-    let j = innerHeight
-    const d = innerHeight / density
+    let j = HEIGHT
+    const d = HEIGHT / density
     const dots: {
       color: [number, number, number, number]
       point: Point
       radius: number
     }[] = []
     while (j > 0) {
-      const p = interpolate([innerHeight, 0], [0, 1], j)
+      const p = interpolate([HEIGHT, 0], [0, 1], j)
       const pureJump = interpolate([0, 1], [d, d + d * starDensityFalloff], p)
       const random = s.noise(x / 100)
       const jump = Math.max(1, pureJump + random * d)
@@ -213,7 +215,7 @@ export default (s) => {
   }
 
   s.setup = () => {
-    s.createCanvas(window.innerWidth, window.innerHeight)
+    s.createCanvas(WIDTH, HEIGHT)
     s.colorMode(s.HSB, 100)
     initialize()
   }
@@ -226,6 +228,12 @@ export default (s) => {
 
     clearTimeouts()
     if (props.clearOnDraw) s.clear()
+
+    s.push()
+    s.fill('black')
+    s.rect(0, 0, WIDTH, HEIGHT)
+    s.pop()
+
     if (props.showLines) drawSpotlights(props)
     drawStars(props)
 

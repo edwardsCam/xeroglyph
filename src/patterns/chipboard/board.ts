@@ -98,7 +98,7 @@ export default (s) => {
   let timeouts: NodeJS.Timeout[] = []
   let scribble
 
-  let width = window.innerWidth
+  let width = window.innerWidth * 2
   let height = window.innerHeight
 
   s.setup = () => {
