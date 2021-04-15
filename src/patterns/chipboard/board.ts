@@ -3,7 +3,16 @@ import { init as initProps, getProp } from 'utils/propConfig'
 import { rir, colorSchemes } from './common'
 import Scribble from '../../p5.scribble'
 
-type Quad = 'tl' | 'tr' | 'br' | 'bl'
+type Props = {
+  minBlankSpace: number
+  randomness: number
+  delay: number
+  drawMode: 'fill' | 'empty' | 'grass' | 'trinkets'
+  strokeWeight: number
+  roughness: number
+  density: number
+  radius: number
+}
 
 export default (s) => {
   const get = (prop: string) => getProp('chipboard', prop)
@@ -18,6 +27,7 @@ export default (s) => {
       label: 'Pause',
       callback: togglePause,
     },
+
     'Smallest Allowed Width': {
       type: 'number',
       default: 7,
@@ -31,6 +41,11 @@ export default (s) => {
       max: 1,
       step: 0.025,
     },
+    'Draw Mode': {
+      type: 'dropdown',
+      default: 'fill',
+      options: ['fill', 'grass', 'empty' /*, 'trinkets'*/],
+    },
     'Paint Delay': {
       type: 'number',
       default: 0,
@@ -43,21 +58,12 @@ export default (s) => {
       min: 0,
       step: 0.1,
     },
-    'With Fill': {
-      type: 'boolean',
-      default: true,
-    },
     Roughness: {
       type: 'number',
-      default: 10,
+      default: 0.6,
       min: 0,
       step: 0.1,
     },
-    // Shape: {
-    //   type: 'dropdown',
-    //   default: 'square',
-    //   options: ['square', 'triangle'],
-    // },
     Density: {
       type: 'number',
       default: 0.95,
@@ -65,22 +71,30 @@ export default (s) => {
       max: 1,
       step: 0.05,
     },
+    Radius: {
+      type: 'number',
+      default: 2,
+      min: 0,
+      step: 0.5,
+      when: () => {
+        const mode = get('Draw Mode')
+        return mode === 'fill' || mode === 'empty'
+      },
+    },
   })
-  const getProps = () => ({
+  const getProps = (): Props => ({
     minBlankSpace: get('Smallest Allowed Width'),
     randomness: get('Randomness'),
-    pattern: 'square', //get('Shape'),
     delay: get('Paint Delay'),
-    minDelay: get('Fastest Paint'),
-    maxDelay: get('Slowest Paint'),
-    withFill: get('With Fill'),
+    drawMode: get('Draw Mode'),
     strokeWeight: get('Stroke Weight'),
     roughness: get('Roughness'),
     density: get('Density'),
+    radius: get('Radius'),
     ...colorSchemes.icelandSlate,
   })
   let isPaused = false
-  let lastKnowns: [number, number, number, number, Quad][] = []
+  let lastKnowns: [number, number, number, number][] = []
   let timeouts: NodeJS.Timeout[] = []
   let scribble
 
@@ -112,15 +126,13 @@ export default (s) => {
     lastKnowns = []
     isPaused = false
     scribble = new Scribble(s)
-    s.fill(178, 94, 66)
-    s.rect(0, 0, width, height)
     if (props.strokeWeight > 0) {
       s.stroke(177, 94, 20, 0.5)
     } else {
       s.noStroke()
     }
     setTimeout(() => {
-      createChipboard(0, 0, width, height, 'bl')
+      createChipboard(0, 0, width, height, true)
     }, 0)
   }
 
@@ -129,10 +141,10 @@ export default (s) => {
     minY: number,
     maxX: number,
     maxY: number,
-    quad: Quad
+    initial: boolean = false
   ) {
     if (isPaused) {
-      lastKnowns.push([minX, minY, maxX, maxY, quad])
+      lastKnowns.push([minX, minY, maxX, maxY])
       return
     }
     const props = getProps()
@@ -143,56 +155,48 @@ export default (s) => {
       dy < props.minBlankSpace ||
       Math.random() > props.density
 
-    if (skip) {
-      const hue =
-        randomInRange(315, 328) + interpolate([0, width], [13, -13], minX)
-      const sat =
-        randomInRange(85, 93) + interpolate([0, height], [-9, 9], minY)
-      const bri = randomInRange(76, 84)
-      s.fill(hue, sat, bri)
-    } else {
-      const hue = randomInRange(174, 180)
-      s.fill(hue, 94, 66)
-    }
     s.strokeWeight(props.strokeWeight)
 
-    scribble.roughness =
-      interpolate([0, width * height], [0, props.roughness], dx * dy) * 10
+    scribble.roughness = props.roughness
 
-    switch (props.pattern) {
-      case 'square':
-        if (props.withFill) {
-          s.push()
-          s.noStroke()
-          drawSquare(minX, minY, maxX, maxY, 0)
-          s.pop()
-          scribble.scribbleRect(
-            (minX + maxX) / 2,
-            (minY + maxY) / 2,
-            maxX - minX,
-            maxY - minY
-          )
-        } else {
+    switch (props.drawMode) {
+      case 'fill':
+        {
+          drawFill(minX, minY, maxX, maxY, skip, props.radius)
+        }
+        break
+      case 'empty':
+        {
+          if (initial) {
+            s.fill(178, 94, 66)
+            s.rect(0, 0, width, height)
+          }
           scribble.scribbleRect(minX, minY, maxX - minX, maxY - minY)
         }
-
         break
-      case 'triangle':
-        drawTriangle(minX, minY, maxX, maxY, quad, props.withFill)
+      case 'grass':
+        {
+          if (skip) {
+            drawGrass(minX, minY, maxX, maxY)
+          }
+        }
+        break
+      case 'trinkets':
+        {
+          if (skip) {
+            drawTrinket(minX, minY, maxX, maxY)
+          }
+        }
         break
     }
 
     const xSplit = rir(minX, maxX, props.randomness)
     const ySplit = rir(minY, maxY, props.randomness)
 
-    const botLeft = () =>
-      createChipboard(minX, ySplit, xSplit, maxY, props.color1, 'bl')
-    const botRight = () =>
-      createChipboard(xSplit, ySplit, maxX, maxY, props.color2, 'br')
-    const topRight = () =>
-      createChipboard(xSplit, minY, maxX, ySplit, props.color3, 'tr')
-    const topLeft = () =>
-      createChipboard(minX, minY, xSplit, ySplit, props.color4, 'tl')
+    const botLeft = () => createChipboard(minX, ySplit, xSplit, maxY)
+    const botRight = () => createChipboard(xSplit, ySplit, maxX, maxY)
+    const topRight = () => createChipboard(xSplit, minY, maxX, ySplit)
+    const topLeft = () => createChipboard(minX, minY, xSplit, ySplit)
     const doWork = () => {
       if (skip) {
         return
@@ -221,36 +225,55 @@ export default (s) => {
     s.rect(x1, y1, x2 - x1, y2 - y1, radius, radius, radius, radius)
   }
 
-  function drawTriangle(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    quad: Quad,
-    withFill?: boolean
+  function drawFill(
+    minX: number,
+    minY: number,
+    maxX: number,
+    maxY: number,
+    skip: boolean,
+    radius: number
   ) {
-    const drawFn = withFill
-      ? (...args) => s.triangle(...args)
-      : (
-          _x1: number,
-          _y1: number,
-          _x2: number,
-          _y2: number,
-          _x3: number,
-          _y3: number
-        ) => {
-          scribble.scribbleLine(_x1, _y1, _x2, _y2)
-          scribble.scribbleLine(_x2, _y2, _x3, _y3)
-          scribble.scribbleLine(_x3, _y3, _x1, _y1)
-        }
-    if (quad === 'bl') {
-      drawFn(x1, y1, x2, y2, x1, y2)
-    } else if (quad === 'br') {
-      drawFn(x1, y2, x2, y2, x2, y1)
-    } else if (quad === 'tr') {
-      drawFn(x1, y1, x2, y1, x2, y2)
-    } else if (quad === 'tl') {
-      drawFn(x1, y1, x2, y1, x1, y2)
+    if (skip) {
+      const hue =
+        randomInRange(315, 328) + interpolate([0, width], [13, -13], minX)
+      const sat =
+        randomInRange(85, 93) + interpolate([0, height], [-9, 9], minY)
+      const bri = randomInRange(76, 84)
+      s.fill(hue, sat, bri)
+    } else {
+      const hue = randomInRange(174, 180)
+      s.fill(hue, 94, 66)
     }
+    s.push()
+    s.noStroke()
+    drawSquare(minX, minY, maxX, maxY, radius)
+    s.pop()
+    scribble.scribbleRect(
+      (minX + maxX) / 2,
+      (minY + maxY) / 2,
+      maxX - minX,
+      maxY - minY
+    )
+  }
+
+  function drawGrass(minX: number, minY: number, maxX: number, maxY: number) {
+    const hue = randomInRange(160, 180)
+    s.stroke(hue, 100, 100)
+    scribble.scribbleLine(minX, minY, maxX, maxY)
+  }
+
+  function drawTrinket(minX: number, minY: number, maxX: number, maxY: number) {
+    const dx = maxX - minX
+    const dy = maxY - minY
+    const size = dx * dy
+    const windowSize = Math.sqrt(width * height)
+    const sml = windowSize / 3
+    const med = (windowSize * 2) / 3
+    if (size < sml) {
+    } else if (size < med) {
+    } else {
+    }
+    scribble.scribbleLine(minX, minY, maxX, maxY)
+    scribble.scribbleLine(maxX, minY, minX, maxY)
   }
 }
