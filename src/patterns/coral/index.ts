@@ -3,15 +3,30 @@ import {
   distance,
   thetaFromTwoPoints_old,
   randomInRange,
-} from 'utils/math.ts'
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+} from 'utils/math'
+import { init as initProps, getProp } from 'utils/propConfig'
 
 const WIDTH = window.innerWidth
 const HEIGHT = window.innerHeight
 
+type Props = {
+  damp: number
+  preferredProximity: number
+  maxNodes: number
+  nodeChangeTimer: number
+  collisionBuffer: number
+  collisionAvoidanceForce: number
+  foldiness: number
+  stretchiness: number
+  electric: boolean
+  strokeWeight: number
+}
+
+type Vector = { x: number; y: number; add: (v: Vector) => any }
+
 export default (s) => {
-  const get = (prop) => getProp('coral', prop)
-  const getProps = () => ({
+  const get = (prop: string) => getProp('coral', prop)
+  const getProps = (): Props => ({
     damp: get('damp'),
     preferredProximity: get('preferredProximity'),
     maxNodes: get('maxNodes'),
@@ -25,7 +40,11 @@ export default (s) => {
   })
 
   class Node {
-    constructor(x, y) {
+    position: Vector
+    velocity: Vector
+    acceleration: Vector
+
+    constructor(x: number, y: number) {
       this.position = s.createVector(x, y)
       this.velocity = s.createVector()
       this.acceleration = s.createVector()
@@ -38,6 +57,8 @@ export default (s) => {
   }
 
   class Coral {
+    nodes: Node[] = []
+
     constructor() {
       this.createNodes()
       this.checkNodeCount()
@@ -62,7 +83,7 @@ export default (s) => {
         y: HEIGHT / 2,
       }
 
-      const arr = []
+      const arr: Node[] = []
       const initialResolution = 3
       for (let i = 0; i < initialResolution; i++) {
         const theta = interpolate([0, initialResolution], [0, Math.PI * 2], i)
@@ -73,7 +94,7 @@ export default (s) => {
       this.nodes = arr.reverse()
     }
 
-    insertNode(_position) {
+    insertNode(_position: number) {
       const { nodes } = this
       const p1 = _position % nodes.length
       const p2 = p1 === nodes.length - 1 ? 0 : p1 + 1
@@ -97,7 +118,7 @@ export default (s) => {
       })
       for (let i = 0; i < nodes.length; i++) {
         const n1 = nodes[i].position
-        const { acceleration, velocity } = nodes[i]
+        const { velocity } = nodes[i]
         for (let j = 0; j < nodes.length; j++) {
           if (i === j) continue
           const n2 = nodes[j].position
@@ -161,10 +182,10 @@ export default (s) => {
         }
       }
 
-      nodes.forEach((node) => node.move(props))
+      nodes.forEach((node) => node.move())
     }
 
-    isWithinRange(i, j, range) {
+    isWithinRange(i: number, j: number, range: number) {
       const len = this.nodes.length
       let min = i - range
       let underflow = false
@@ -186,11 +207,16 @@ export default (s) => {
       return j >= min && j <= max
     }
 
-    draw(props) {
+    draw(props: Props) {
       const { nodes } = this
       if (nodes.length < 2) return
 
-      const drawShape = (randomness, weight, alpha, skip = 0) => {
+      const drawShape = (
+        randomness: number,
+        weight: number,
+        alpha: number,
+        skip = 0
+      ) => {
         s.push()
         s.strokeWeight(weight)
         s.stroke(
@@ -297,8 +323,8 @@ export default (s) => {
     },
   })
 
-  let coral
-  let isPaused
+  let coral: Coral
+  let isPaused: boolean
 
   function initialize() {
     coral = new Coral()
