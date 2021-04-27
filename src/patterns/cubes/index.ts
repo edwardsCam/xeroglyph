@@ -1,9 +1,27 @@
-import { interpolate } from 'utils/math.ts'
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { interpolate, Point } from 'utils/math'
+import { init as initProps, getProp } from 'utils/propConfig'
+
+type Props = {
+  n: number
+  distance: number
+  cubeSize: number
+  baseRate: number
+  increaseRate: number
+  linesPerCube: number
+}
+
+type CubeProps = {
+  r: number
+  c: number
+  size: number
+  initialPoint: Point
+  rotationRate: number
+  numLines: number
+}
 
 export default (s) => {
-  const get = (prop) => getProp('cubes', prop)
-  const getProps = () => ({
+  const get = (prop: string) => getProp('cubes', prop)
+  const getProps = (): Props => ({
     n: get('Cube Count'),
     distance: get('Distance'),
     cubeSize: get('Cube Size'),
@@ -13,7 +31,9 @@ export default (s) => {
   })
 
   class Cube {
-    constructor(props) {
+    points: Point[]
+    props: CubeProps
+    constructor(props: CubeProps) {
       const { size, numLines } = props
       const min = -size / 2
       const max = size / 2
@@ -40,13 +60,13 @@ export default (s) => {
         { x: max, y: max, z: min }, // skip
 
         { x: max, y: max, z: max },
-      ].filter((p, i) => i < numLines + 1)
+      ].filter((_p, i) => i < numLines + 1)
       this.props = {
         ...props,
       }
     }
 
-    draw({ n }) {
+    draw({ n }: Props) {
       const { r, c, initialPoint, rotationRate } = this.props
       s.stroke(
         interpolate([0, n], [0, 255], r),
@@ -70,7 +90,8 @@ export default (s) => {
   }
 
   class Cubes {
-    constructor(props) {
+    cubes: Cube[]
+    constructor(props: Props) {
       const {
         n,
         distance,
@@ -103,7 +124,7 @@ export default (s) => {
       }
     }
 
-    draw(props) {
+    draw(props: Props) {
       this.cubes.forEach((cube) => cube.draw(props))
     }
   }
@@ -149,7 +170,7 @@ export default (s) => {
     },
   })
 
-  let cubes
+  let cubes: Cubes
   function initialize() {
     cubes = new Cubes(getProps())
   }
