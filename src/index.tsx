@@ -2,46 +2,50 @@ import React from 'react'
 import P5Wrapper from 'react-p5-wrapper'
 import ReactDOM from 'react-dom'
 
-import Poi from 'patterns/poi/index.ts'
-import { board, city } from 'patterns/chipboard/index.ts'
+import Poi from 'patterns/poi'
+import { board, city } from 'patterns/chipboard'
 import InfinityCycle from 'patterns/infinity-cycle'
 import Swirl from 'patterns/swirl'
-import JoyDivision from 'patterns/joy-division/index.ts'
+import JoyDivision from 'patterns/joy-division'
 import Coral from 'patterns/coral'
 import Coral3D from 'patterns/coral-3d'
 import Cubes from 'patterns/cubes'
-import Field from 'patterns/field/index.ts'
-import Chonks from 'patterns/chonks/index.ts'
-import PixelSorting from 'patterns/pixel-sorting/index.ts'
-import Mountain from 'patterns/mountain/index.ts'
-import Starscape from 'patterns/starscape/index.ts'
-import SacredGeometry from 'patterns/sacred-geometry/index.ts'
-import Pandemic from 'patterns/pandemic/index.ts'
-import Flower from 'patterns/flower/index.ts'
-import SpaceColonization from 'patterns/space-colonization/index.ts'
-import Castles from 'patterns/castles/index.ts'
-import Beads from 'patterns/beads/index.ts'
-import ChaosGame from 'patterns/chaos-game/index.ts'
+import Field from 'patterns/field'
+import Chonks from 'patterns/chonks'
+import PixelSorting from 'patterns/pixel-sorting'
+import Mountain from 'patterns/mountain'
+import Starscape from 'patterns/starscape'
+import SacredGeometry from 'patterns/sacred-geometry'
+import Pandemic from 'patterns/pandemic'
+import Flower from 'patterns/flower'
+import SpaceColonization from 'patterns/space-colonization'
+import Castles from 'patterns/castles'
+import Beads from 'patterns/beads'
+import ChaosGame from 'patterns/chaos-game'
+import Waveform from 'patterns/waveform'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
 // import Trinkets from 'patterns/trinkets'
-import Tiles from 'patterns/tiles/index.ts'
+import Tiles from 'patterns/tiles'
 import Vida from 'patterns/vida'
 // import VoiceRecognition from 'patterns/voice-recognition'
-import PandorasBox from 'patterns/pandoras-box/index.ts'
-import Squid from 'patterns/squid/index.ts'
+import PandorasBox from 'patterns/pandoras-box'
+import Squid from 'patterns/squid'
 
-import HelpModal from 'components/helpModal.tsx'
-import Knobs from 'components/knobs.tsx'
-import HomepageLink from 'components/homepageLink.tsx'
+import HelpModal from 'components/helpModal'
+import Knobs from 'components/knobs'
+import HomepageLink from 'components/homepageLink'
 
 const patternMap = {
+  waveform: {
+    label: 'Waveform',
+    component: Waveform,
+  },
   chaosGame: {
     label: 'Chaos Game',
     component: ChaosGame,
   },
-
   castles: {
     label: 'Castles',
     component: Castles,

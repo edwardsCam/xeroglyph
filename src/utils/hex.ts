@@ -1,4 +1,4 @@
-import { Point } from 'utils/math.ts'
+import { Point } from 'utils/math'
 import { defineGrid, extendHex, Hex } from 'honeycomb-grid'
 
 export type HexData = {

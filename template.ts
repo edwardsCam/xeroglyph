@@ -1,4 +1,4 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 
 type Props = {}
 

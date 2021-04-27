@@ -1,4 +1,4 @@
-import { Point } from 'utils/math.ts'
+import { Point } from 'utils/math'
 
 export const getCenter = (): Point => ({
   x: window.innerWidth / 2,

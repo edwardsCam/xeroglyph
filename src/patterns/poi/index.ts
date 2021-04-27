@@ -1,5 +1,5 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
-import { coordWithAngleAndDistance, interpolate, TWO_PI } from 'utils/math.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
+import { coordWithAngleAndDistance, interpolate, TWO_PI } from 'utils/math'
 
 type Props = {
   n: number

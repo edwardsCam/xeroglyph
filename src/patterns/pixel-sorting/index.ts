@@ -1,7 +1,7 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
-import { Point, colorDistance } from 'utils/math.ts'
-import { getCenter, getBoundedSize } from 'utils/window.ts'
-import shuffle from 'utils/shuffle.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
+import { Point, colorDistance } from 'utils/math'
+import { getCenter, getBoundedSize } from 'utils/window'
+import shuffle from 'utils/shuffle'
 import { getRandomImage } from '../images'
 
 type Props = {

@@ -1,4 +1,4 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import { Props, _PATTERNS, _ZECTANGLE_SHAPES } from './common'
 import page71 from './page-71'
 import zectangles from './zectangle'

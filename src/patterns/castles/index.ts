@@ -1,7 +1,7 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import { Point, randomInRange, interpolate, coinToss } from 'utils/math'
-import chunk from 'utils/chunk.ts'
-import shuffle from 'utils/shuffle.ts'
+import chunk from 'utils/chunk'
+import shuffle from 'utils/shuffle'
 
 type Props = {
   n: number

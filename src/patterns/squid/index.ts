@@ -1,9 +1,9 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import {
   Point,
   coordWithAngleAndDistance,
   thetaFromTwoPoints_old,
-} from 'utils/math.ts'
+} from 'utils/math'
 import { Vector } from 'p5'
 
 type Props = {

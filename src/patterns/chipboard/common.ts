@@ -1,4 +1,4 @@
-import { randomInRange, interpolate } from 'utils/math.ts'
+import { randomInRange, interpolate } from 'utils/math'
 
 function rir(min: number, max: number, randomness: number): number {
   const middle = (min + max) / 2

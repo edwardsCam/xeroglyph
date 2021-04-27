@@ -1,14 +1,13 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import {
   randomInRange,
   Point,
   PolarCoord,
   interpolate,
   coordWithAngleAndDistance,
-  PHI,
-} from 'utils/math.ts'
-import { getCenter, getBoundedSize } from 'utils/window.ts'
-import Venation from 'utils/space-colonization/venation.ts'
+} from 'utils/math'
+import { getCenter, getBoundedSize } from 'utils/window'
+import Venation from 'utils/space-colonization/venation'
 
 const randomLeafyGreenHue = (
   range = 17,

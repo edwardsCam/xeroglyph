@@ -1,4 +1,4 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import {
   randomPoint,
   randomInRange,
@@ -7,7 +7,7 @@ import {
   distance,
   interpolate,
   thetaFromTwoPoints_old,
-} from 'utils/math.ts'
+} from 'utils/math'
 
 type Props = {
   n: number

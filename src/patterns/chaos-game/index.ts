@@ -1,12 +1,12 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import {
   Point,
   coordWithAngleAndDistance,
   interpolate,
   progressAlongLine,
   randomInRange,
-} from 'utils/math.ts'
-import { getBoundedSize, getCenter } from 'utils/window.ts'
+} from 'utils/math'
+import { getBoundedSize, getCenter } from 'utils/window'
 
 type Props = {
   n: number

@@ -1,5 +1,5 @@
 import { Vector } from 'p5'
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import Tree, { LeafMode } from 'utils/space-colonization/tree'
 import { distance, interpolate } from 'utils/math'
 import { getCenter, getBoundedSize } from 'utils/window'

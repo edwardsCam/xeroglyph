@@ -1,11 +1,11 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import {
   interpolate,
   interpolateSmooth,
   randomInRange,
   Point,
-} from 'utils/math.ts'
-import shuffle from 'utils/shuffle.ts'
+} from 'utils/math'
+import shuffle from 'utils/shuffle'
 
 type Props = {
   clearOnDraw: boolean

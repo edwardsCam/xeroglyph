@@ -1,5 +1,5 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
-import { interpolate, Point, randomInRange } from 'utils/math.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
+import { interpolate, Point, randomInRange } from 'utils/math'
 
 type Props = {
   n: number

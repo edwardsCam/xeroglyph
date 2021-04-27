@@ -1,6 +1,6 @@
-import { init as initProps, getProp } from 'utils/propConfig.ts'
-import { interpolate, coinToss } from 'utils/math.ts'
-import shuffle from 'utils/shuffle.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
+import { interpolate, coinToss } from 'utils/math'
+import shuffle from 'utils/shuffle'
 
 type Props = {
   n: number

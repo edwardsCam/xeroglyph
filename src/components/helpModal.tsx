@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  waveform: {
+    title: 'Waveform',
+    instructions: [],
+    description: [],
+  },
   chaosGame: {
     title: 'Chaos Game',
     instructions: [],

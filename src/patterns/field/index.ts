@@ -1,13 +1,13 @@
-import { init as initProps, getProp, setProp } from 'utils/propConfig.ts'
+import { init as initProps, getProp } from 'utils/propConfig'
 import {
   Point,
   coordWithAngleAndDistance,
   distance,
   interpolate,
-} from 'utils/math.ts'
-import { getCenter, getBoundedSize } from 'utils/window.ts'
+} from 'utils/math'
+import { getCenter, getBoundedSize } from 'utils/window'
 import SimplexNoise from 'simplex-noise'
-import shuffle from 'utils/shuffle.ts'
+import shuffle from 'utils/shuffle'
 import { getRandomImage } from '../images'
 
 const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
