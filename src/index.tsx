@@ -22,6 +22,7 @@ import SpaceColonization from 'patterns/space-colonization'
 import Castles from 'patterns/castles'
 import Beads from 'patterns/beads'
 import ChaosGame from 'patterns/chaos-game'
+import Topo from 'patterns/topo'
 import Waveform from 'patterns/waveform'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
@@ -41,6 +42,10 @@ const patternMap = {
   waveform: {
     label: 'Waveform',
     component: Waveform,
+  },
+  topo: {
+    label: 'Topo',
+    component: Topo,
   },
   chaosGame: {
     label: 'Chaos Game',

@@ -6,6 +6,11 @@ const infoMap = {
     instructions: [],
     description: [],
   },
+  topo: {
+    title: 'Topo',
+    instructions: [],
+    description: [],
+  },
   chaosGame: {
     title: 'Chaos Game',
     instructions: [],
