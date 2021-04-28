@@ -110,6 +110,12 @@ body {
   outline: none;
 }
 
+.homepage-link.waveform::before {
+  background-image: url('assets/example_waveform.png');
+}
+.homepage-link.topo::before {
+  background-image: url('assets/example_topo.png');
+}
 .homepage-link.chaosGame::before {
   background-image: url('assets/example_chaos_game.png');
 }

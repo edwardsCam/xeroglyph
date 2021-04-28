@@ -41,7 +41,7 @@ export default (s) => {
     },
     Mode: {
       type: 'dropdown',
-      default: 'marching squares',
+      default: 'dots',
       options: ['dots', 'lines', 'marching squares'],
     },
   })
