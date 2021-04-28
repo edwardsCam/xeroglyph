@@ -6,6 +6,7 @@ type Props = {
   size: number
   contours: number
   height: number
+  smooth: boolean
   monochrome: boolean
 }
 
@@ -33,6 +34,10 @@ export default (s) => {
       min: 20,
       step: 20,
     },
+    'Smooth?': {
+      type: 'boolean',
+      default: false,
+    },
     'Monochrome?': {
       type: 'boolean',
       default: true,
@@ -44,6 +49,7 @@ export default (s) => {
     contours: get('Contours'),
     monochrome: get('Monochrome?'),
     height: get('Height'),
+    smooth: get('Smooth?'),
   })
 
   let drawn = false
@@ -53,6 +59,7 @@ export default (s) => {
     band.forEach((coord) => {
       s.beginShape()
       coord.forEach((p: [number, number]) => {
+        // if (p[0] < 0 || p[0] >= halfWidth || p[1] < 0 || p[1] >= halfWidth) return
         s.vertex(p[0] - halfWidth, p[1] - halfWidth, contourHeight)
       })
       s.endShape()
@@ -98,7 +105,10 @@ export default (s) => {
     const thresholds = Array.from({ length: props.contours }, (_, i) =>
       interpolate([0, props.contours - 1], [0, props.height], i)
     )
-    const contours = d3Contours().size([n, m]).thresholds(thresholds)(values)
+    const contours = d3Contours()
+      .smooth(props.smooth)
+      .size([n, m])
+      .thresholds(thresholds)(values)
     contours.forEach((contour) => {
       // timeouts.push(
       // setTimeout(() => {
