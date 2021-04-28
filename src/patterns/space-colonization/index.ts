@@ -1,8 +1,8 @@
 import { Vector } from 'p5'
 import { init as initProps, getProp } from 'utils/propConfig'
 import Tree, { LeafMode } from 'utils/space-colonization/tree'
-import { distance, interpolate } from 'utils/math'
-import { getCenter, getBoundedSize } from 'utils/window'
+import { distance, Point, interpolate } from 'utils/math'
+import { getBoundedSize } from 'utils/window'
 
 type Props = {
   branchLength: number
@@ -16,6 +16,8 @@ type Props = {
   wat: number
   leafMode: typeof LeafMode[number]
   shapeWidth: number
+  wavy: boolean
+  waviness: number
 }
 
 export default (s) => {
@@ -86,6 +88,16 @@ export default (s) => {
       default: 90,
       when: () => get('Leaf Mode') !== 'random',
     },
+    Wavy: {
+      type: 'boolean',
+    },
+    Waviness: {
+      type: 'number',
+      default: 300,
+      min: 0,
+      step: 5,
+      when: () => !!get('Wavy'),
+    },
   })
 
   const get = (prop: string) => getProp('spaceColonization', prop)
@@ -101,17 +113,20 @@ export default (s) => {
     wat: get('wat'),
     leafMode: get('Leaf Mode'),
     shapeWidth: get('Width'),
+    wavy: get('Wavy'),
+    waviness: get('Waviness'),
   })
 
   let tree: Tree
   let origin: Vector
   let minSize: number
   let lastDrawnBranch: number
+  let zoom: number
 
   function initialize() {
     s.clear()
-    const center = getCenter()
-    origin = new Vector(center.x, center.y)
+    zoom = 1000
+    origin = new Vector(0, 0)
     minSize = getBoundedSize()
     const {
       branchLength,
@@ -129,15 +144,25 @@ export default (s) => {
       wat,
       leafMode,
       shapeWidth,
+      centerOrigin: true,
     })
     lastDrawnBranch = 0
   }
 
   function drawTree(tree) {
-    const props = getProps()
-    const r = Math.max(2, props.leafRadius * 0.6)
+    const {
+      leafRadius,
+      showLeaves,
+      wavy,
+      waviness,
+      falloff,
+      thiccCenter,
+      minWeight,
+      maxWeight,
+    } = getProps()
+    const r = Math.max(2, leafRadius * 0.6)
     const display = tree.displayInfo()
-    if (props.showLeaves) {
+    if (showLeaves) {
       s.clear()
       display.leaves.forEach(({ x, y }) => {
         s.circle(x, y, r)
@@ -145,15 +170,21 @@ export default (s) => {
     }
 
     s.push()
+    const noiseDamp = 0.005
+    const noise = (p: Point) =>
+      s.noise(
+        (p.x - window.innerWidth / 2) *
+          noiseDamp *
+          Math.sin(s.frameCount / 100),
+        (p.y - window.innerHeight / 2) * noiseDamp * Math.cos(s.frameCount / 80)
+      ) * waviness
     display.branches.forEach(([p1, p2], i: number) => {
-      if (i < lastDrawnBranch && !props.showLeaves) return
+      if (!wavy && !showLeaves && i < lastDrawnBranch) return
       lastDrawnBranch = i
       const dist = distance(origin, p1)
       const weight = interpolate(
-        [-0.00001, minSize / (props.falloff * 2)],
-        props.thiccCenter
-          ? [props.maxWeight, props.minWeight]
-          : [props.minWeight, props.maxWeight],
+        [-0.00001, minSize / (falloff * 2)],
+        thiccCenter ? [maxWeight, minWeight] : [minWeight, maxWeight],
         dist
       )
       const hue = Math.floor(interpolate([0, minSize], [270, 340], dist))
@@ -161,20 +192,39 @@ export default (s) => {
       const bri = Math.floor(interpolate([0, minSize], [95, 100], dist))
       s.stroke([hue, sat, bri])
       s.strokeWeight(weight)
-      s.line(p1.x, p1.y, p2.x, p2.y)
+
+      if (wavy) {
+        const z1 = noise(p1)
+        const z2 = noise(p2)
+        s.line(p1.x, p1.y, z1, p2.x, p2.y, z2)
+      } else {
+        s.line(p1.x, p1.y, p2.x, p2.y)
+      }
     })
     s.pop()
   }
 
   s.setup = () => {
-    s.createCanvas(window.innerWidth, window.innerHeight)
+    s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
     s.colorMode(s.HSB)
     initialize()
   }
 
   s.draw = () => {
-    // s.clear()
+    const { wavy } = getProps()
+    if (wavy) {
+      s.clear()
+      s.camera(0, 0, zoom, 0, 0, 0, 0, 1, 0)
+      s.rotateY(interpolate([0, window.innerWidth], [0, Math.PI * 2], s.mouseX))
+      s.rotateX(
+        interpolate([0, window.innerHeight], [0, Math.PI * 2], s.mouseY)
+      )
+    }
     tree.grow()
     drawTree(tree)
+  }
+
+  s.mouseWheel = (e) => {
+    zoom += e.delta / 8
   }
 }

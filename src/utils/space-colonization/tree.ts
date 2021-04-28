@@ -171,6 +171,7 @@ export default class Tree {
     wat,
     leafMode,
     shapeWidth: randomRange,
+    centerOrigin = false,
   }: {
     origin: Vector
     numLeaves: number
@@ -179,6 +180,7 @@ export default class Tree {
     wat: number
     leafMode: typeof LeafMode[number]
     shapeWidth: number
+    centerOrigin: boolean
   }) {
     this.origin = origin
     this.leaves = []
@@ -211,6 +213,10 @@ export default class Tree {
       } else {
         x = window.innerWidth / 2
         y = window.innerHeight / 2
+      }
+      if (centerOrigin) {
+        x -= window.innerWidth / 2
+        y -= window.innerHeight / 2
       }
 
       this.leaves.push(new Leaf(new Vector(x, y)))
