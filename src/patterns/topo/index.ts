@@ -15,6 +15,12 @@ type Props = {
   stretch: number
 }
 
+type ValueData = {
+  min: number
+  max: number
+  values: number[]
+}
+
 export default (s) => {
   initProps('topo', {
     restart: {
@@ -90,7 +96,6 @@ export default (s) => {
     band.forEach((coord) => {
       s.beginShape()
       coord.forEach((p: [number, number]) => {
-        // if (p[0] < 0 || p[0] >= halfWidth || p[1] < 0 || p[1] >= halfWidth) return
         s.vertex(
           (p[0] - halfWidth) * stretch,
           (p[1] - halfWidth) * stretch,
@@ -98,6 +103,58 @@ export default (s) => {
         )
       })
       s.endShape()
+    })
+  }
+
+  function generateValues(n: number, noise: number, height: number): ValueData {
+    if (n === 0) return { min: 0, max: 0, values: [] }
+    const values = new Array(n * n)
+    let min = Number.POSITIVE_INFINITY
+    let max = Number.NEGATIVE_INFINITY
+    for (let j = 0.5, k = 0; j < n; ++j) {
+      for (let i = 0.5; i < n; ++i, k++) {
+        const val = s.noise(i * noise, j * noise) * height
+        values[k] = val
+        if (val < min) min = val
+        if (val > max) max = val
+      }
+    }
+    return {
+      values: values.map((v) => v - min),
+      min,
+      max,
+    }
+  }
+
+  function drawContours(props: Props, valueData: ValueData) {
+    const thresholds = Array.from({ length: props.contours }, (_, i) =>
+      interpolate([0, props.contours - 1], [valueData.min, valueData.max], i)
+    )
+    const contours = d3Contours()
+      .smooth(props.smooth)
+      .size([props.size, props.size])
+      .thresholds(thresholds)(valueData.values)
+    contours.forEach((contour) => {
+      contour.coordinates.forEach((band) => {
+        if (props.colorMode !== 'monochrome') {
+          const color = [
+            interpolate(
+              [valueData.min, valueData.max],
+              [0, 270],
+              contour.value
+            ),
+            100,
+            100,
+          ]
+          if (props.colorMode === 'fill') {
+            s.stroke('black')
+            s.fill(...color)
+          } else if (props.colorMode === 'stroke') {
+            s.stroke(...color)
+          }
+        }
+        drawBand(band, props.size / 2, contour.value, props.stretch)
+      })
     })
   }
 
@@ -128,41 +185,10 @@ export default (s) => {
     s.strokeWeight(props.strokeWeight)
     s.fill('black')
 
-    const n = props.size
-    const m = props.size
-    const noise = props.noise / 100
-    const values = new Array(n * m)
-    for (let j = 0.5, k = 0; j < m; ++j) {
-      for (let i = 0.5; i < n; ++i, k++) {
-        values[k] = s.noise(i * noise, j * noise) * props.height
-      }
-    }
-
-    const thresholds = Array.from({ length: props.contours }, (_, i) =>
-      interpolate([0, props.contours - 1], [0, props.height], i)
+    drawContours(
+      props,
+      generateValues(props.size, props.noise / 100, props.height)
     )
-    const contours = d3Contours()
-      .smooth(props.smooth)
-      .size([n, m])
-      .thresholds(thresholds)(values)
-    contours.forEach((contour) => {
-      contour.coordinates.forEach((band) => {
-        if (props.colorMode !== 'monochrome') {
-          const color = [
-            interpolate([0, props.height], [0, 270], contour.value),
-            100,
-            100,
-          ]
-          if (props.colorMode === 'fill') {
-            s.stroke('black')
-            s.fill(...color)
-          } else if (props.colorMode === 'stroke') {
-            s.stroke(...color)
-          }
-        }
-        drawBand(band, props.size / 2, contour.value, props.stretch)
-      })
-    })
   }
 
   s.mouseWheel = (e) => {
