@@ -2,12 +2,16 @@ import { init as initProps, getProp } from 'utils/propConfig'
 import { interpolate } from 'utils/math'
 import { contours as d3Contours } from 'd3-contour'
 
+const ColorMode = ['monochrome', 'fill', 'stroke']
+
 type Props = {
   size: number
   contours: number
   height: number
   smooth: boolean
-  monochrome: boolean
+  colorMode: typeof ColorMode[number]
+  noise: number
+  strokeWeight: number
 }
 
 export default (s) => {
@@ -30,7 +34,7 @@ export default (s) => {
     },
     Height: {
       type: 'number',
-      default: 300,
+      default: 400,
       min: 20,
       step: 20,
     },
@@ -38,22 +42,37 @@ export default (s) => {
       type: 'boolean',
       default: false,
     },
-    'Monochrome?': {
-      type: 'boolean',
-      default: true,
+    'Color Mode': {
+      type: 'dropdown',
+      default: 'monochrome',
+      options: ColorMode,
+    },
+    'Random Noise': {
+      type: 'number',
+      default: 0.4,
+      step: 0.01,
+      min: 0,
+    },
+    'Stroke Weight': {
+      type: 'number',
+      default: 2,
+      min: 0,
+      step: 0.2,
     },
   })
   const get = (prop: string) => getProp('topo', prop)
   const getProps = (): Props => ({
     size: get('Size'),
     contours: get('Contours'),
-    monochrome: get('Monochrome?'),
+    colorMode: get('Color Mode'),
     height: get('Height'),
     smooth: get('Smooth?'),
+    noise: get('Random Noise'),
+    strokeWeight: get('Stroke Weight'),
   })
 
   let drawn = false
-  let timeouts: NodeJS.Timeout[] = []
+  let zoom: number
 
   function drawBand(band, halfWidth: number, contourHeight: number) {
     band.forEach((coord) => {
@@ -70,10 +89,8 @@ export default (s) => {
     s.clear()
     s.colorMode(s.HSB)
     s.stroke('white')
-    s.strokeWeight(1)
-    timeouts.forEach((timeout) => clearTimeout(timeout))
-    timeouts = []
     drawn = false
+    zoom = 1000
   }
 
   s.setup = () => {
@@ -87,18 +104,23 @@ export default (s) => {
     // if (drawn) return
     s.clear()
 
+    s.camera(0, 0, zoom, 0, 0, 0, 0, 1, 0)
     s.rotateY(interpolate([0, window.innerWidth], [0, Math.PI * 2], s.mouseX))
     s.rotateX(interpolate([0, window.innerHeight], [0, Math.PI * 2], s.mouseY))
 
-    s.stroke('white')
     const props = getProps()
+
+    s.stroke('white')
+    s.strokeWeight(props.strokeWeight)
+    s.fill('black')
 
     const n = props.size
     const m = props.size
+    const noise = props.noise / 100
     const values = new Array(n * m)
     for (let j = 0.5, k = 0; j < m; ++j) {
       for (let i = 0.5; i < n; ++i, k++) {
-        values[k] = s.noise(i / 250, j / 250) * props.height
+        values[k] = s.noise(i * noise, j * noise) * props.height
       }
     }
 
@@ -110,22 +132,28 @@ export default (s) => {
       .size([n, m])
       .thresholds(thresholds)(values)
     contours.forEach((contour) => {
-      // timeouts.push(
-      // setTimeout(() => {
       contour.coordinates.forEach((band) => {
-        if (!props.monochrome) {
-          s.stroke(
+        if (props.colorMode !== 'monochrome') {
+          const color = [
             interpolate([0, props.height], [0, 270], contour.value),
             100,
-            100
-          )
+            100,
+          ]
+          if (props.colorMode === 'fill') {
+            s.stroke('black')
+            s.fill(...color)
+          } else if (props.colorMode === 'stroke') {
+            s.stroke(...color)
+          }
         }
         drawBand(band, props.size / 2, contour.value)
       })
-      // }, 0)
-      // )
     })
 
     drawn = true
+  }
+
+  s.mouseWheel = (e) => {
+    zoom += e.delta / 10
   }
 }
