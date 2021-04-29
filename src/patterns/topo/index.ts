@@ -12,6 +12,7 @@ type Props = {
   colorMode: typeof ColorMode[number]
   noise: number
   strokeWeight: number
+  stretch: number
 }
 
 export default (s) => {
@@ -59,6 +60,12 @@ export default (s) => {
       min: 0,
       step: 0.2,
     },
+    Stretch: {
+      type: 'number',
+      min: 1,
+      default: 1,
+      step: 0.1,
+    },
   })
   const get = (prop: string) => getProp('topo', prop)
   const getProps = (): Props => ({
@@ -69,17 +76,26 @@ export default (s) => {
     smooth: get('Smooth?'),
     noise: get('Random Noise'),
     strokeWeight: get('Stroke Weight'),
+    stretch: get('Stretch'),
   })
 
-  let drawn = false
   let zoom: number
 
-  function drawBand(band, halfWidth: number, contourHeight: number) {
+  function drawBand(
+    band,
+    halfWidth: number,
+    contourHeight: number,
+    stretch: number
+  ) {
     band.forEach((coord) => {
       s.beginShape()
       coord.forEach((p: [number, number]) => {
         // if (p[0] < 0 || p[0] >= halfWidth || p[1] < 0 || p[1] >= halfWidth) return
-        s.vertex(p[0] - halfWidth, p[1] - halfWidth, contourHeight)
+        s.vertex(
+          (p[0] - halfWidth) * stretch,
+          (p[1] - halfWidth) * stretch,
+          contourHeight
+        )
       })
       s.endShape()
     })
@@ -89,7 +105,6 @@ export default (s) => {
     s.clear()
     s.colorMode(s.HSB)
     s.stroke('white')
-    drawn = false
     zoom = 1000
   }
 
@@ -101,7 +116,6 @@ export default (s) => {
   }
 
   s.draw = () => {
-    // if (drawn) return
     s.clear()
 
     s.camera(0, 0, zoom, 0, 0, 0, 0, 1, 0)
@@ -146,11 +160,9 @@ export default (s) => {
             s.stroke(...color)
           }
         }
-        drawBand(band, props.size / 2, contour.value)
+        drawBand(band, props.size / 2, contour.value, props.stretch)
       })
     })
-
-    drawn = true
   }
 
   s.mouseWheel = (e) => {
