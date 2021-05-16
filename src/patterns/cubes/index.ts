@@ -92,14 +92,8 @@ export default (s) => {
   class Cubes {
     cubes: Cube[]
     constructor(props: Props) {
-      const {
-        n,
-        distance,
-        cubeSize,
-        baseRate,
-        increaseRate,
-        linesPerCube,
-      } = props
+      const { n, distance, cubeSize, baseRate, increaseRate, linesPerCube } =
+        props
       const offset = (distance * n) / 2
       this.cubes = []
 

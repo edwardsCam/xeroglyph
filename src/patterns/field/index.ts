@@ -343,12 +343,8 @@ export default (s) => {
     noiseFn: NoiseFn,
     beforeDraw?: () => any
   ) => {
-    const {
-      constraintMode,
-      constraintRadius,
-      pepperStrength,
-      colorScheme,
-    } = props
+    const { constraintMode, constraintRadius, pepperStrength, colorScheme } =
+      props
 
     if (constraintMode === 'circle') {
       const center = getCenter()
@@ -420,54 +416,52 @@ export default (s) => {
   const normalizeAngle: NumberConversionFn = (angle) =>
     s.map(angle, 0, 1, 0, Math.PI * 2)
 
-  const perlinNoiseFn = (
-    distortionFn: NumberConversionFn,
-    noiseDamp: number
-  ): NoiseFn => (x: number, y: number) => {
-    const angle: number = s.noise(x * noiseDamp, y * noiseDamp)
-    const distorted = distortionFn(angle)
-    return normalizeAngle(distorted)
-  }
+  const perlinNoiseFn =
+    (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
+    (x: number, y: number) => {
+      const angle: number = s.noise(x * noiseDamp, y * noiseDamp)
+      const distorted = distortionFn(angle)
+      return normalizeAngle(distorted)
+    }
 
-  const simplexNoiseFn = (
-    distortionFn: NumberConversionFn,
-    noiseDamp: number
-  ): NoiseFn => (x: number, y: number) =>
-    normalizeAngle(distortionFn(simplex.noise2D(x * noiseDamp, y * noiseDamp)))
+  const simplexNoiseFn =
+    (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
+    (x: number, y: number) =>
+      normalizeAngle(
+        distortionFn(simplex.noise2D(x * noiseDamp, y * noiseDamp))
+      )
 
-  const curlNoiseFn = (
-    distortionFn: NumberConversionFn,
-    noiseDamp: number
-  ): NoiseFn => (x: number, y: number) => {
-    const eps = 0.0001
-    const eps2 = 2 * eps
+  const curlNoiseFn =
+    (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
+    (x: number, y: number) => {
+      const eps = 0.0001
+      const eps2 = 2 * eps
 
-    // x rate of change
-    const x1: number = s.noise((x + eps) * noiseDamp, y * noiseDamp)
-    const x2: number = s.noise((x - eps) * noiseDamp, y * noiseDamp)
+      // x rate of change
+      const x1: number = s.noise((x + eps) * noiseDamp, y * noiseDamp)
+      const x2: number = s.noise((x - eps) * noiseDamp, y * noiseDamp)
 
-    // x derivative
-    var dx = (x1 - x2) / eps2
+      // x derivative
+      var dx = (x1 - x2) / eps2
 
-    // y rate of change
-    const y1: number = s.noise(x * noiseDamp, (y + eps) * noiseDamp)
-    const y2: number = s.noise(x * noiseDamp, (y - eps) * noiseDamp)
+      // y rate of change
+      const y1: number = s.noise(x * noiseDamp, (y + eps) * noiseDamp)
+      const y2: number = s.noise(x * noiseDamp, (y - eps) * noiseDamp)
 
-    // y derivative
-    var dy = (y1 - y2) / eps2
+      // y derivative
+      var dy = (y1 - y2) / eps2
 
-    return distortionFn(Math.atan2(dx, dy))
-  }
+      return distortionFn(Math.atan2(dx, dy))
+    }
 
-  const imageNoiseFn = (
-    distortionFn: NumberConversionFn,
-    noiseDamp: number
-  ): NoiseFn => (x: number, y: number) => {
-    const [r, g, b] = s.get(x, y)
-    const avg = (r + g + b) / 3
-    const angle = interpolate([0, 255], [0, Math.PI * noiseDamp], avg)
-    return distortionFn(angle)
-  }
+  const imageNoiseFn =
+    (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
+    (x: number, y: number) => {
+      const [r, g, b] = s.get(x, y)
+      const avg = (r + g + b) / 3
+      const angle = interpolate([0, 255], [0, Math.PI * noiseDamp], avg)
+      return distortionFn(angle)
+    }
 
   let simplex: SimplexNoise
   let img

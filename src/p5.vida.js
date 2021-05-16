@@ -1302,9 +1302,8 @@ p5.prototype.Vida.prototype.trackBlobs = function () {
         temp_dist < this.trackBlobsMaxNormDist
       ) {
         temp_distances[i] = temp_dist
-        this.__blobs[this.__currentBlobsLocation][i].id = this.__blobs[
-          this.__previousBlobsLocation
-        ][j].id
+        this.__blobs[this.__currentBlobsLocation][i].id =
+          this.__blobs[this.__previousBlobsLocation][j].id
       }
     }
   }
@@ -1382,9 +1381,8 @@ p5.prototype.Vida.prototype.trackBlobs = function () {
         temp_dist < this.trackBlobsMaxNormDist
       ) {
         temp_distances[i] = temp_dist
-        this.__blobs[this.__currentBlobsLocation][i].id = this.__blobs[
-          this.__previousBlobsLocation
-        ][j].id
+        this.__blobs[this.__currentBlobsLocation][i].id =
+          this.__blobs[this.__previousBlobsLocation][j].id
       }
     }
   }
@@ -1448,14 +1446,10 @@ p5.prototype.Vida.prototype.trackBlobs = function () {
     )
     if (temp_index < 0) continue // no previous, "parent" blob, nothing to do
     // copy timestamp and set isNewFlag to "false";
-    this.__blobs[this.__currentBlobsLocation][i].creationTime = this.__blobs[
-      this.__previousBlobsLocation
-    ][temp_index].creationTime
-    this.__blobs[this.__currentBlobsLocation][
-      i
-    ].creationFrameCount = this.__blobs[this.__previousBlobsLocation][
-      temp_index
-    ].creationFrameCount
+    this.__blobs[this.__currentBlobsLocation][i].creationTime =
+      this.__blobs[this.__previousBlobsLocation][temp_index].creationTime
+    this.__blobs[this.__currentBlobsLocation][i].creationFrameCount =
+      this.__blobs[this.__previousBlobsLocation][temp_index].creationFrameCount
     this.__blobs[this.__currentBlobsLocation][i].isNewFlag = false
   }
 }
@@ -1845,9 +1839,8 @@ p5.prototype.Vida.prototype.processBlobs = function () {
     temp_raw_blobs_data[i].normMaxX /= this.thresholdImage.width
     temp_raw_blobs_data[i].normMaxY /= this.thresholdImage.height
     // create new VidaBlob object and put it into the array
-    this.__blobs[this.__currentBlobsLocation][
-      temp_number_of_blobs
-    ] = new VidaBlob(this.__sketch)
+    this.__blobs[this.__currentBlobsLocation][temp_number_of_blobs] =
+      new VidaBlob(this.__sketch)
     /*
       Fill the object with parameters from the temporary storage
       (temp_raw_blobs_data).
@@ -2275,9 +2268,8 @@ p5.prototype.Vida.prototype.findBlobs_optimizeIdentifiers = function () {
         identifiers that require optimization with the current identifier.
       */
       if (temp_b) {
-        temp_redirections_array[
-          temp_redirections_array.length
-        ] = this.__blobMapArray[temp_x][temp_y]
+        temp_redirections_array[temp_redirections_array.length] =
+          this.__blobMapArray[temp_x][temp_y]
         this.__blobMapArray[temp_x][temp_y] = temp_redirections_array.length
       }
     }
@@ -2339,9 +2331,8 @@ p5.prototype.Vida.prototype.findBlobs_countUnorderedIdentifiers = function () {
         identifiers with the current identifier.
       */
       if (temp_b) {
-        temp_identifiers_array[
-          temp_identifiers_array.length
-        ] = this.__blobMapArray[temp_x][temp_y]
+        temp_identifiers_array[temp_identifiers_array.length] =
+          this.__blobMapArray[temp_x][temp_y]
       }
     }
   }

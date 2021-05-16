@@ -134,9 +134,8 @@ Speech.prototype.setVoice = function (_v) {
       return v.name == _v
     })[0]
   else if (typeof _v == 'number')
-    this.utterance.voice = this.voices[
-      Math.min(Math.max(_v, 0), this.voices.length - 1)
-    ]
+    this.utterance.voice =
+      this.voices[Math.min(Math.max(_v, 0), this.voices.length - 1)]
 }
 
 // volume of voice. API range 0.0-1.0.
