@@ -110,6 +110,9 @@ body {
   outline: none;
 }
 
+.homepage-link.bamboo::before {
+  background-image: url('assets/example_bamboo.png');
+}
 .homepage-link.waveform::before {
   background-image: url('assets/example_waveform.png');
 }

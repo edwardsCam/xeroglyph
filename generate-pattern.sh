@@ -26,7 +26,7 @@ echo "  instructions: []," >> src/components/helpModal.tsx
 echo "  description: []," >> src/components/helpModal.tsx
 echo "}," >> src/components/helpModal.tsx
 
-echo "import $PASCAL from 'patterns/$KEBAB/index.ts'" >> src/index.tsx
+echo "import $PASCAL from 'patterns/$KEBAB'" >> src/index.tsx
 echo "$CAMEL: {" >> src/index.tsx
 echo "  label: '$HOOMAN'," >> src/index.tsx
 echo "  component: $PASCAL," >> src/index.tsx

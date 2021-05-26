@@ -1,6 +1,11 @@
 import React from 'react'
 
 const infoMap = {
+  bamboo: {
+    title: 'Bamboo',
+    instructions: [],
+    description: [],
+  },
   waveform: {
     title: 'Waveform',
     instructions: [],

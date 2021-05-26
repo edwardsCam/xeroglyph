@@ -24,6 +24,7 @@ import Beads from 'patterns/beads'
 import ChaosGame from 'patterns/chaos-game'
 import Topo from 'patterns/topo'
 import Waveform from 'patterns/waveform'
+import Bamboo from 'patterns/bamboo'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -39,6 +40,10 @@ import Knobs from 'components/knobs'
 import HomepageLink from 'components/homepageLink'
 
 const patternMap = {
+  bamboo: {
+    label: 'Bamboo',
+    component: Bamboo,
+  },
   waveform: {
     label: 'Waveform',
     component: Waveform,
@@ -47,41 +52,17 @@ const patternMap = {
     label: 'Topo',
     component: Topo,
   },
-  chaosGame: {
-    label: 'Chaos Game',
-    component: ChaosGame,
-  },
-  castles: {
-    label: 'Castles',
-    component: Castles,
-  },
-  spaceColonization: {
-    label: 'Space Colonization',
-    component: SpaceColonization,
-  },
-  flower: {
-    label: 'Flower',
-    component: Flower,
-  },
-  pandemic: {
-    label: 'Pandemic',
-    component: Pandemic,
-  },
   sacredGeometry: {
     label: 'Sacred Geometry',
     component: SacredGeometry,
   },
-  starscape: {
-    label: 'Starscape',
-    component: Starscape,
+  chaosGame: {
+    label: 'Chaos Game',
+    component: ChaosGame,
   },
-  mountain: {
-    label: 'Mountain',
-    component: Mountain,
-  },
-  pixelSorting: {
-    label: 'Pixel Sorting',
-    component: PixelSorting,
+  spaceColonization: {
+    label: 'Space Colonization',
+    component: SpaceColonization,
   },
   chonks: {
     label: 'Chonks',
@@ -91,9 +72,41 @@ const patternMap = {
     label: 'Field',
     component: Field,
   },
+  starscape: {
+    label: 'Starscape',
+    component: Starscape,
+  },
+  castles: {
+    label: 'Castles',
+    component: Castles,
+  },
+  flower: {
+    label: 'Flower',
+    component: Flower,
+  },
+  pandemic: {
+    label: 'Pandemic',
+    component: Pandemic,
+  },
+  chipboard: {
+    label: 'Chipboard',
+    component: board,
+  },
+  coral: {
+    label: 'Coral',
+    component: Coral,
+  },
+  pixelSorting: {
+    label: 'Pixel Sorting',
+    component: PixelSorting,
+  },
   beads: {
     label: 'Beads',
     component: Beads,
+  },
+  tiles: {
+    label: 'Tiles',
+    component: Tiles,
   },
   poi: {
     label: 'Poi',
@@ -103,13 +116,9 @@ const patternMap = {
     label: 'Squid',
     component: Squid,
   },
-  chipboard: {
-    label: 'Chipboard',
-    component: board,
-  },
-  tiles: {
-    label: 'Tiles',
-    component: Tiles,
+  mountain: {
+    label: 'Mountain',
+    component: Mountain,
   },
   motionDetection: {
     label: 'Motion Detection',
@@ -126,10 +135,6 @@ const patternMap = {
   cubes: {
     label: 'Cubes',
     component: Cubes,
-  },
-  coral: {
-    label: 'Coral',
-    component: Coral,
   },
   swirl: {
     label: 'Swirl',
