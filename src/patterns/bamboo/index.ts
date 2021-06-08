@@ -20,7 +20,7 @@ export default (s) => {
     },
     Width: {
       type: 'number',
-      default: 25,
+      default: 20,
       min: 1,
     },
     Subdivisions: {
@@ -31,7 +31,7 @@ export default (s) => {
     'Subdivision Delta': {
       type: 'number',
       min: 0,
-      default: 4,
+      default: 5,
     },
     Roughness: {
       type: 'number',
@@ -43,7 +43,7 @@ export default (s) => {
       type: 'number',
       default: 1,
       min: 0,
-      step: 0.1,
+      step: 0.05,
     },
   })
   const get = (prop: string) => getProp('bamboo', prop)
@@ -81,65 +81,95 @@ export default (s) => {
       return
 
     clearTimeouts()
-    const { width, subdivs, subdivDelta, roughness, strokeWeight } = props
+    const { roughness } = props
     if (roughness > 0) {
       scribble = new Scribble(s)
       scribble.roughness = roughness
     }
 
-    const cols = Math.ceil(window.innerWidth / width)
-    times(cols, (i) => {
-      const subdivsWithDelta = subdivs + randomInRange(0, subdivDelta + 1, true)
-      timeouts.push(
-        setTimeout(() =>
-          drawSubdivision(i * width, width, subdivsWithDelta, strokeWeight)
-        )
-      )
-    })
+    fillArea(0, 0, window.innerWidth, window.innerHeight)
 
     last = props
   }
 
+  function fillArea(
+    x: number,
+    y: number,
+    areaWidth: number,
+    areaHeight: number
+  ) {
+    const { width, subdivs, subdivDelta, strokeWeight } = getProps()
+    const cols = Math.ceil(areaWidth / width)
+    times(cols, (i) => {
+      const subdivsWithDelta = subdivs + randomInRange(0, subdivDelta + 1, true)
+      timeouts.push(
+        setTimeout(() => {
+          drawSubdivision(
+            x + i * width,
+            y,
+            width,
+            areaHeight,
+            subdivsWithDelta,
+            strokeWeight
+          )
+        })
+      )
+    })
+  }
+
   function drawSubdivision(
     x: number,
+    y: number,
     width: number,
+    height: number,
     n: number,
     weight: number
   ) {
-    const yPoints = times(n - 1, () =>
-      randomInRange(0, window.innerHeight)
-    ).sort((a, b) => a - b)
-    ;[...yPoints, window.innerHeight].forEach((p, i) => {
+    const maxY = y + height
+    const yPoints = times(n - 1, () => randomInRange(y, maxY)).sort(
+      (a, b) => a - b
+    )
+
+    const points = [...yPoints, maxY]
+    points.forEach((p, i) => {
       const prev = yPoints[i - 1] || 0
-      drawPiece(prev, p, x, width, weight)
+      const subdivHeight = p - prev
+      drawPiece(x, prev, width, subdivHeight, weight, maxY)
     })
   }
 
   function drawPiece(
-    y1: number,
-    y2: number,
-    x1: number,
+    x: number,
+    y: number,
     width: number,
-    weight: number
+    height: number,
+    weight: number,
+    maxY: number
   ) {
-    const x2 = x1 + width
-    const height = y2 - y1
-    const hVar = randomInRange(-4, 4, true)
-    const sVar = randomInRange(-7, 7, true)
-    const bVar = randomInRange(-7, 7, true)
-    s.fill(36 + hVar, 56 + sVar, 74 + bVar)
-    const rectArgs = [x1, y1, width, height]
+    const x2 = x + width
+    const y2 = y + height
+    s.fill(
+      36 + randomInRange(-3, 3, true),
+      56 + randomInRange(-6, 6, true),
+      74 + randomInRange(-6, 6, true)
+    )
+    const rectArgs = [x, y, width, height]
 
     s.strokeWeight(weight)
+    s.stroke(
+      66 + randomInRange(-5, 5, true),
+      100 - randomInRange(0, 5, true),
+      randomInRange(0, 20, true)
+    )
     s.push()
     s.noStroke()
     s.rect(...rectArgs)
     s.pop()
     if (scribble) {
-      scribble.scribbleLine(x1, y1, x1, y2)
-      scribble.scribbleLine(x2, y1, x2, y2)
-      if (y2 !== window.innerHeight) {
-        scribble.scribbleLine(x1, y2, x2, y2)
+      scribble.scribbleLine(x, y, x, y2)
+      scribble.scribbleLine(x2, y, x2, y2)
+      if (y2 !== maxY) {
+        scribble.scribbleLine(x, y2, x2, y2)
       }
     }
   }
