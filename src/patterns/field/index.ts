@@ -45,10 +45,12 @@ type Props = {
   constraintMode: ConstraintMode
   constraintRadius: number
   maxWidth: number
+  randomWidths: boolean
   pepperStrength: number
   colorScheme: ColorScheme
   colorMode: ColorMode
   showImage: boolean
+  avoidanceRadius: number
 }
 
 const coolColors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
@@ -111,6 +113,10 @@ export default (s) => {
       default: 2,
       min: 1,
     },
+    'Random Widths': {
+      type: 'boolean',
+      default: true,
+    },
     'Pepper Strength': {
       type: 'number',
       default: 0,
@@ -162,6 +168,11 @@ export default (s) => {
       default: false,
       when: () => get('Noise Mode') === 'image',
     },
+    'Avoidance Radius': {
+      type: 'number',
+      min: 0,
+      default: 0,
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
@@ -177,10 +188,12 @@ export default (s) => {
     constraintRadius: get('Constraint Radius'),
     withArrows: get('With Arrows'),
     maxWidth: get('Max Width'),
+    randomWidths: get('Random Widths'),
     pepperStrength: get('Pepper Strength'),
     colorScheme: get('Color Scheme'),
     colorMode: get('Color Mode'),
     showImage: get('Show Image'),
+    avoidanceRadius: get('Avoidance Radius'),
   })
 
   const drawArrow = (
@@ -241,7 +254,7 @@ export default (s) => {
 
   let points: Point[]
   let firstPoints: Point[]
-  let timeouts: number[] = []
+  let timeouts: NodeJS.Timeout[] = []
 
   const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
     const lines: Point[][] = []
@@ -285,7 +298,8 @@ export default (s) => {
     return lines
   }
 
-  const getWidth = (maxWidth: number): number => Math.random() * maxWidth
+  const getWidth = (maxWidth: number, randomWidths: boolean): number =>
+    randomWidths ? Math.random() * maxWidth : maxWidth
 
   const getColor = (
     { colorMode, colorScheme }: Props,
@@ -343,8 +357,29 @@ export default (s) => {
     noiseFn: NoiseFn,
     beforeDraw?: () => any
   ) => {
-    const { constraintMode, constraintRadius, pepperStrength, colorScheme } =
-      props
+    const drawnPoints: Point[] = []
+    const isClaimed = (
+      p: Point,
+      avoidanceRadius: number,
+      line: Point[]
+    ): boolean => {
+      if (avoidanceRadius < 1) return false
+      return drawnPoints.some((otherPoint) => {
+        const isClose = distance(p, otherPoint) < avoidanceRadius
+        if (!isClose) return false
+
+        if (line.includes(otherPoint)) return false
+        return true
+      })
+    }
+    const {
+      constraintMode,
+      constraintRadius,
+      pepperStrength,
+      colorScheme,
+      avoidanceRadius,
+      randomWidths,
+    } = props
 
     if (constraintMode === 'circle') {
       const center = getCenter()
@@ -362,12 +397,26 @@ export default (s) => {
           if (!firstPoint) return
           const { x, y } = firstPoint
 
-          s.strokeWeight(getWidth(props.maxWidth))
+          s.strokeWeight(getWidth(props.maxWidth, randomWidths))
           s.stroke(getColor(props, x, y))
 
-          s.beginShape()
-          line.forEach(({ x, y }) => s.vertex(x, y))
-          s.endShape()
+          let cursor = 0
+          while (cursor < line.length) {
+            s.beginShape()
+            const sliced = line.slice(cursor)
+            let breakFlag = false
+            sliced.forEach((p, i) => {
+              cursor = i + 1
+              if (breakFlag) return
+              if (isClaimed(p, avoidanceRadius, line)) {
+                breakFlag = true
+                return
+              }
+              s.vertex(p.x, p.y)
+              drawnPoints.push(p)
+            })
+            s.endShape()
+          }
 
           if (pepperStrength > 0) {
             line.forEach((point) => {
