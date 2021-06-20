@@ -194,6 +194,7 @@ export default (s) => {
     },
     'Square Cap': {
       type: 'boolean',
+      default: true,
     },
   })
   const get = (prop: string) => getProp('field', prop)
@@ -368,18 +369,21 @@ export default (s) => {
     }[] = []
     const isClaimed = (
       p: Point,
+      pointWidth: number,
       avoidanceRadius: number,
       line: Point[]
     ): boolean => {
       if (avoidanceRadius < 1) return false
-      return drawnPoints.some(({ point: otherPoint, width }) => {
-        const dist = distance(p, otherPoint)
-        const isClose = dist - width < avoidanceRadius
-        if (!isClose) return false
+      return drawnPoints.some(
+        ({ point: otherPoint, width: otherPointWidth }) => {
+          const dist = distance(p, otherPoint) - (pointWidth + otherPointWidth)
+          const isClose = dist < avoidanceRadius
+          if (!isClose) return false
 
-        if (line.includes(otherPoint)) return false
-        return true
-      })
+          if (line.includes(otherPoint)) return false
+          return true
+        }
+      )
     }
 
     const isDotDrawMode = drawMode === 'dots'
@@ -418,7 +422,7 @@ export default (s) => {
             sliced.forEach((p, i) => {
               cursor = i + 1
               if (breakFlag) return
-              if (isClaimed(p, avoidanceRadius, line)) {
+              if (isClaimed(p, strokeWeight, avoidanceRadius, line)) {
                 breakFlag = true
                 return
               }

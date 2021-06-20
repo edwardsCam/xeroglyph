@@ -72,7 +72,7 @@ const infoMap = {
     description: [],
   },
   field: {
-    title: 'Flowfield',
+    title: 'FlowField',
     instructions: [
       '...',
       'The "n" parameter controls the number of lines. Larger n values will fill the space more fully, but will take longer.',

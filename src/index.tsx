@@ -40,9 +40,9 @@ import Knobs from 'components/knobs'
 import HomepageLink from 'components/homepageLink'
 
 const patternMap = {
-  bamboo: {
-    label: 'Bamboo',
-    component: Bamboo,
+  field: {
+    label: 'FlowField',
+    component: Field,
   },
   waveform: {
     label: 'Waveform',
@@ -68,13 +68,13 @@ const patternMap = {
     label: 'Chonks',
     component: Chonks,
   },
-  field: {
-    label: 'Field',
-    component: Field,
-  },
   starscape: {
     label: 'Starscape',
     component: Starscape,
+  },
+  bamboo: {
+    label: 'Bamboo',
+    component: Bamboo,
   },
   castles: {
     label: 'Castles',
