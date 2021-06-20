@@ -2,6 +2,7 @@ import { init as initProps, getProp } from 'utils/propConfig'
 import {
   Point,
   coordWithAngleAndDistance,
+  thetaFromTwoPoints,
   distance,
   interpolate,
 } from 'utils/math'
@@ -10,11 +11,17 @@ import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle'
 import { getRandomImage } from '../images'
 
-const _COLOR_SCHEMES_ = ['iceland', 'fieryFurnace', 'oceanscape'] as const
+const _COLOR_SCHEMES_ = ['oceanscape', 'iceland', 'fiery furnace'] as const
 const _NOISE_MODE_ = ['simplex', 'perlin', 'curl', 'image'] as const
 const _DRAW_MODE_ = ['streams', 'arrows', 'fluid'] as const
 const _CONSTRAINT_MODE_ = ['none', 'circle'] as const
-const _COLOR_MODE_ = ['random', 'sectors', 'monochrome'] as const
+const _COLOR_MODE_ = [
+  'random from scheme',
+  'angular',
+  'sectors',
+  'random',
+  'monochrome',
+] as const
 
 type ColorScheme = typeof _COLOR_SCHEMES_[number]
 type NoiseMode = typeof _NOISE_MODE_[number]
@@ -44,13 +51,14 @@ type Props = {
   noiseMode: NoiseMode
   constraintMode: ConstraintMode
   constraintRadius: number
+  minWidth: number
   maxWidth: number
-  randomWidths: boolean
   pepperStrength: number
   colorScheme: ColorScheme
   colorMode: ColorMode
   showImage: boolean
   avoidanceRadius: number
+  monochromeColor: string
 }
 
 const coolColors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
@@ -73,7 +81,7 @@ export default (s) => {
     },
     n: {
       type: 'number',
-      default: 80,
+      default: 120,
       min: 3,
     },
     'Line Length': {
@@ -108,14 +116,20 @@ export default (s) => {
       step: 0.025,
       when: () => get('Draw Mode') === 'streams',
     },
-    'Max Width': {
+    'Min Width': {
       type: 'number',
-      default: 2,
+      default: 3,
       min: 1,
     },
-    'Random Widths': {
-      type: 'boolean',
-      default: true,
+    'Max Width': {
+      type: 'number',
+      default: 6,
+      min: 1,
+    },
+    'Avoidance Radius': {
+      type: 'number',
+      min: 0,
+      default: 8,
     },
     'Pepper Strength': {
       type: 'number',
@@ -152,26 +166,29 @@ export default (s) => {
       min: 1,
       when: () => get('Constraint Mode') === 'circle',
     },
-    'Color Scheme': {
-      type: 'dropdown',
-      default: 'oceanscape',
-      options: [..._COLOR_SCHEMES_],
-      when: () => get('Color Mode') !== 'monochrome',
-    },
     'Color Mode': {
       type: 'dropdown',
-      default: 'random',
+      default: _COLOR_MODE_[0],
       options: [..._COLOR_MODE_],
+    },
+    'Color Scheme': {
+      type: 'dropdown',
+      default: _COLOR_SCHEMES_[0],
+      options: [..._COLOR_SCHEMES_],
+      when: () => {
+        const mode = get('Color Mode')
+        return mode !== 'monochrome' && mode !== 'angular'
+      },
+    },
+    Color: {
+      type: 'string',
+      default: 'ffffff',
+      when: () => get('Color Mode') === 'monochrome',
     },
     'Show Image': {
       type: 'boolean',
       default: false,
       when: () => get('Noise Mode') === 'image',
-    },
-    'Avoidance Radius': {
-      type: 'number',
-      min: 0,
-      default: 0,
     },
   })
   const get = (prop: string) => getProp('field', prop)
@@ -187,13 +204,14 @@ export default (s) => {
     constraintMode: get('Constraint Mode'),
     constraintRadius: get('Constraint Radius'),
     withArrows: get('With Arrows'),
+    minWidth: get('Min Width'),
     maxWidth: get('Max Width'),
-    randomWidths: get('Random Widths'),
     pepperStrength: get('Pepper Strength'),
     colorScheme: get('Color Scheme'),
     colorMode: get('Color Mode'),
     showImage: get('Show Image'),
     avoidanceRadius: get('Avoidance Radius'),
+    monochromeColor: get('Color'),
   })
 
   const drawArrow = (
@@ -298,19 +316,23 @@ export default (s) => {
     return lines
   }
 
-  const getWidth = (maxWidth: number, randomWidths: boolean): number =>
-    randomWidths ? Math.random() * maxWidth : maxWidth
+  const getWidth = (minWidth: number, maxWidth: number): number =>
+    interpolate([0, 1], [minWidth, maxWidth], Math.random())
 
-  const getColor = (
-    { colorMode, colorScheme }: Props,
+  const setStrokeColor = (
+    { colorMode, colorScheme, monochromeColor }: Props,
     x: number,
-    y: number
-  ): string => {
+    y: number,
+    angle?: number
+  ): void => {
     if (colorMode === 'monochrome') {
-      return '#fff'
-    }
-    if (colorMode === 'random') {
-      return randomColor(colorScheme)
+      let sanitized = monochromeColor
+      if (!sanitized.startsWith('#')) {
+        sanitized = '#' + sanitized
+      }
+      s.stroke(sanitized)
+    } else if (colorMode === 'random from scheme') {
+      s.stroke(randomColor(colorScheme))
     } else if (colorMode === 'sectors') {
       const colors = getColors(colorScheme)
       const colorNoise: number = s.noise(x / 200, y / 100)
@@ -319,28 +341,27 @@ export default (s) => {
       )
       const alpha = interpolate([0, 1], [200, 255], Math.random())
       const alphaHex = Math.round(alpha).toString(16)
-      return `${colors[quadrant]}${alphaHex}`
-    } else {
-      /*
-      const xdomain: [number, number] = [minX, maxX - size]
-      const ydomain: [number, number] = [minY, maxY - size]
-      const xr = Math.floor(interpolate(xdomain, [23, 14], x))
-      const xg = Math.floor(interpolate(xdomain, [35, 243], x))
-      const xb = Math.floor(interpolate(xdomain, [71, 197], x))
-      const yr = Math.floor(interpolate(ydomain, [23, 3], y))
-      const yg = Math.floor(interpolate(ydomain, [35, 130], y))
-      const yb = Math.floor(interpolate(ydomain, [71, 52], y))
-      s.stroke((xr + yr) / 2, (xg + yg) / 2, (xb + yb) / 2)
-      */
+      s.stroke(`${colors[quadrant]}${alphaHex}`)
+    } else if (colorMode === 'angular' && angle != null) {
+      s.stroke(
+        Math.floor(interpolate([-Math.PI, Math.PI], [34, 140], angle)),
+        Math.floor(interpolate([-Math.PI, Math.PI], [13, 36], angle)),
+        Math.floor(interpolate([-Math.PI, Math.PI], [94, 69], angle))
+      )
+    } else if (colorMode === 'random') {
+      s.stroke(
+        Math.floor(interpolate([0, 1], [0, 360], Math.random())),
+        Math.floor(interpolate([0, 1], [70, 100], Math.random())),
+        Math.floor(interpolate([0, 1], [70, 100], Math.random()))
+      )
     }
-    return ''
   }
 
   const getColors = (colorScheme: ColorScheme): string[] => {
     switch (colorScheme) {
       case 'iceland':
         return coolColors
-      case 'fieryFurnace':
+      case 'fiery furnace':
         return hotColors
       case 'oceanscape':
         return oceanScapeColors
@@ -373,12 +394,14 @@ export default (s) => {
       })
     }
     const {
+      minWidth,
+      maxWidth,
       constraintMode,
       constraintRadius,
       pepperStrength,
       colorScheme,
       avoidanceRadius,
-      randomWidths,
+      colorMode,
     } = props
 
     if (constraintMode === 'circle') {
@@ -395,14 +418,14 @@ export default (s) => {
         setTimeout(() => {
           const [firstPoint] = line
           if (!firstPoint) return
-          const { x, y } = firstPoint
 
-          s.strokeWeight(getWidth(props.maxWidth, randomWidths))
-          s.stroke(getColor(props, x, y))
+          s.strokeWeight(getWidth(minWidth, maxWidth))
+          setStrokeColor(props, firstPoint.x, firstPoint.y)
+          const isAngularColorMode = colorMode === 'angular'
 
           let cursor = 0
           while (cursor < line.length) {
-            s.beginShape()
+            if (!isAngularColorMode) s.beginShape()
             const sliced = line.slice(cursor)
             let breakFlag = false
             sliced.forEach((p, i) => {
@@ -412,10 +435,20 @@ export default (s) => {
                 breakFlag = true
                 return
               }
-              s.vertex(p.x, p.y)
+              if (isAngularColorMode) {
+                if (i > 0) {
+                  const prev = sliced[i - 1]
+                  const theta = thetaFromTwoPoints(p, prev)
+                  console.info(theta)
+                  setStrokeColor(props, p.x, p.y, theta)
+                  s.line(prev.x, prev.y, p.x, p.y)
+                }
+              } else {
+                s.vertex(p.x, p.y)
+              }
               drawnPoints.push(p)
             })
-            s.endShape()
+            if (!isAngularColorMode) s.endShape()
           }
 
           if (pepperStrength > 0) {
@@ -442,7 +475,12 @@ export default (s) => {
       points[i] = nextP
 
       const firstPoint = firstPoints[i]
-      s.stroke(getColor(props, firstPoint.x, firstPoint.y))
+      setStrokeColor(
+        props,
+        firstPoint.x,
+        firstPoint.y,
+        thetaFromTwoPoints(p, nextP)
+      )
       s.strokeWeight(maxWidth)
       s.line(p.x, p.y, nextP.x, nextP.y)
     })
@@ -523,6 +561,7 @@ export default (s) => {
   function initialize() {
     s.clear()
     clearTimeouts()
+    s.colorMode(s.HSB)
     simplex = new SimplexNoise()
 
     points = []
