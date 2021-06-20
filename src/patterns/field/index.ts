@@ -13,7 +13,7 @@ import { getRandomImage } from '../images'
 
 const _COLOR_SCHEMES_ = ['oceanscape', 'iceland', 'fiery furnace'] as const
 const _NOISE_MODE_ = ['simplex', 'perlin', 'curl', 'image'] as const
-const _DRAW_MODE_ = ['streams', 'arrows', 'fluid'] as const
+const _DRAW_MODE_ = ['streams', 'fluid', 'dots'] as const
 const _CONSTRAINT_MODE_ = ['none', 'circle'] as const
 const _COLOR_MODE_ = [
   'random from scheme',
@@ -47,7 +47,6 @@ type Props = {
   continuation: number
   lineLength: number
   drawMode: DrawMode
-  withArrows: boolean
   noiseMode: NoiseMode
   constraintMode: ConstraintMode
   constraintRadius: number
@@ -59,6 +58,7 @@ type Props = {
   showImage: boolean
   avoidanceRadius: number
   monochromeColor: string
+  dotSkip: number
 }
 
 const coolColors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
@@ -150,10 +150,11 @@ export default (s) => {
       options: [..._DRAW_MODE_],
       onChange: initialize,
     },
-    'With Arrows': {
-      type: 'boolean',
-      default: true,
-      when: () => get('Draw Mode') === 'arrows',
+    'Dot Skip': {
+      type: 'number',
+      default: 2,
+      min: 0,
+      when: () => get('Draw Mode') === 'dots',
     },
     'Constraint Mode': {
       type: 'dropdown',
@@ -177,7 +178,7 @@ export default (s) => {
       options: [..._COLOR_SCHEMES_],
       when: () => {
         const mode = get('Color Mode')
-        return mode !== 'monochrome' && mode !== 'angular'
+        return mode === 'random from scheme' || mode === 'sectors'
       },
     },
     Color: {
@@ -203,7 +204,6 @@ export default (s) => {
     distortion: get('Distortion'),
     constraintMode: get('Constraint Mode'),
     constraintRadius: get('Constraint Radius'),
-    withArrows: get('With Arrows'),
     minWidth: get('Min Width'),
     maxWidth: get('Max Width'),
     pepperStrength: get('Pepper Strength'),
@@ -212,32 +212,8 @@ export default (s) => {
     showImage: get('Show Image'),
     avoidanceRadius: get('Avoidance Radius'),
     monochromeColor: get('Color'),
+    dotSkip: get('Dot Skip'),
   })
-
-  const drawArrow = (
-    start: Point,
-    angle: number,
-    length: number,
-    withTip?: boolean
-  ) => {
-    const p2 = coordWithAngleAndDistance(start, angle, length)
-    s.line(start.x, start.y, p2.x, p2.y)
-
-    if (withTip) {
-      const tip1 = coordWithAngleAndDistance(
-        p2,
-        (angle + (Math.PI * 3) / 4) % (Math.PI * 2),
-        length / 3
-      )
-      const tip2 = coordWithAngleAndDistance(
-        p2,
-        (angle - (Math.PI * 3) / 4) % (Math.PI * 2),
-        length / 3
-      )
-      s.line(p2.x, p2.y, tip1.x, tip1.y)
-      s.line(p2.x, p2.y, tip2.x, tip2.y)
-    }
-  }
 
   const getPointFromRC = (n: number, r: number, c: number): Point => {
     const center = getCenter()
@@ -254,19 +230,6 @@ export default (s) => {
         [center.y - totalLength / 2, center.y + totalLength / 2 - squareLen],
         r
       ),
-    }
-  }
-
-  const drawAsArrows = (props: Props, noiseFn: NoiseFn) => {
-    s.stroke(255, 255, 255)
-    s.strokeWeight(props.maxWidth)
-    const { n, lineLength, withArrows, density } = props
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
-        if (Math.random() > density) continue
-        const p: Point = getPointFromRC(n, r, c)
-        drawArrow(p, noiseFn(p.x, p.y), lineLength, withArrows)
-      }
     }
   }
 
@@ -319,20 +282,25 @@ export default (s) => {
   const getWidth = (minWidth: number, maxWidth: number): number =>
     interpolate([0, 1], [minWidth, maxWidth], Math.random())
 
-  const setStrokeColor = (
+  const setColor = (
     { colorMode, colorScheme, monochromeColor }: Props,
     x: number,
     y: number,
+    type: 'stroke' | 'fill',
     angle?: number
   ): void => {
+    const setFn =
+      type === 'stroke'
+        ? (...args) => s.stroke(...args)
+        : (...args) => s.fill(...args)
     if (colorMode === 'monochrome') {
       let sanitized = monochromeColor
       if (!sanitized.startsWith('#')) {
         sanitized = '#' + sanitized
       }
-      s.stroke(sanitized)
+      setFn(sanitized)
     } else if (colorMode === 'random from scheme') {
-      s.stroke(randomColor(colorScheme))
+      setFn(randomColor(colorScheme))
     } else if (colorMode === 'sectors') {
       const colors = getColors(colorScheme)
       const colorNoise: number = s.noise(x / 200, y / 100)
@@ -341,15 +309,15 @@ export default (s) => {
       )
       const alpha = interpolate([0, 1], [200, 255], Math.random())
       const alphaHex = Math.round(alpha).toString(16)
-      s.stroke(`${colors[quadrant]}${alphaHex}`)
+      setFn(`${colors[quadrant]}${alphaHex}`)
     } else if (colorMode === 'angular' && angle != null) {
-      s.stroke(
+      setFn(
         Math.floor(interpolate([-Math.PI, Math.PI], [34, 140], angle)),
         Math.floor(interpolate([-Math.PI, Math.PI], [13, 36], angle)),
         Math.floor(interpolate([-Math.PI, Math.PI], [94, 69], angle))
       )
     } else if (colorMode === 'random') {
-      s.stroke(
+      setFn(
         Math.floor(interpolate([0, 1], [0, 360], Math.random())),
         Math.floor(interpolate([0, 1], [70, 100], Math.random())),
         Math.floor(interpolate([0, 1], [70, 100], Math.random()))
@@ -373,11 +341,22 @@ export default (s) => {
     return colors[Math.floor(Math.random() * (colors.length - 1))]
   }
 
-  const drawAsStreams = (
+  const drawStreams = (
     props: Props,
     noiseFn: NoiseFn,
     beforeDraw?: () => any
   ) => {
+    const {
+      minWidth,
+      maxWidth,
+      pepperStrength,
+      colorScheme,
+      avoidanceRadius,
+      colorMode,
+      drawMode,
+      dotSkip,
+    } = props
+
     const drawnPoints: Point[] = []
     const isClaimed = (
       p: Point,
@@ -393,22 +372,9 @@ export default (s) => {
         return true
       })
     }
-    const {
-      minWidth,
-      maxWidth,
-      constraintMode,
-      constraintRadius,
-      pepperStrength,
-      colorScheme,
-      avoidanceRadius,
-      colorMode,
-    } = props
 
-    if (constraintMode === 'circle') {
-      const center = getCenter()
-      s.strokeWeight(2)
-      s.circle(center.x, center.y, constraintRadius * 2)
-    }
+    const isDotDrawMode = drawMode === 'dots'
+    const isAngularColorMode = colorMode === 'angular'
 
     const lines = buildStreamLines(props, noiseFn)
     if (beforeDraw) beforeDraw()
@@ -420,12 +386,23 @@ export default (s) => {
           if (!firstPoint) return
 
           s.strokeWeight(getWidth(minWidth, maxWidth))
-          setStrokeColor(props, firstPoint.x, firstPoint.y)
-          const isAngularColorMode = colorMode === 'angular'
+          setColor(
+            props,
+            firstPoint.x,
+            firstPoint.y,
+            isDotDrawMode ? 'fill' : 'stroke'
+          )
+
+          const drawDot = (p: Point) => {
+            if (!(cursor % dotSkip)) {
+              s.noStroke()
+              s.circle(p.x, p.y, getWidth(minWidth, maxWidth))
+            }
+          }
 
           let cursor = 0
           while (cursor < line.length) {
-            if (!isAngularColorMode) s.beginShape()
+            if (!isAngularColorMode && !isDotDrawMode) s.beginShape()
             const sliced = line.slice(cursor)
             let breakFlag = false
             sliced.forEach((p, i) => {
@@ -439,16 +416,29 @@ export default (s) => {
                 if (i > 0) {
                   const prev = sliced[i - 1]
                   const theta = thetaFromTwoPoints(p, prev)
-                  console.info(theta)
-                  setStrokeColor(props, p.x, p.y, theta)
-                  s.line(prev.x, prev.y, p.x, p.y)
+                  setColor(
+                    props,
+                    p.x,
+                    p.y,
+                    isDotDrawMode ? 'fill' : 'stroke',
+                    theta
+                  )
+                  if (isDotDrawMode) {
+                    drawDot(p)
+                  } else {
+                    s.line(prev.x, prev.y, p.x, p.y)
+                  }
                 }
               } else {
-                s.vertex(p.x, p.y)
+                if (isDotDrawMode) {
+                  drawDot(p)
+                } else {
+                  s.vertex(p.x, p.y)
+                }
               }
               drawnPoints.push(p)
             })
-            if (!isAngularColorMode) s.endShape()
+            if (!isAngularColorMode && !isDotDrawMode) s.endShape()
           }
 
           if (pepperStrength > 0) {
@@ -475,10 +465,11 @@ export default (s) => {
       points[i] = nextP
 
       const firstPoint = firstPoints[i]
-      setStrokeColor(
+      setColor(
         props,
         firstPoint.x,
         firstPoint.y,
+        'stroke',
         thetaFromTwoPoints(p, nextP)
       )
       s.strokeWeight(maxWidth)
@@ -595,7 +586,7 @@ export default (s) => {
   s.draw = () => {
     const props = getProps()
     if (
-      (props.drawMode === 'arrows' || props.drawMode === 'streams') &&
+      props.drawMode !== 'fluid' &&
       last &&
       Object.keys(last).every((prop) => last[prop] === props[prop])
     ) {
@@ -611,7 +602,7 @@ export default (s) => {
     const distortionFn: NumberConversionFn = (angle) =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
     let noiseFn: NoiseFn
-    if (drawMode === 'arrows' || drawMode === 'streams') {
+    if (drawMode !== 'fluid') {
       s.clear()
     }
     s.noFill()
@@ -631,20 +622,14 @@ export default (s) => {
       case 'image': {
         const totalLength = getBoundedSize()
         const { minX, minY } = getBounds(totalLength)
-        // s.push()
         s.image(img, minX, minY, totalLength, totalLength)
-        // s.filter(s.DILATE)
-        // s.pop()
         noiseFn = imageNoiseFn(distortionFn, noise)
       }
     }
     switch (drawMode) {
-      case 'arrows': {
-        drawAsArrows(props, noiseFn)
-        break
-      }
+      case 'dots':
       case 'streams': {
-        drawAsStreams(props, noiseFn, () => {
+        drawStreams(props, noiseFn, () => {
           if (!props.showImage) s.clear()
         })
         break
