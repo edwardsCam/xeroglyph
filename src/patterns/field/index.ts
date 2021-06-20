@@ -59,6 +59,7 @@ type Props = {
   avoidanceRadius: number
   monochromeColor: string
   dotSkip: number
+  squareCap: boolean
 }
 
 const coolColors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
@@ -129,7 +130,7 @@ export default (s) => {
     'Avoidance Radius': {
       type: 'number',
       min: 0,
-      default: 8,
+      default: 3,
     },
     'Pepper Strength': {
       type: 'number',
@@ -191,6 +192,9 @@ export default (s) => {
       default: false,
       when: () => get('Noise Mode') === 'image',
     },
+    'Square Cap': {
+      type: 'boolean',
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
@@ -213,6 +217,7 @@ export default (s) => {
     avoidanceRadius: get('Avoidance Radius'),
     monochromeColor: get('Color'),
     dotSkip: get('Dot Skip'),
+    squareCap: get('Square Cap'),
   })
 
   const getPointFromRC = (n: number, r: number, c: number): Point => {
@@ -357,15 +362,19 @@ export default (s) => {
       dotSkip,
     } = props
 
-    const drawnPoints: Point[] = []
+    const drawnPoints: {
+      point: Point
+      width: number
+    }[] = []
     const isClaimed = (
       p: Point,
       avoidanceRadius: number,
       line: Point[]
     ): boolean => {
       if (avoidanceRadius < 1) return false
-      return drawnPoints.some((otherPoint) => {
-        const isClose = distance(p, otherPoint) < avoidanceRadius
+      return drawnPoints.some(({ point: otherPoint, width }) => {
+        const dist = distance(p, otherPoint)
+        const isClose = dist - width < avoidanceRadius
         if (!isClose) return false
 
         if (line.includes(otherPoint)) return false
@@ -385,7 +394,8 @@ export default (s) => {
           const [firstPoint] = line
           if (!firstPoint) return
 
-          s.strokeWeight(getWidth(minWidth, maxWidth))
+          const strokeWeight = getWidth(minWidth, maxWidth)
+          s.strokeWeight(strokeWeight)
           setColor(
             props,
             firstPoint.x,
@@ -396,7 +406,7 @@ export default (s) => {
           const drawDot = (p: Point) => {
             if (!(cursor % dotSkip)) {
               s.noStroke()
-              s.circle(p.x, p.y, getWidth(minWidth, maxWidth))
+              s.circle(p.x, p.y, strokeWeight)
             }
           }
 
@@ -436,7 +446,10 @@ export default (s) => {
                   s.vertex(p.x, p.y)
                 }
               }
-              drawnPoints.push(p)
+              drawnPoints.push({
+                point: p,
+                width: strokeWeight,
+              })
             })
             if (!isAngularColorMode && !isDotDrawMode) s.endShape()
           }
@@ -597,7 +610,7 @@ export default (s) => {
 
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
-    const { distortion, noise, noiseMode, drawMode } = props
+    const { distortion, noise, noiseMode, drawMode, squareCap } = props
     const normalizedNoise = noise / 1000
     const distortionFn: NumberConversionFn = (angle) =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
@@ -606,6 +619,8 @@ export default (s) => {
       s.clear()
     }
     s.noFill()
+    s.strokeCap(squareCap ? s.SQUARE : s.ROUND)
+    s.strokeJoin(s.ROUND)
     switch (noiseMode) {
       case 'perlin': {
         noiseFn = perlinNoiseFn(distortionFn, normalizedNoise)
