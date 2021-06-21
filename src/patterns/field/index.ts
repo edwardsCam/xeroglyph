@@ -61,15 +61,15 @@ type Props = {
   squareCap: boolean
 }
 
-const coolColors = ['#172347', '#025385', '#0EF3C5', '#015268', '#F5EED2']
+const coolColors = ['#314B99', '#058FE6', '#0FFFCF', '#0296BF', '#FFF8DB']
 const hotColors = ['#801100', '#D73502', '#FAC000', '#A8A9AD', '#CB4446']
 const oceanScapeColors = [
-  '#c71585',
-  '#4a2e76',
-  '#365086',
+  '#FF1CAC',
+  '#9F63FF',
+  '#6696FF',
   '#ff6edf',
-  '#0AA9A1',
-  '#D8F8F5',
+  '#0FFFF3',
+  '#DEFFFC',
 ]
 
 export default (s) => {
@@ -128,8 +128,8 @@ export default (s) => {
     },
     'Avoidance Radius': {
       type: 'number',
-      min: 0,
-      default: 3,
+      default: 2,
+      min: Number.NEGATIVE_INFINITY,
     },
     'Noise Mode': {
       type: 'dropdown',
@@ -264,7 +264,7 @@ export default (s) => {
               p.y >= 0 &&
               p.y <= window.innerHeight
             : p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY
-        while (Math.random() < continuation - 0.05 && inBounds()) {
+        while (Math.random() < continuation && inBounds()) {
           const angle = noiseFn(p.x, p.y)
           const nextP = coordWithAngleAndDistance(p, angle, lineLength)
           lines[lines.length - 1].push(nextP)
@@ -361,19 +361,15 @@ export default (s) => {
       pointWidth: number,
       avoidanceRadius: number,
       line: Point[]
-    ): boolean => {
-      if (avoidanceRadius < 1) return false
-      return drawnPoints.some(
-        ({ point: otherPoint, width: otherPointWidth }) => {
-          const dist = distance(p, otherPoint) - (pointWidth + otherPointWidth)
-          const isClose = dist < avoidanceRadius
-          if (!isClose) return false
-
-          if (line.includes(otherPoint)) return false
-          return true
-        }
-      )
-    }
+    ): boolean =>
+      drawnPoints.some(({ point: otherPoint, width: otherPointWidth }) => {
+        const dist =
+          distance(p, otherPoint) - (pointWidth + otherPointWidth) / 2
+        const isClose = dist < avoidanceRadius
+        if (!isClose) return false
+        if (line.includes(otherPoint)) return false
+        return true
+      })
 
     const isDotDrawMode = drawMode === 'dots'
     const isAngularColorMode = colorMode === 'angular'
@@ -399,7 +395,7 @@ export default (s) => {
           const drawDot = (p: Point) => {
             if (!(cursor % dotSkip)) {
               s.noStroke()
-              s.circle(p.x, p.y, strokeWeight)
+              s.circle(p.x, p.y, getWidth(minWidth, maxWidth))
             }
           }
 
