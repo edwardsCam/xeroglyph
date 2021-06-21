@@ -52,7 +52,6 @@ type Props = {
   constraintRadius: number
   minWidth: number
   maxWidth: number
-  pepperStrength: number
   colorScheme: ColorScheme
   colorMode: ColorMode
   showImage: boolean
@@ -132,14 +131,6 @@ export default (s) => {
       min: 0,
       default: 3,
     },
-    'Pepper Strength': {
-      type: 'number',
-      default: 0,
-      min: 0,
-      max: 1,
-      step: 0.05,
-      when: () => get('Draw Mode') === 'streams',
-    },
     'Noise Mode': {
       type: 'dropdown',
       default: _NOISE_MODE_[0],
@@ -195,6 +186,7 @@ export default (s) => {
     'Square Cap': {
       type: 'boolean',
       default: true,
+      when: () => get('Draw Mode') === 'streams',
     },
   })
   const get = (prop: string) => getProp('field', prop)
@@ -211,7 +203,6 @@ export default (s) => {
     constraintRadius: get('Constraint Radius'),
     minWidth: get('Min Width'),
     maxWidth: get('Max Width'),
-    pepperStrength: get('Pepper Strength'),
     colorScheme: get('Color Scheme'),
     colorMode: get('Color Mode'),
     showImage: get('Show Image'),
@@ -355,8 +346,6 @@ export default (s) => {
     const {
       minWidth,
       maxWidth,
-      pepperStrength,
-      colorScheme,
       avoidanceRadius,
       colorMode,
       drawMode,
@@ -456,18 +445,6 @@ export default (s) => {
               })
             })
             if (!isAngularColorMode && !isDotDrawMode) s.endShape()
-          }
-
-          if (pepperStrength > 0) {
-            line.forEach((point) => {
-              if (Math.random() < pepperStrength) {
-                s.push()
-                s.noStroke()
-                s.fill(`${randomColor(colorScheme)}AA`)
-                s.circle(point.x, point.y, (Math.random() * props.maxWidth) / 3)
-                s.pop()
-              }
-            })
           }
         })
       )
