@@ -13,7 +13,7 @@ import { getRandomImage } from '../images'
 
 const _COLOR_SCHEMES_ = ['oceanscape', 'iceland', 'fiery furnace'] as const
 const _NOISE_MODE_ = ['simplex', 'perlin', 'curl', 'image'] as const
-const _DRAW_MODE_ = ['streams', 'fluid', 'dots'] as const
+const _DRAW_MODE_ = ['streams', 'outlines', 'dots', 'fluid'] as const
 const _CONSTRAINT_MODE_ = ['none', 'circle'] as const
 const _COLOR_MODE_ = [
   'random from scheme',
@@ -86,7 +86,7 @@ export default (s) => {
     },
     'Line Length': {
       type: 'number',
-      default: 3,
+      default: 6,
       min: 1,
     },
     Noise: {
@@ -99,7 +99,7 @@ export default (s) => {
       type: 'number',
       default: 0,
       min: 0,
-      step: Math.PI / 5096,
+      step: 0.01,
     },
     Density: {
       type: 'number',
@@ -114,7 +114,10 @@ export default (s) => {
       min: 0,
       max: 1,
       step: 0.025,
-      when: () => get('Draw Mode') === 'streams',
+      when: () => {
+        const drawMode = get('Draw Mode')
+        return drawMode === 'streams' || drawMode === 'outlines'
+      },
     },
     'Min Width': {
       type: 'number',
@@ -188,6 +191,11 @@ export default (s) => {
       default: true,
       when: () => get('Draw Mode') === 'streams',
     },
+    'Outline Width': {
+      type: 'number',
+      default: 3,
+      when: () => get('Draw Mode') === 'outlines',
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
@@ -210,6 +218,7 @@ export default (s) => {
     monochromeColor: get('Color'),
     dotSkip: get('Dot Skip'),
     squareCap: get('Square Cap'),
+    outlineWidth: get('Outline Width'),
   })
 
   const getPointFromRC = (n: number, r: number, c: number): Point => {
@@ -264,7 +273,7 @@ export default (s) => {
               p.y >= 0 &&
               p.y <= window.innerHeight
             : p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY
-        while (Math.random() < continuation && inBounds()) {
+        while (Math.random() < continuation - 0.01 && inBounds()) {
           const angle = noiseFn(p.x, p.y)
           const nextP = coordWithAngleAndDistance(p, angle, lineLength)
           lines[lines.length - 1].push(nextP)
@@ -371,11 +380,37 @@ export default (s) => {
         return true
       })
 
-    const isDotDrawMode = drawMode === 'dots'
     const isAngularColorMode = colorMode === 'angular'
 
     const lines = buildStreamLines(props, noiseFn)
     if (beforeDraw) beforeDraw()
+
+    const constructChoppedLines = (
+      line: Point[],
+      strokeWeight: number
+    ): Point[][] => {
+      const choppedLines: Point[][] = []
+      let cursor = 0
+      while (cursor < line.length) {
+        const sliced = line.slice(cursor)
+        let breakFlag = false
+        choppedLines.push([])
+        sliced.forEach((p, i) => {
+          cursor = i + 1
+          if (breakFlag) return
+          if (isClaimed(p, strokeWeight, avoidanceRadius, line)) {
+            breakFlag = true
+            return
+          }
+          drawnPoints.push({
+            point: p,
+            width: strokeWeight,
+          })
+          choppedLines[choppedLines.length - 1].push(p)
+        })
+      }
+      return choppedLines
+    }
 
     shuffle(lines).forEach((line) => {
       timeouts.push(
@@ -389,58 +424,84 @@ export default (s) => {
             props,
             firstPoint.x,
             firstPoint.y,
-            isDotDrawMode ? 'fill' : 'stroke'
+            drawMode === 'dots' ? 'fill' : 'stroke'
           )
 
-          const drawDot = (p: Point) => {
-            if (!(cursor % dotSkip)) {
-              s.noStroke()
-              s.circle(p.x, p.y, getWidth(minWidth, maxWidth))
-            }
+          const drawDot = (p: Point, i: number) => {
+            if (i % dotSkip) return
+
+            s.noStroke()
+            s.circle(p.x, p.y, getWidth(minWidth, maxWidth))
           }
 
-          let cursor = 0
-          while (cursor < line.length) {
-            if (!isAngularColorMode && !isDotDrawMode) s.beginShape()
-            const sliced = line.slice(cursor)
-            let breakFlag = false
-            sliced.forEach((p, i) => {
-              cursor = i + 1
-              if (breakFlag) return
-              if (isClaimed(p, strokeWeight, avoidanceRadius, line)) {
-                breakFlag = true
-                return
-              }
-              if (isAngularColorMode) {
+          const choppedLines = constructChoppedLines(line, strokeWeight)
+          if (drawMode === 'outlines') {
+            choppedLines.forEach((line) => {
+              const queue: Point[] = []
+              const stack: Point[] = []
+              line.forEach((p, i) => {
                 if (i > 0) {
-                  const prev = sliced[i - 1]
+                  const prev = line[i - 1]
                   const theta = thetaFromTwoPoints(p, prev)
-                  setColor(
-                    props,
-                    p.x,
-                    p.y,
-                    isDotDrawMode ? 'fill' : 'stroke',
-                    theta
+                  const p1 = coordWithAngleAndDistance(
+                    prev,
+                    theta - Math.PI / 2,
+                    strokeWeight / 2
                   )
-                  if (isDotDrawMode) {
-                    drawDot(p)
+                  const p2 = coordWithAngleAndDistance(
+                    prev,
+                    theta + Math.PI / 2,
+                    strokeWeight / 2
+                  )
+                  queue.push(p1)
+                  stack.push(p2)
+                }
+              })
+              s.strokeWeight(props.outlineWidth)
+              s.beginShape()
+              line.forEach(() => {
+                const p = queue.shift()
+                if (!p) return
+                s.vertex(p.x, p.y)
+              })
+              line.forEach(() => {
+                const p = stack.pop()
+                if (!p) return
+                s.vertex(p.x, p.y)
+              })
+              s.endShape(s.CLOSE)
+            })
+          } else {
+            choppedLines.forEach((line) => {
+              if (!isAngularColorMode && drawMode !== 'dots') s.beginShape()
+              line.forEach((p, i) => {
+                if (isAngularColorMode) {
+                  if (i > 0) {
+                    const prev = line[i - 1]
+                    const theta = thetaFromTwoPoints(p, prev)
+                    setColor(
+                      props,
+                      p.x,
+                      p.y,
+                      drawMode === 'dots' ? 'fill' : 'stroke',
+                      theta
+                    )
+                    if (drawMode === 'dots') {
+                      drawDot(p, i)
+                    } else {
+                      s.line(prev.x, prev.y, p.x, p.y)
+                    }
+                  }
+                } else {
+                  if (drawMode === 'dots') {
+                    drawDot(p, i)
                   } else {
-                    s.line(prev.x, prev.y, p.x, p.y)
+                    s.vertex(p.x, p.y)
                   }
                 }
-              } else {
-                if (isDotDrawMode) {
-                  drawDot(p)
-                } else {
-                  s.vertex(p.x, p.y)
-                }
-              }
-              drawnPoints.push({
-                point: p,
-                width: strokeWeight,
               })
+              if (!isAngularColorMode && drawMode !== 'dots') s.endShape()
             })
-            if (!isAngularColorMode && !isDotDrawMode) s.endShape()
           }
         })
       )
@@ -620,6 +681,7 @@ export default (s) => {
     }
     switch (drawMode) {
       case 'dots':
+      case 'outlines':
       case 'streams': {
         drawStreams(props, noiseFn, () => {
           if (!props.showImage) s.clear()
