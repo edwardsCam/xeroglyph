@@ -14,7 +14,7 @@ import { getRandomImage } from '../images'
 const _COLOR_SCHEMES_ = ['oceanscape', 'iceland', 'fiery furnace'] as const
 const _NOISE_MODE_ = ['simplex', 'perlin', 'curl', 'image'] as const
 const _DRAW_MODE_ = ['streams', 'outlines', 'dots', 'fluid'] as const
-const _CONSTRAINT_MODE_ = ['none', 'circle'] as const
+const _CONSTRAINT_MODE_ = ['square', 'circle'] as const
 const _COLOR_MODE_ = [
   'random from scheme',
   'angular',
@@ -50,6 +50,7 @@ type Props = {
   noiseMode: NoiseMode
   constraintMode: ConstraintMode
   constraintRadius: number
+  allowGrowthOutsideRadius: boolean
   minWidth: number
   maxWidth: number
   colorScheme: ColorScheme
@@ -59,6 +60,7 @@ type Props = {
   monochromeColor: string
   dotSkip: number
   squareCap: boolean
+  outlineWidth: number
 }
 
 const coolColors = ['#314B99', '#058FE6', '#0FFFCF', '#0296BF', '#FFF8DB']
@@ -153,14 +155,17 @@ export default (s) => {
     },
     'Constraint Mode': {
       type: 'dropdown',
-      default: 'none',
+      default: _CONSTRAINT_MODE_[0],
       options: [..._CONSTRAINT_MODE_],
     },
     'Constraint Radius': {
       type: 'number',
-      default: 375,
+      default: Math.min(window.innerWidth, window.innerHeight) / 2,
       min: 1,
-      when: () => get('Constraint Mode') === 'circle',
+    },
+    'Allow Growth Outside Radius': {
+      type: 'boolean',
+      default: true,
     },
     'Color Mode': {
       type: 'dropdown',
@@ -209,6 +214,7 @@ export default (s) => {
     distortion: get('Distortion'),
     constraintMode: get('Constraint Mode'),
     constraintRadius: get('Constraint Radius'),
+    allowGrowthOutsideRadius: get('Allow Growth Outside Radius'),
     minWidth: get('Min Width'),
     maxWidth: get('Max Width'),
     colorScheme: get('Color Scheme'),
@@ -252,6 +258,7 @@ export default (s) => {
       density,
       constraintMode,
       constraintRadius,
+      allowGrowthOutsideRadius,
       lineLength,
       continuation,
     } = props
@@ -262,17 +269,41 @@ export default (s) => {
 
         const p = getPointFromRC(n, r, c)
         lines.push([])
-        const circleConstraint = constraintMode === 'circle'
-        if (circleConstraint && distance(p, center) >= constraintRadius) {
-          continue
+        if (constraintMode === 'circle') {
+          if (distance(p, center) >= constraintRadius) {
+            continue
+          }
+        } else if (constraintMode === 'square') {
+          if (
+            Math.abs(center.x - p.x) >= constraintRadius ||
+            Math.abs(center.y - p.y) >= constraintRadius
+          )
+            continue
         }
-        const inBounds = () =>
-          circleConstraint
-            ? p.x >= 0 &&
-              p.x <= window.innerWidth &&
-              p.y >= 0 &&
-              p.y <= window.innerHeight
-            : p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY
+
+        const inBounds = (): boolean => {
+          if (constraintMode === 'circle') {
+            if (allowGrowthOutsideRadius) {
+              return (
+                p.x >= 0 &&
+                p.x <= window.innerWidth &&
+                p.y >= 0 &&
+                p.y <= window.innerHeight
+              )
+            } else {
+              return distance(p, center) < constraintRadius
+            }
+          } else {
+            if (allowGrowthOutsideRadius) {
+              return p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY
+            } else {
+              return (
+                Math.abs(center.x - p.x) < constraintRadius &&
+                Math.abs(center.y - p.y) < constraintRadius
+              )
+            }
+          }
+        }
         while (Math.random() < continuation - 0.01 && inBounds()) {
           const angle = noiseFn(p.x, p.y)
           const nextP = coordWithAngleAndDistance(p, angle, lineLength)
