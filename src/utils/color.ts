@@ -5,3 +5,6 @@ export const randomColor = (): [number, number, number] => [
   randomInRange(0, 255, true),
   randomInRange(0, 255, true),
 ]
+
+export const sanitizeHex = (str: string): string =>
+  str.startsWith('#') ? str : '#' + str

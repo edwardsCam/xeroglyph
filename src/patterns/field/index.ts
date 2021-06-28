@@ -6,18 +6,25 @@ import {
   distance,
   interpolate,
 } from 'utils/math'
+import { sanitizeHex } from 'utils/color'
 import { getCenter, getBoundedSize } from 'utils/window'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle'
 import { getRandomImage } from '../images'
 
+// const CANVAS_WIDTH = 3456
+// const CANVAS_HEIGHT = 1152
+
+const CANVAS_WIDTH = window.innerWidth
+const CANVAS_HEIGHT = window.innerHeight
+
 const _COLOR_SCHEMES_ = ['oceanscape', 'iceland', 'fiery furnace'] as const
 const _NOISE_MODE_ = ['simplex', 'perlin', 'curl', 'image'] as const
 const _DRAW_MODE_ = ['streams', 'outlines', 'dots', 'fluid'] as const
-const _CONSTRAINT_MODE_ = ['square', 'circle'] as const
+const _CONSTRAINT_MODE_ = ['rect', 'circle'] as const
 const _COLOR_MODE_ = [
-  'random from scheme',
   'angular',
+  'random from scheme',
   'sectors',
   'random',
   'monochrome',
@@ -50,6 +57,8 @@ type Props = {
   noiseMode: NoiseMode
   constraintMode: ConstraintMode
   constraintRadius: number
+  rectXSize: number
+  rectYSize: number
   allowGrowthOutsideRadius: boolean
   minWidth: number
   maxWidth: number
@@ -61,6 +70,7 @@ type Props = {
   dotSkip: number
   squareCap: boolean
   outlineWidth: number
+  background: string
 }
 
 const coolColors = ['#314B99', '#058FE6', '#0FFFCF', '#0296BF', '#FFF8DB']
@@ -93,7 +103,7 @@ export default (s) => {
     },
     Noise: {
       type: 'number',
-      default: 2,
+      default: 0.8,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
     },
@@ -133,7 +143,7 @@ export default (s) => {
     },
     'Avoidance Radius': {
       type: 'number',
-      default: 2,
+      default: 3,
       min: Number.NEGATIVE_INFINITY,
     },
     'Noise Mode': {
@@ -160,12 +170,25 @@ export default (s) => {
     },
     'Constraint Radius': {
       type: 'number',
-      default: Math.min(window.innerWidth, window.innerHeight) / 2,
+      default: Math.min(window.innerWidth, window.innerHeight) / 2.5,
       min: 1,
+      when: () => get('Constraint Mode') === 'circle',
+    },
+    'Rect X size': {
+      type: 'number',
+      default: CANVAS_WIDTH,
+      min: 1,
+      when: () => get('Constraint Mode') === 'rect',
+    },
+    'Rect Y size': {
+      type: 'number',
+      default: CANVAS_HEIGHT,
+      min: 1,
+      when: () => get('Constraint Mode') === 'rect',
     },
     'Allow Growth Outside Radius': {
       type: 'boolean',
-      default: true,
+      default: false,
     },
     'Color Mode': {
       type: 'dropdown',
@@ -201,6 +224,10 @@ export default (s) => {
       default: 3,
       when: () => get('Draw Mode') === 'outlines',
     },
+    Background: {
+      type: 'string',
+      default: '#000',
+    },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
@@ -214,6 +241,8 @@ export default (s) => {
     distortion: get('Distortion'),
     constraintMode: get('Constraint Mode'),
     constraintRadius: get('Constraint Radius'),
+    rectXSize: get('Rect X size'),
+    rectYSize: get('Rect Y size'),
     allowGrowthOutsideRadius: get('Allow Growth Outside Radius'),
     minWidth: get('Min Width'),
     maxWidth: get('Max Width'),
@@ -225,21 +254,25 @@ export default (s) => {
     dotSkip: get('Dot Skip'),
     squareCap: get('Square Cap'),
     outlineWidth: get('Outline Width'),
+    background: get('Background'),
   })
 
   const getPointFromRC = (n: number, r: number, c: number): Point => {
-    const center = getCenter()
-    const totalLength = getBoundedSize()
-    const squareLen = getSquareLen(n, totalLength)
+    const halfWidth = CANVAS_WIDTH / 2
+    const halfHeight = CANVAS_HEIGHT / 2
+    const center = {
+      x: halfWidth,
+      y: halfHeight,
+    }
     return {
       x: interpolate(
         [0, n - 1],
-        [center.x - totalLength / 2, center.x + totalLength / 2 - squareLen],
+        [center.x - halfWidth, center.x + halfWidth],
         c
       ),
       y: interpolate(
         [0, n - 1],
-        [center.y - totalLength / 2, center.y + totalLength / 2 - squareLen],
+        [center.y - halfHeight, center.y + halfHeight],
         r
       ),
     }
@@ -251,13 +284,17 @@ export default (s) => {
 
   const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
     const lines: Point[][] = []
-    const center = getCenter()
-    const { minX, maxX, minY, maxY } = getBounds(undefined, center)
+    const center = {
+      x: CANVAS_WIDTH / 2,
+      y: CANVAS_HEIGHT / 2,
+    }
     const {
       n,
       density,
       constraintMode,
       constraintRadius,
+      rectXSize,
+      rectYSize,
       allowGrowthOutsideRadius,
       lineLength,
       continuation,
@@ -273,37 +310,33 @@ export default (s) => {
           if (distance(p, center) >= constraintRadius) {
             continue
           }
-        } else if (constraintMode === 'square') {
+        } else if (constraintMode === 'rect') {
           if (
-            Math.abs(center.x - p.x) >= constraintRadius ||
-            Math.abs(center.y - p.y) >= constraintRadius
-          )
+            Math.abs(center.x - p.x) * 2 >= rectXSize ||
+            Math.abs(center.y - p.y) * 2 >= rectYSize
+          ) {
             continue
+          }
         }
 
         const inBounds = (): boolean => {
-          if (constraintMode === 'circle') {
-            if (allowGrowthOutsideRadius) {
-              return (
-                p.x >= 0 &&
-                p.x <= window.innerWidth &&
-                p.y >= 0 &&
-                p.y <= window.innerHeight
-              )
-            } else {
-              return distance(p, center) < constraintRadius
-            }
+          if (allowGrowthOutsideRadius) {
+            return (
+              p.x >= 0 &&
+              p.x <= CANVAS_WIDTH &&
+              p.y >= 0 &&
+              p.y <= CANVAS_HEIGHT
+            )
+          } else if (constraintMode === 'circle') {
+            return distance(p, center) < constraintRadius
           } else {
-            if (allowGrowthOutsideRadius) {
-              return p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY
-            } else {
-              return (
-                Math.abs(center.x - p.x) < constraintRadius &&
-                Math.abs(center.y - p.y) < constraintRadius
-              )
-            }
+            return (
+              Math.abs(center.x - p.x) * 2 < rectXSize &&
+              Math.abs(center.y - p.y) * 2 < rectYSize
+            )
           }
         }
+
         while (Math.random() < continuation - 0.01 && inBounds()) {
           const angle = noiseFn(p.x, p.y)
           const nextP = coordWithAngleAndDistance(p, angle, lineLength)
@@ -331,11 +364,7 @@ export default (s) => {
         ? (...args) => s.stroke(...args)
         : (...args) => s.fill(...args)
     if (colorMode === 'monochrome') {
-      let sanitized = monochromeColor
-      if (!sanitized.startsWith('#')) {
-        sanitized = '#' + sanitized
-      }
-      setFn(sanitized)
+      setFn(sanitizeHex(monochromeColor))
     } else if (colorMode === 'random from scheme') {
       setFn(randomColor(colorScheme))
     } else if (colorMode === 'sectors') {
@@ -348,10 +377,16 @@ export default (s) => {
       const alphaHex = Math.round(alpha).toString(16)
       setFn(`${colors[quadrant]}${alphaHex}`)
     } else if (colorMode === 'angular' && angle != null) {
+      const val = Math.sin(angle / 2 + Math.PI / 2)
+      const salt = interpolate(
+        [0, CANVAS_WIDTH + CANVAS_HEIGHT],
+        [-65, 65],
+        x + y
+      )
       setFn(
-        Math.floor(interpolate([-Math.PI, Math.PI], [34, 140], angle)),
-        Math.floor(interpolate([-Math.PI, Math.PI], [13, 36], angle)),
-        Math.floor(interpolate([-Math.PI, Math.PI], [94, 69], angle))
+        Math.floor(interpolate([0, 1], [215, 269], val) + salt),
+        Math.floor(interpolate([0, 1], [62, 51], val)),
+        Math.floor(interpolate([0, 1], [90, 100], val))
       )
     } else if (colorMode === 'random') {
       setFn(
@@ -403,6 +438,10 @@ export default (s) => {
       line: Point[]
     ): boolean =>
       drawnPoints.some(({ point: otherPoint, width: otherPointWidth }) => {
+        if (p.x < pointWidth) return true
+        if (p.y < pointWidth) return true
+        if (p.x > CANVAS_WIDTH - pointWidth) return true
+        if (p.y > CANVAS_HEIGHT - pointWidth) return true
         const dist =
           distance(p, otherPoint) - (pointWidth + otherPointWidth) / 2
         const isClose = dist < avoidanceRadius
@@ -509,7 +548,7 @@ export default (s) => {
                 if (isAngularColorMode) {
                   if (i > 0) {
                     const prev = line[i - 1]
-                    const theta = thetaFromTwoPoints(p, prev)
+                    const theta = thetaFromTwoPoints(prev, p)
                     setColor(
                       props,
                       p.x,
@@ -520,7 +559,13 @@ export default (s) => {
                     if (drawMode === 'dots') {
                       drawDot(p, i)
                     } else {
-                      s.line(prev.x, prev.y, p.x, p.y)
+                      const d = distance(prev, p)
+                      const extrapolated = coordWithAngleAndDistance(
+                        prev,
+                        theta,
+                        d * 1.25
+                      )
+                      s.line(prev.x, prev.y, extrapolated.x, extrapolated.y)
                     }
                   }
                 } else {
@@ -559,17 +604,19 @@ export default (s) => {
     })
   }
 
-  const getSquareLen = (n: number, totalLength?: number): number =>
-    (totalLength == null ? getBoundedSize() : totalLength) / n
-
-  const getBounds = (_totalLength?: number, _center?: Point): Bounds => {
-    const totalLength = _totalLength == null ? getBoundedSize() : _totalLength
+  const getBounds = (
+    _xLength?: number,
+    _yLength?: number,
+    _center?: Point
+  ): Bounds => {
+    const xLength = _xLength == null ? getBoundedSize() : _xLength
+    const yLength = _yLength == null ? getBoundedSize() : _yLength
     const center = _center || getCenter()
     return {
-      minX: center.x - totalLength / 2,
-      maxX: center.x + totalLength / 2,
-      minY: center.y - totalLength / 2,
-      maxY: center.y + totalLength / 2,
+      minX: center.x - xLength / 2,
+      maxX: center.x + xLength / 2,
+      minY: center.y - yLength / 2,
+      maxY: center.y + yLength / 2,
     }
   }
 
@@ -586,10 +633,16 @@ export default (s) => {
 
   const simplexNoiseFn =
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
-    (x: number, y: number) =>
-      normalizeAngle(
-        distortionFn(simplex.noise2D(x * noiseDamp, y * noiseDamp))
+    (x: number, y: number) => {
+      return normalizeAngle(
+        distortionFn(
+          simplex.noise2D(
+            x * noiseDamp /* + interpolate([0, CANVAS_WIDTH], [0, 0.1], x)*/,
+            y * noiseDamp
+          )
+        )
       )
+    }
 
   const curlNoiseFn =
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
@@ -654,7 +707,7 @@ export default (s) => {
   }
 
   s.setup = () => {
-    s.createCanvas(window.innerWidth, window.innerHeight)
+    s.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     s.frameRate(60)
     initialize()
   }
@@ -705,7 +758,7 @@ export default (s) => {
       }
       case 'image': {
         const totalLength = getBoundedSize()
-        const { minX, minY } = getBounds(totalLength)
+        const { minX, minY } = getBounds(totalLength, totalLength)
         s.image(img, minX, minY, totalLength, totalLength)
         noiseFn = imageNoiseFn(distortionFn, noise)
       }
@@ -715,7 +768,14 @@ export default (s) => {
       case 'outlines':
       case 'streams': {
         drawStreams(props, noiseFn, () => {
-          if (!props.showImage) s.clear()
+          if (!props.showImage) {
+            s.clear()
+            s.push()
+            s.fill(sanitizeHex(props.background))
+            s.noStroke()
+            s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+            s.pop()
+          }
         })
         break
       }
@@ -723,7 +783,7 @@ export default (s) => {
         s.push()
         s.noStroke()
         s.fill('rgba(0, 0, 0, 0.025)')
-        s.rect(0, 0, window.innerWidth, window.innerHeight)
+        s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
         s.pop()
         drawFlow(props, noiseFn)
         break
