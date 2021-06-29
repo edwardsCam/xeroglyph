@@ -7,75 +7,35 @@ import {
   interpolate,
 } from 'utils/math'
 import { sanitizeHex } from 'utils/color'
-import { getCenter, getBoundedSize } from 'utils/window'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle'
+import {
+  Props,
+  _COLOR_SCHEMES_,
+  _NOISE_MODE_,
+  _DRAW_MODE_,
+  _CONSTRAINT_MODE_,
+  _COLOR_MODE_,
+  _LINE_SORT_,
+  ColorScheme,
+} from './props'
 import { getRandomImage } from '../images'
 
-// const CANVAS_WIDTH = 3500
-// const CANVAS_HEIGHT = 1750
-
+/*
+const CANVAS_WIDTH = 3500
+const CANVAS_HEIGHT = 1750
+/*/
 const CANVAS_WIDTH = window.innerWidth
 const CANVAS_HEIGHT = window.innerHeight
+//*/
 
-const _COLOR_SCHEMES_ = ['oceanscape', 'iceland', 'fiery furnace'] as const
-const _NOISE_MODE_ = ['simplex', 'perlin', 'curl', 'image'] as const
-const _DRAW_MODE_ = ['streams', 'outlines', 'dots', 'fluid'] as const
-const _CONSTRAINT_MODE_ = ['rect', 'circle'] as const
-const _COLOR_MODE_ = [
-  'angular',
-  'random from scheme',
-  'sectors',
-  'random',
-  'monochrome',
-] as const
-const _SHUFFLE_MODE_ = ['random', 'quadratic', 'none'] as const
-
-type ColorScheme = typeof _COLOR_SCHEMES_[number]
-type NoiseMode = typeof _NOISE_MODE_[number]
-type DrawMode = typeof _DRAW_MODE_[number]
-type ConstraintMode = typeof _CONSTRAINT_MODE_[number]
-type ColorMode = typeof _COLOR_MODE_[number]
-type ShuffleMode = typeof _SHUFFLE_MODE_[number]
-
-type Bounds = {
-  minX: number
-  maxX: number
-  minY: number
-  maxY: number
+const center: Point = {
+  x: CANVAS_WIDTH / 2,
+  y: CANVAS_HEIGHT / 2,
 }
 
 type NoiseFn = (x: number, y: number) => number
 type NumberConversionFn = (n: number) => number
-
-type Props = {
-  allowGrowthOutsideRadius: boolean
-  avoidanceRadius: number
-  background: string
-  colorMode: ColorMode
-  colorScheme: ColorScheme
-  constraintMode: ConstraintMode
-  constraintRadius: number
-  continuation: number
-  density: number
-  distortion: number
-  dotSkip: number
-  drawMode: DrawMode
-  lineLength: number
-  maxWidth: number
-  minLineLength: number
-  minWidth: number
-  monochromeColor: string
-  n: number
-  noise: number
-  noiseMode: NoiseMode
-  outlineWidth: number
-  rectXSize: number
-  rectYSize: number
-  showImage: boolean
-  shuffleMode: ShuffleMode
-  squareCap: boolean
-}
 
 const coolColors = ['#314B99', '#058FE6', '#0FFFCF', '#0296BF', '#FFF8DB']
 const hotColors = ['#801100', '#D73502', '#FAC000', '#A8A9AD', '#CB4446']
@@ -87,6 +47,97 @@ const oceanScapeColors = [
   '#0FFFF3',
   '#DEFFFC',
 ]
+
+const inBounds = (
+  p: Point,
+  {
+    constraintMode,
+    constraintRadius,
+    rectXSize,
+    rectYSize,
+    allowGrowthOutsideRadius,
+  }: Props
+): boolean => {
+  if (allowGrowthOutsideRadius) {
+    return p.x >= 0 && p.x <= CANVAS_WIDTH && p.y >= 0 && p.y <= CANVAS_HEIGHT
+  }
+
+  if (constraintMode === 'circle') {
+    return distance(p, center) < constraintRadius
+  } else {
+    return (
+      Math.abs(center.x - p.x) * 2 < rectXSize &&
+      Math.abs(center.y - p.y) * 2 < rectYSize
+    )
+  }
+}
+
+const getPointFromRC = (n: number, r: number, c: number): Point => ({
+  x: interpolate([0, n - 1], [0, CANVAS_WIDTH], c),
+  y: interpolate([0, n - 1], [0, CANVAS_HEIGHT], r),
+})
+
+const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
+  const lines: Point[][] = []
+  const {
+    n,
+    density,
+    constraintMode,
+    constraintRadius,
+    rectXSize,
+    rectYSize,
+    lineLength,
+    continuation,
+  } = props
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (Math.random() > density) continue
+      const p = getPointFromRC(n, r, c)
+      if (constraintMode === 'circle') {
+        if (distance(p, center) >= constraintRadius) {
+          continue
+        }
+      } else if (constraintMode === 'rect') {
+        if (
+          Math.abs(center.x - p.x) * 2 >= rectXSize ||
+          Math.abs(center.y - p.y) * 2 >= rectYSize
+        ) {
+          continue
+        }
+      }
+
+      lines.push([])
+      while (Math.random() < continuation - 0.01 && inBounds(p, props)) {
+        const angle = noiseFn(p.x, p.y)
+        const nextP = coordWithAngleAndDistance(p, angle, lineLength)
+        lines[lines.length - 1].push(nextP)
+        p.x = nextP.x
+        p.y = nextP.y
+      }
+    }
+  }
+  return lines.filter((line) => line.length >= 2)
+}
+
+const getRandomWidth = (minWidth: number, maxWidth: number): number =>
+  interpolate([0, 1], [minWidth, maxWidth], Math.random())
+
+const getColors = (colorScheme: ColorScheme): string[] => {
+  switch (colorScheme) {
+    case 'iceland':
+      return coolColors
+    case 'fiery furnace':
+      return hotColors
+    case 'oceanscape':
+      return oceanScapeColors
+  }
+}
+
+const randomColor = (colorScheme: ColorScheme): string => {
+  const colors = getColors(colorScheme)
+  return colors[Math.floor(Math.random() * (colors.length - 1))]
+}
 
 export default (s) => {
   initProps('field', {
@@ -145,6 +196,10 @@ export default (s) => {
       default: 10,
       min: 1,
     },
+    'Random Width': {
+      type: 'boolean',
+      default: false,
+    },
     'Avoidance Radius': {
       type: 'number',
       default: 3,
@@ -174,7 +229,7 @@ export default (s) => {
     },
     'Constraint Radius': {
       type: 'number',
-      default: Math.min(window.innerWidth, window.innerHeight) / 2.5,
+      default: Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 2.5,
       min: 1,
       when: () => get('Constraint Mode') === 'circle',
     },
@@ -233,10 +288,10 @@ export default (s) => {
       default: 5,
       min: 0,
     },
-    Shuffle: {
+    'Line Sort': {
       type: 'dropdown',
-      default: _SHUFFLE_MODE_[0],
-      options: [..._SHUFFLE_MODE_],
+      default: _LINE_SORT_[0],
+      options: [..._LINE_SORT_],
     },
     Background: {
       type: 'string',
@@ -258,6 +313,7 @@ export default (s) => {
     dotSkip: get('Dot Skip'),
     drawMode: get('Draw Mode'),
     lineLength: get('Line Length'),
+    lineSort: get('Line Sort'),
     maxWidth: get('Max Width'),
     minLineLength: get('Min Line Length'),
     minWidth: get('Min Width'),
@@ -266,107 +322,18 @@ export default (s) => {
     noise: get('Noise'),
     noiseMode: get('Noise Mode'),
     outlineWidth: get('Outline Width'),
+    randomWidths: get('Random Width'),
     rectXSize: get('Rect X size'),
     rectYSize: get('Rect Y size'),
     showImage: get('Show Image'),
-    shuffleMode: get('Shuffle'),
     squareCap: get('Square Cap'),
   })
-
-  const getPointFromRC = (n: number, r: number, c: number): Point => {
-    const halfWidth = CANVAS_WIDTH / 2
-    const halfHeight = CANVAS_HEIGHT / 2
-    const center = {
-      x: halfWidth,
-      y: halfHeight,
-    }
-    return {
-      x: interpolate(
-        [0, n - 1],
-        [center.x - halfWidth, center.x + halfWidth],
-        c
-      ),
-      y: interpolate(
-        [0, n - 1],
-        [center.y - halfHeight, center.y + halfHeight],
-        r
-      ),
-    }
-  }
 
   let points: Point[]
   let firstPoints: Point[]
   let timeouts: NodeJS.Timeout[] = []
-
-  const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
-    const lines: Point[][] = []
-    const center = {
-      x: CANVAS_WIDTH / 2,
-      y: CANVAS_HEIGHT / 2,
-    }
-    const {
-      n,
-      density,
-      constraintMode,
-      constraintRadius,
-      rectXSize,
-      rectYSize,
-      allowGrowthOutsideRadius,
-      lineLength,
-      continuation,
-    } = props
-
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
-        if (Math.random() > density) continue
-
-        const p = getPointFromRC(n, r, c)
-        lines.push([])
-        if (constraintMode === 'circle') {
-          if (distance(p, center) >= constraintRadius) {
-            continue
-          }
-        } else if (constraintMode === 'rect') {
-          if (
-            Math.abs(center.x - p.x) * 2 >= rectXSize ||
-            Math.abs(center.y - p.y) * 2 >= rectYSize
-          ) {
-            continue
-          }
-        }
-
-        const inBounds = (): boolean => {
-          if (allowGrowthOutsideRadius) {
-            return (
-              p.x >= 0 &&
-              p.x <= CANVAS_WIDTH &&
-              p.y >= 0 &&
-              p.y <= CANVAS_HEIGHT
-            )
-          } else if (constraintMode === 'circle') {
-            return distance(p, center) < constraintRadius
-          } else {
-            return (
-              Math.abs(center.x - p.x) * 2 < rectXSize &&
-              Math.abs(center.y - p.y) * 2 < rectYSize
-            )
-          }
-        }
-
-        while (Math.random() < continuation - 0.01 && inBounds()) {
-          const angle = noiseFn(p.x, p.y)
-          const nextP = coordWithAngleAndDistance(p, angle, lineLength)
-          lines[lines.length - 1].push(nextP)
-          p.x = nextP.x
-          p.y = nextP.y
-        }
-      }
-    }
-    return lines
-  }
-
-  const getWidth = (minWidth: number, maxWidth: number): number =>
-    interpolate([0, 1], [minWidth, maxWidth], Math.random())
+  let simplex: SimplexNoise
+  let img
 
   const setColor = (
     { colorMode, colorScheme, monochromeColor }: Props,
@@ -413,22 +380,6 @@ export default (s) => {
     }
   }
 
-  const getColors = (colorScheme: ColorScheme): string[] => {
-    switch (colorScheme) {
-      case 'iceland':
-        return coolColors
-      case 'fiery furnace':
-        return hotColors
-      case 'oceanscape':
-        return oceanScapeColors
-    }
-  }
-
-  const randomColor = (colorScheme: ColorScheme): string => {
-    const colors = getColors(colorScheme)
-    return colors[Math.floor(Math.random() * (colors.length - 1))]
-  }
-
   const drawStreams = (
     props: Props,
     noiseFn: NoiseFn,
@@ -441,8 +392,9 @@ export default (s) => {
       colorMode,
       drawMode,
       dotSkip,
-      shuffleMode,
+      lineSort,
       minLineLength,
+      randomWidths,
     } = props
 
     const drawnPoints: {
@@ -455,26 +407,23 @@ export default (s) => {
       pointWidth: number,
       avoidanceRadius: number,
       line: Point[]
-    ): boolean => {
-      return drawnPoints.some(
-        ({ point: otherPoint, width: otherPointWidth }) => {
-          if (
-            p.x < 10 ||
-            p.y < 10 ||
-            p.x > CANVAS_WIDTH - 10 ||
-            p.y > CANVAS_HEIGHT - 10
-          ) {
-            return true
-          }
-          const dist =
-            distance(p, otherPoint) - (pointWidth + otherPointWidth) / 2
-          const isClose = dist < avoidanceRadius
-          if (!isClose) return false
-          if (line.includes(otherPoint)) return false
+    ): boolean =>
+      drawnPoints.some(({ point: otherPoint, width: otherPointWidth }) => {
+        if (
+          p.x < 10 ||
+          p.y < 10 ||
+          p.x > CANVAS_WIDTH - 10 ||
+          p.y > CANVAS_HEIGHT - 10
+        ) {
           return true
         }
-      )
-    }
+        const dist = distance(p, otherPoint)
+        const avgWidth = (pointWidth + otherPointWidth) / 2
+        const trueDist = dist - avgWidth
+        if (trueDist > avoidanceRadius) return false
+        if (line.includes(otherPoint)) return false
+        return true
+      })
 
     const isAngularColorMode = colorMode === 'angular'
 
@@ -511,8 +460,16 @@ export default (s) => {
       return filteredByLength
     }
 
-    let sortedLines = lines
-    switch (shuffleMode) {
+    let sortedLines: Point[][]
+    switch (lineSort) {
+      case 'long': {
+        sortedLines = lines.sort((a, b) => b.length - a.length)
+        break
+      }
+      case 'short': {
+        sortedLines = lines.sort((a, b) => a.length - b.length)
+        break
+      }
       case 'quadratic': {
         sortedLines = lines.sort((a, b) => {
           if (a.length < 1) return 1
@@ -525,15 +482,21 @@ export default (s) => {
         sortedLines = shuffle(lines)
         break
       }
+      case 'none': {
+        sortedLines = lines
+        break
+      }
     }
 
-    sortedLines.forEach((line) => {
+    sortedLines.forEach((line, i) => {
       timeouts.push(
         setTimeout(() => {
           const [firstPoint] = line
           if (!firstPoint) return
 
-          const strokeWeight = getWidth(minWidth, maxWidth)
+          const strokeWeight = randomWidths
+            ? getRandomWidth(minWidth, maxWidth)
+            : interpolate([0, sortedLines.length - 1], [maxWidth, minWidth], i)
           s.strokeWeight(strokeWeight)
           setColor(
             props,
@@ -545,7 +508,7 @@ export default (s) => {
           const drawDot = (p: Point, i: number) => {
             if (i % (dotSkip + 1)) return
             s.noStroke()
-            s.circle(p.x, p.y, getWidth(minWidth, maxWidth))
+            s.circle(p.x, p.y, getRandomWidth(minWidth, maxWidth))
           }
 
           const choppedLines = constructChoppedLines(line, strokeWeight)
@@ -643,25 +606,9 @@ export default (s) => {
         'stroke',
         thetaFromTwoPoints(p, nextP)
       )
-      s.strokeWeight(getWidth(minWidth, maxWidth))
+      s.strokeWeight(getRandomWidth(minWidth, maxWidth))
       s.line(p.x, p.y, nextP.x, nextP.y)
     })
-  }
-
-  const getBounds = (
-    _xLength?: number,
-    _yLength?: number,
-    _center?: Point
-  ): Bounds => {
-    const xLength = _xLength == null ? getBoundedSize() : _xLength
-    const yLength = _yLength == null ? getBoundedSize() : _yLength
-    const center = _center || getCenter()
-    return {
-      minX: center.x - xLength / 2,
-      maxX: center.x + xLength / 2,
-      minY: center.y - yLength / 2,
-      maxY: center.y + yLength / 2,
-    }
   }
 
   const normalizeAngle: NumberConversionFn = (angle) =>
@@ -679,12 +626,7 @@ export default (s) => {
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
     (x: number, y: number) => {
       return normalizeAngle(
-        distortionFn(
-          simplex.noise2D(
-            x * noiseDamp /* + interpolate([0, CANVAS_WIDTH], [0, 0.1], x)*/,
-            y * noiseDamp
-          )
-        )
+        distortionFn(simplex.noise2D(x * noiseDamp, y * noiseDamp))
       )
     }
 
@@ -719,9 +661,6 @@ export default (s) => {
       const angle = interpolate([0, 255], [0, Math.PI * noiseDamp], avg)
       return distortionFn(angle)
     }
-
-  let simplex: SimplexNoise
-  let img
 
   const clearTimeouts = () => {
     timeouts.forEach((timeout) => clearTimeout(timeout))
@@ -801,9 +740,10 @@ export default (s) => {
         break
       }
       case 'image': {
-        const totalLength = getBoundedSize()
-        const { minX, minY } = getBounds(totalLength, totalLength)
-        s.image(img, minX, minY, totalLength, totalLength)
+        const totalLength = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)
+        const x = center.x - totalLength / 2
+        const y = center.y - totalLength / 2
+        s.image(img, x, y, totalLength, totalLength)
         noiseFn = imageNoiseFn(distortionFn, noise)
       }
     }
@@ -812,14 +752,14 @@ export default (s) => {
       case 'outlines':
       case 'streams': {
         drawStreams(props, noiseFn, () => {
-          if (!props.showImage) {
-            s.clear()
-            s.push()
-            s.fill(sanitizeHex(props.background))
-            s.noStroke()
-            s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-            s.pop()
-          }
+          if (props.showImage) return
+
+          s.clear()
+          s.push()
+          s.fill(sanitizeHex(props.background))
+          s.noStroke()
+          s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+          s.pop()
         })
         break
       }
