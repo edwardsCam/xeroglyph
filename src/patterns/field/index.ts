@@ -12,8 +12,8 @@ import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle'
 import { getRandomImage } from '../images'
 
-// const CANVAS_WIDTH = 3456
-// const CANVAS_HEIGHT = 1152
+// const CANVAS_WIDTH = 3500
+// const CANVAS_HEIGHT = 1750
 
 const CANVAS_WIDTH = window.innerWidth
 const CANVAS_HEIGHT = window.innerHeight
@@ -29,12 +29,14 @@ const _COLOR_MODE_ = [
   'random',
   'monochrome',
 ] as const
+const _SHUFFLE_MODE_ = ['random', 'quadratic', 'none'] as const
 
 type ColorScheme = typeof _COLOR_SCHEMES_[number]
 type NoiseMode = typeof _NOISE_MODE_[number]
 type DrawMode = typeof _DRAW_MODE_[number]
 type ConstraintMode = typeof _CONSTRAINT_MODE_[number]
 type ColorMode = typeof _COLOR_MODE_[number]
+type ShuffleMode = typeof _SHUFFLE_MODE_[number]
 
 type Bounds = {
   minX: number
@@ -47,30 +49,32 @@ type NoiseFn = (x: number, y: number) => number
 type NumberConversionFn = (n: number) => number
 
 type Props = {
-  n: number
-  noise: number
-  distortion: number
-  density: number
-  continuation: number
-  lineLength: number
-  drawMode: DrawMode
-  noiseMode: NoiseMode
+  allowGrowthOutsideRadius: boolean
+  avoidanceRadius: number
+  background: string
+  colorMode: ColorMode
+  colorScheme: ColorScheme
   constraintMode: ConstraintMode
   constraintRadius: number
+  continuation: number
+  density: number
+  distortion: number
+  dotSkip: number
+  drawMode: DrawMode
+  lineLength: number
+  maxWidth: number
+  minLineLength: number
+  minWidth: number
+  monochromeColor: string
+  n: number
+  noise: number
+  noiseMode: NoiseMode
+  outlineWidth: number
   rectXSize: number
   rectYSize: number
-  allowGrowthOutsideRadius: boolean
-  minWidth: number
-  maxWidth: number
-  colorScheme: ColorScheme
-  colorMode: ColorMode
   showImage: boolean
-  avoidanceRadius: number
-  monochromeColor: string
-  dotSkip: number
+  shuffleMode: ShuffleMode
   squareCap: boolean
-  outlineWidth: number
-  background: string
 }
 
 const coolColors = ['#314B99', '#058FE6', '#0FFFCF', '#0296BF', '#FFF8DB']
@@ -103,7 +107,7 @@ export default (s) => {
     },
     Noise: {
       type: 'number',
-      default: 0.8,
+      default: 0.7,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
     },
@@ -138,7 +142,7 @@ export default (s) => {
     },
     'Max Width': {
       type: 'number',
-      default: 6,
+      default: 10,
       min: 1,
     },
     'Avoidance Radius': {
@@ -186,9 +190,14 @@ export default (s) => {
       min: 1,
       when: () => get('Constraint Mode') === 'rect',
     },
-    'Allow Growth Outside Radius': {
+    'Allow growth outside constraint': {
       type: 'boolean',
       default: false,
+    },
+    'Square Cap': {
+      type: 'boolean',
+      default: true,
+      when: () => get('Draw Mode') === 'streams',
     },
     'Color Mode': {
       type: 'dropdown',
@@ -214,15 +223,20 @@ export default (s) => {
       default: false,
       when: () => get('Noise Mode') === 'image',
     },
-    'Square Cap': {
-      type: 'boolean',
-      default: true,
-      when: () => get('Draw Mode') === 'streams',
-    },
     'Outline Width': {
       type: 'number',
       default: 3,
       when: () => get('Draw Mode') === 'outlines',
+    },
+    'Min Line Length': {
+      type: 'number',
+      default: 5,
+      min: 0,
+    },
+    Shuffle: {
+      type: 'dropdown',
+      default: _SHUFFLE_MODE_[0],
+      options: [..._SHUFFLE_MODE_],
     },
     Background: {
       type: 'string',
@@ -231,30 +245,32 @@ export default (s) => {
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
-    n: get('n'),
-    lineLength: get('Line Length'),
-    noise: get('Noise'),
-    density: get('Density'),
-    continuation: get('Continuation'),
-    drawMode: get('Draw Mode'),
-    noiseMode: get('Noise Mode'),
-    distortion: get('Distortion'),
+    allowGrowthOutsideRadius: get('Allow growth outside constraint'),
+    avoidanceRadius: get('Avoidance Radius'),
+    background: get('Background'),
+    colorMode: get('Color Mode'),
+    colorScheme: get('Color Scheme'),
     constraintMode: get('Constraint Mode'),
     constraintRadius: get('Constraint Radius'),
+    continuation: get('Continuation'),
+    density: get('Density'),
+    distortion: get('Distortion'),
+    dotSkip: get('Dot Skip'),
+    drawMode: get('Draw Mode'),
+    lineLength: get('Line Length'),
+    maxWidth: get('Max Width'),
+    minLineLength: get('Min Line Length'),
+    minWidth: get('Min Width'),
+    monochromeColor: get('Color'),
+    n: get('n'),
+    noise: get('Noise'),
+    noiseMode: get('Noise Mode'),
+    outlineWidth: get('Outline Width'),
     rectXSize: get('Rect X size'),
     rectYSize: get('Rect Y size'),
-    allowGrowthOutsideRadius: get('Allow Growth Outside Radius'),
-    minWidth: get('Min Width'),
-    maxWidth: get('Max Width'),
-    colorScheme: get('Color Scheme'),
-    colorMode: get('Color Mode'),
     showImage: get('Show Image'),
-    avoidanceRadius: get('Avoidance Radius'),
-    monochromeColor: get('Color'),
-    dotSkip: get('Dot Skip'),
+    shuffleMode: get('Shuffle'),
     squareCap: get('Square Cap'),
-    outlineWidth: get('Outline Width'),
-    background: get('Background'),
   })
 
   const getPointFromRC = (n: number, r: number, c: number): Point => {
@@ -425,30 +441,40 @@ export default (s) => {
       colorMode,
       drawMode,
       dotSkip,
+      shuffleMode,
+      minLineLength,
     } = props
 
     const drawnPoints: {
       point: Point
       width: number
     }[] = []
+
     const isClaimed = (
       p: Point,
       pointWidth: number,
       avoidanceRadius: number,
       line: Point[]
-    ): boolean =>
-      drawnPoints.some(({ point: otherPoint, width: otherPointWidth }) => {
-        if (p.x < pointWidth) return true
-        if (p.y < pointWidth) return true
-        if (p.x > CANVAS_WIDTH - pointWidth) return true
-        if (p.y > CANVAS_HEIGHT - pointWidth) return true
-        const dist =
-          distance(p, otherPoint) - (pointWidth + otherPointWidth) / 2
-        const isClose = dist < avoidanceRadius
-        if (!isClose) return false
-        if (line.includes(otherPoint)) return false
-        return true
-      })
+    ): boolean => {
+      return drawnPoints.some(
+        ({ point: otherPoint, width: otherPointWidth }) => {
+          if (
+            p.x < 10 ||
+            p.y < 10 ||
+            p.x > CANVAS_WIDTH - 10 ||
+            p.y > CANVAS_HEIGHT - 10
+          ) {
+            return true
+          }
+          const dist =
+            distance(p, otherPoint) - (pointWidth + otherPointWidth) / 2
+          const isClose = dist < avoidanceRadius
+          if (!isClose) return false
+          if (line.includes(otherPoint)) return false
+          return true
+        }
+      )
+    }
 
     const isAngularColorMode = colorMode === 'angular'
 
@@ -479,10 +505,29 @@ export default (s) => {
           choppedLines[choppedLines.length - 1].push(p)
         })
       }
-      return choppedLines
+      const filteredByLength = choppedLines.filter(
+        (line) => line.length > minLineLength
+      )
+      return filteredByLength
     }
 
-    shuffle(lines).forEach((line) => {
+    let sortedLines = lines
+    switch (shuffleMode) {
+      case 'quadratic': {
+        sortedLines = lines.sort((a, b) => {
+          if (a.length < 1) return 1
+          if (b.length < 1) return -1
+          return a[0].x * a[0].y - b[0].x * b[0].y
+        })
+        break
+      }
+      case 'random': {
+        sortedLines = shuffle(lines)
+        break
+      }
+    }
+
+    sortedLines.forEach((line) => {
       timeouts.push(
         setTimeout(() => {
           const [firstPoint] = line
@@ -498,8 +543,7 @@ export default (s) => {
           )
 
           const drawDot = (p: Point, i: number) => {
-            if (i % dotSkip) return
-
+            if (i % (dotSkip + 1)) return
             s.noStroke()
             s.circle(p.x, p.y, getWidth(minWidth, maxWidth))
           }
@@ -584,8 +628,8 @@ export default (s) => {
     })
   }
 
-  const drawFlow = (props: Props, noiseFn: NoiseFn): void => {
-    const { lineLength, maxWidth } = props
+  const drawFluid = (props: Props, noiseFn: NoiseFn): void => {
+    const { lineLength, minWidth, maxWidth } = props
     points.forEach((p, i) => {
       const angle = noiseFn(p.x, p.y)
       const nextP = coordWithAngleAndDistance(p, angle, lineLength)
@@ -599,7 +643,7 @@ export default (s) => {
         'stroke',
         thetaFromTwoPoints(p, nextP)
       )
-      s.strokeWeight(maxWidth)
+      s.strokeWeight(getWidth(minWidth, maxWidth))
       s.line(p.x, p.y, nextP.x, nextP.y)
     })
   }
@@ -785,7 +829,7 @@ export default (s) => {
         s.fill('rgba(0, 0, 0, 0.025)')
         s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
         s.pop()
-        drawFlow(props, noiseFn)
+        drawFluid(props, noiseFn)
         break
       }
     }
