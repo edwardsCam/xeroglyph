@@ -29,7 +29,6 @@ export default class Knobs extends React.Component<{ pattern: string }> {
             <label key={prop} className="knob">
               {`${prop}: `}
               <input
-                className="knob-short-input"
                 autoFocus={i === 0}
                 min={min}
                 max={max}
@@ -46,7 +45,6 @@ export default class Knobs extends React.Component<{ pattern: string }> {
             <label key={prop} className="knob">
               {`${prop}: `}
               <input
-                className="knob-short-input"
                 autoFocus={i === 0}
                 onChange={onChange((e) => Boolean(e.target.checked))}
                 type="checkbox"
@@ -93,7 +91,6 @@ export default class Knobs extends React.Component<{ pattern: string }> {
             <label key={prop} className="knob">
               {`${prop}: `}
               <input
-                className="knob-text"
                 name={prop}
                 onChange={onChange((e) => e.target.value)}
                 value={values[prop]}
