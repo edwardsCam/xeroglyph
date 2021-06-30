@@ -120,8 +120,15 @@ const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
   return lines.filter((line) => line.length >= 2)
 }
 
-const getRandomWidth = (minWidth: number, maxWidth: number): number =>
-  interpolate([0, 1], [minWidth, maxWidth], Math.random())
+const getWidth = (
+  minWidth: number,
+  maxWidth: number,
+  random: boolean,
+  progress: number
+): number =>
+  random
+    ? interpolate([0, 1], [minWidth, maxWidth], Math.random())
+    : interpolate([0, 1], [maxWidth, minWidth], progress)
 
 const getColors = (colorScheme: ColorScheme): string[] => {
   switch (colorScheme) {
@@ -488,15 +495,18 @@ export default (s) => {
       }
     }
 
-    sortedLines.forEach((line, i) => {
+    sortedLines.forEach((line, lineIndex) => {
       timeouts.push(
         setTimeout(() => {
           const [firstPoint] = line
           if (!firstPoint) return
 
-          const strokeWeight = randomWidths
-            ? getRandomWidth(minWidth, maxWidth)
-            : interpolate([0, sortedLines.length - 1], [maxWidth, minWidth], i)
+          const strokeWeight = getWidth(
+            minWidth,
+            maxWidth,
+            randomWidths,
+            lineIndex / (sortedLines.length - 1)
+          )
           s.strokeWeight(strokeWeight)
           setColor(
             props,
@@ -508,7 +518,16 @@ export default (s) => {
           const drawDot = (p: Point, i: number) => {
             if (i % (dotSkip + 1)) return
             s.noStroke()
-            s.circle(p.x, p.y, getRandomWidth(minWidth, maxWidth))
+            s.circle(
+              p.x,
+              p.y,
+              getWidth(
+                minWidth,
+                maxWidth,
+                randomWidths,
+                lineIndex / (sortedLines.length - 1)
+              )
+            )
           }
 
           const choppedLines = constructChoppedLines(line, strokeWeight)
@@ -592,7 +611,7 @@ export default (s) => {
   }
 
   const drawFluid = (props: Props, noiseFn: NoiseFn): void => {
-    const { lineLength, minWidth, maxWidth } = props
+    const { lineLength, minWidth, maxWidth, randomWidths } = props
     points.forEach((p, i) => {
       const angle = noiseFn(p.x, p.y)
       const nextP = coordWithAngleAndDistance(p, angle, lineLength)
@@ -606,7 +625,9 @@ export default (s) => {
         'stroke',
         thetaFromTwoPoints(p, nextP)
       )
-      s.strokeWeight(getRandomWidth(minWidth, maxWidth))
+      s.strokeWeight(
+        getWidth(minWidth, maxWidth, randomWidths, i / (points.length - 1))
+      )
       s.line(p.x, p.y, nextP.x, nextP.y)
     })
   }
@@ -741,9 +762,11 @@ export default (s) => {
       }
       case 'image': {
         const totalLength = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)
-        const x = center.x - totalLength / 2
+        const aspect = img.width / img.height
+        const width = totalLength * aspect
+        const x = center.x - width / 2
         const y = center.y - totalLength / 2
-        s.image(img, x, y, totalLength, totalLength)
+        s.image(img, x, y, width, totalLength)
         noiseFn = imageNoiseFn(distortionFn, noise)
       }
     }
