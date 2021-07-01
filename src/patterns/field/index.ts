@@ -34,7 +34,7 @@ const center: Point = {
   y: CANVAS_HEIGHT / 2,
 }
 
-type NoiseFn = (x: number, y: number) => number
+type NoiseFn = (x: number, y: number) => number | null
 type NumberConversionFn = (n: number) => number
 
 const coolColors = ['#314B99', '#058FE6', '#0FFFCF', '#0296BF', '#FFF8DB']
@@ -110,6 +110,8 @@ const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
       lines.push([])
       while (Math.random() < continuation - 0.01 && inBounds(p, props)) {
         const angle = noiseFn(p.x, p.y)
+        if (angle == null) break
+
         const nextP = coordWithAngleAndDistance(p, angle, lineLength)
         lines[lines.length - 1].push(nextP)
         p.x = nextP.x
@@ -165,7 +167,7 @@ export default (s) => {
     },
     Noise: {
       type: 'number',
-      default: 0.7,
+      default: 1.4,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
     },
@@ -195,12 +197,12 @@ export default (s) => {
     },
     'Min Width': {
       type: 'number',
-      default: 3,
+      default: 2,
       min: 1,
     },
     'Max Width': {
       type: 'number',
-      default: 10,
+      default: 5,
       min: 1,
     },
     'Random Width': {
@@ -258,7 +260,7 @@ export default (s) => {
     },
     'Square Cap': {
       type: 'boolean',
-      default: true,
+      default: false,
       when: () => get('Draw Mode') === 'streams',
     },
     'Color Mode': {
@@ -614,6 +616,8 @@ export default (s) => {
     const { lineLength, minWidth, maxWidth, randomWidths } = props
     points.forEach((p, i) => {
       const angle = noiseFn(p.x, p.y)
+      if (angle == null) return
+
       const nextP = coordWithAngleAndDistance(p, angle, lineLength)
       points[i] = nextP
 

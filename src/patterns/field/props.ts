@@ -7,9 +7,9 @@ export const _NOISE_MODE_ = ['simplex', 'perlin', 'curl', 'image'] as const
 export const _DRAW_MODE_ = ['streams', 'outlines', 'dots', 'fluid'] as const
 export const _CONSTRAINT_MODE_ = ['rect', 'circle'] as const
 export const _COLOR_MODE_ = [
+  'sectors',
   'angular',
   'random from scheme',
-  'sectors',
   'random',
   'monochrome',
 ] as const
