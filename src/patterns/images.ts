@@ -1,10 +1,11 @@
 const images: string[] = [
   'spaghetti_memoirs.jpg',
-  'cale.jpg',
   'marshall.jpg',
-  'selfie.jpg',
+  'leaf.jpg',
   'sand_skiing.jpg',
   'bernie.jpg',
+  'moonrise.jpeg',
+  'jess1.jpeg'
 ]
 
 export const getRandomImage = (): string =>
