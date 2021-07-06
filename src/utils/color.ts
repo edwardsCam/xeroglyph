@@ -8,3 +8,10 @@ export const randomColor = (): [number, number, number] => [
 
 export const sanitizeHex = (str: string): string =>
   str.startsWith('#') ? str : '#' + str
+
+export const rgbToDecimal = (r: number, g: number, b: number): number => {
+  const _r = r * 256 * 256
+  const _g = g * 256
+  const _b = b
+  return _r + _g + _b
+}

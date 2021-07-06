@@ -88,6 +88,7 @@ const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
     rectYSize,
     lineLength,
     continuation,
+    minLineLength,
   } = props
 
   for (let r = 0; r < n; r++) {
@@ -119,7 +120,7 @@ const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
       }
     }
   }
-  return lines.filter((line) => line.length >= 2)
+  return lines.filter((line) => line.length >= minLineLength)
 }
 
 const getWidth = (
@@ -434,11 +435,6 @@ export default (s) => {
         return true
       })
 
-    const isAngularColorMode = colorMode === 'angular'
-
-    const lines = buildStreamLines(props, noiseFn)
-    if (beforeDraw) beforeDraw()
-
     const constructChoppedLines = (
       line: Point[],
       strokeWeight: number
@@ -468,6 +464,11 @@ export default (s) => {
       )
       return filteredByLength
     }
+
+    const isAngularColorMode = colorMode === 'angular'
+
+    const lines = buildStreamLines(props, noiseFn)
+    if (beforeDraw) beforeDraw()
 
     let sortedLines: Point[][]
     switch (lineSort) {
