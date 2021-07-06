@@ -350,8 +350,28 @@ export default (s) => {
     x: number,
     y: number,
     type: 'stroke' | 'fill',
-    angle?: number
+    {
+      angle,
+      progress,
+    }: {
+      angle?: number
+      progress?: number
+    }
   ): void => {
+    const interpolateColor = (val: number) => {
+      const salt = interpolate(
+        [0, CANVAS_WIDTH + CANVAS_HEIGHT],
+        [-65, 65],
+        x + y
+      )
+      const domain: [number, number] = [0, 1]
+      setFn(
+        Math.floor(interpolate(domain, [215, 269], val) + salt),
+        Math.floor(interpolate(domain, [62, 51], val)),
+        Math.floor(interpolate(domain, [90, 100], val))
+      )
+    }
+
     const setFn =
       type === 'stroke'
         ? (...args) => s.stroke(...args)
@@ -370,17 +390,9 @@ export default (s) => {
       const alphaHex = Math.round(alpha).toString(16)
       setFn(`${colors[quadrant]}${alphaHex}`)
     } else if (colorMode === 'angular' && angle != null) {
-      const val = Math.sin(angle / 2 + Math.PI / 2)
-      const salt = interpolate(
-        [0, CANVAS_WIDTH + CANVAS_HEIGHT],
-        [-65, 65],
-        x + y
-      )
-      setFn(
-        Math.floor(interpolate([0, 1], [215, 269], val) + salt),
-        Math.floor(interpolate([0, 1], [62, 51], val)),
-        Math.floor(interpolate([0, 1], [90, 100], val))
-      )
+      interpolateColor(Math.sin(angle / 2 + Math.PI / 2))
+    } else if (colorMode === 'gradual' && progress != null) {
+      interpolateColor(progress)
     } else if (colorMode === 'random') {
       setFn(
         Math.floor(interpolate([0, 1], [0, 360], Math.random())),
@@ -515,7 +527,8 @@ export default (s) => {
             props,
             firstPoint.x,
             firstPoint.y,
-            drawMode === 'dots' ? 'fill' : 'stroke'
+            drawMode === 'dots' ? 'fill' : 'stroke',
+            { progress: lineIndex / sortedLines.length }
           )
 
           const drawDot = (p: Point, i: number) => {
@@ -583,7 +596,7 @@ export default (s) => {
                       p.x,
                       p.y,
                       drawMode === 'dots' ? 'fill' : 'stroke',
-                      theta
+                      { angle: theta }
                     )
                     if (drawMode === 'dots') {
                       drawDot(p, i)
@@ -623,13 +636,9 @@ export default (s) => {
       points[i] = nextP
 
       const firstPoint = firstPoints[i]
-      setColor(
-        props,
-        firstPoint.x,
-        firstPoint.y,
-        'stroke',
-        thetaFromTwoPoints(p, nextP)
-      )
+      setColor(props, firstPoint.x, firstPoint.y, 'stroke', {
+        angle: thetaFromTwoPoints(p, nextP),
+      })
       s.strokeWeight(
         getWidth(minWidth, maxWidth, randomWidths, i / (points.length - 1))
       )
