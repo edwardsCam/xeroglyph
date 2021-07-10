@@ -1,5 +1,6 @@
 import { interpolate, Point } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
+import pushpop from 'utils/pushpop'
 
 type Props = {
   n: number
@@ -74,18 +75,18 @@ export default (s) => {
         255
       )
       s.strokeWeight(3)
-      s.push()
-      s.translate(initialPoint.x, initialPoint.y, initialPoint.z)
-      const rate = s.frameCount * rotationRate
-      s.rotateX(rate)
-      s.rotateY(rate)
+      pushpop(s, () => {
+        s.translate(initialPoint.x, initialPoint.y, initialPoint.z)
+        const rate = s.frameCount * rotationRate
+        s.rotateX(rate)
+        s.rotateY(rate)
 
-      for (let i = 1; i < this.points.length; i++) {
-        const p1 = this.points[i - 1]
-        const p2 = this.points[i]
-        s.line(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z)
-      }
-      s.pop()
+        for (let i = 1; i < this.points.length; i++) {
+          const p1 = this.points[i - 1]
+          const p2 = this.points[i]
+          s.line(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z)
+        }
+      })
     }
   }
 

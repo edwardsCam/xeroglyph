@@ -1,4 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
+import pushpop from 'utils/pushpop'
 import RoomGenerator from '../../utils/room-generator'
 import Scribble from '../../p5.scribble'
 
@@ -216,70 +217,69 @@ export default (s) => {
       strokeColor,
       fillColor,
     }: Props) {
-      s.push()
+      pushpop(s, () => {
+        const roomSize =
+          Math.min(window.innerWidth, window.innerHeight) / (n * 2)
+        const boxSize = roomSize * n
+        const offset = boxSize / 2
+        const halfDepth = depth / 2
 
-      const roomSize = Math.min(window.innerWidth, window.innerHeight) / (n * 2)
-      const boxSize = roomSize * n
-      const offset = boxSize / 2
-      const halfDepth = depth / 2
+        switch (this.orientation) {
+          case 0:
+            s.translate(halfDepth + padding, 0, -offset)
+            s.rotateY(0)
+            break
+          case 1:
+            s.translate(offset + padding, padding + depth, halfDepth + padding)
+            s.rotateY(Math.PI / 2)
+            break
+          case 2:
+            s.translate(-halfDepth, padding + depth, offset + padding)
+            s.rotateY(Math.PI)
+            break
+          case 3:
+            s.translate(-offset, 0, -halfDepth)
+            s.rotateY((3 * Math.PI) / 2)
+            break
+          case 4:
+            s.translate(-halfDepth, offset + padding + halfDepth, -halfDepth)
+            s.rotateX(Math.PI / 2)
+            break
+          case 5:
+            s.translate(
+              padding + halfDepth,
+              halfDepth - offset,
+              padding + halfDepth
+            )
+            s.rotateX((3 * Math.PI) / 2)
+            break
+        }
+        s.stroke(strokeColor)
+        s.fill(fillColor)
 
-      switch (this.orientation) {
-        case 0:
-          s.translate(halfDepth + padding, 0, -offset)
-          s.rotateY(0)
-          break
-        case 1:
-          s.translate(offset + padding, padding + depth, halfDepth + padding)
-          s.rotateY(Math.PI / 2)
-          break
-        case 2:
-          s.translate(-halfDepth, padding + depth, offset + padding)
-          s.rotateY(Math.PI)
-          break
-        case 3:
-          s.translate(-offset, 0, -halfDepth)
-          s.rotateY((3 * Math.PI) / 2)
-          break
-        case 4:
-          s.translate(-halfDepth, offset + padding + halfDepth, -halfDepth)
-          s.rotateX(Math.PI / 2)
-          break
-        case 5:
-          s.translate(
-            padding + halfDepth,
-            halfDepth - offset,
-            padding + halfDepth
+        this.rooms.forEach((room) => {
+          const { x, y, width, height } = this.getDimensions(
+            room,
+            roomSize,
+            n,
+            offset,
+            padding
           )
-          s.rotateX((3 * Math.PI) / 2)
-          break
-      }
-      s.stroke(strokeColor)
-      s.fill(fillColor)
-
-      this.rooms.forEach((room) => {
-        const { x, y, width, height } = this.getDimensions(
-          room,
-          roomSize,
-          n,
-          offset,
-          padding
-        )
-        drawCube(
-          {
-            coords: {
-              x1: x,
-              y1: y,
-              x2: x + width,
-              y2: y + height,
+          drawCube(
+            {
+              coords: {
+                x1: x,
+                y1: y,
+                x2: x + width,
+                y2: y + height,
+              },
+              depth,
+              strokeWeight,
             },
-            depth,
-            strokeWeight,
-          },
-          scribbly
-        )
+            scribbly
+          )
+        })
       })
-
-      s.pop()
     }
   }
 
@@ -352,63 +352,60 @@ export default (s) => {
     const avgX = (x1 + x2) / 2
     const avgY = (y1 + y2) / 2
 
-    s.push()
-    s.push()
-    if (scribbly) {
-      s.noStroke()
-    }
+    pushpop(s, () => {
+      pushpop(s, () => {
+        if (scribbly) {
+          s.noStroke()
+        }
 
-    if (depth === 0) {
-      s.rect(x1, y1, dx, dy)
-    } else {
-      s.translate(avgX, avgY)
-      s.box(dx, dy, depth)
-    }
+        if (depth === 0) {
+          s.rect(x1, y1, dx, dy)
+        } else {
+          s.translate(avgX, avgY)
+          s.box(dx, dy, depth)
+        }
+      })
 
-    s.pop()
+      if (scribbly) {
+        pushpop(s, () => {
+          s.strokeWeight(strokeWeight)
+          s.translate(0, 0, -depth / 2)
+          scribble.scribbleLine(x1, y1, x2, y1)
+          scribble.scribbleLine(x2, y1, x2, y2)
+          scribble.scribbleLine(x2, y2, x1, y2)
+          scribble.scribbleLine(x1, y2, x1, y1)
 
-    if (scribbly) {
-      s.push()
-      s.strokeWeight(strokeWeight)
-      s.translate(0, 0, -depth / 2)
-      scribble.scribbleLine(x1, y1, x2, y1)
-      scribble.scribbleLine(x2, y1, x2, y2)
-      scribble.scribbleLine(x2, y2, x1, y2)
-      scribble.scribbleLine(x1, y2, x1, y1)
+          s.translate(0, 0, depth)
+          scribble.scribbleLine(x1, y1, x2, y1)
+          scribble.scribbleLine(x2, y1, x2, y2)
+          scribble.scribbleLine(x2, y2, x1, y2)
+          scribble.scribbleLine(x1, y2, x1, y1)
 
-      s.translate(0, 0, depth)
-      scribble.scribbleLine(x1, y1, x2, y1)
-      scribble.scribbleLine(x2, y1, x2, y2)
-      scribble.scribbleLine(x2, y2, x1, y2)
-      scribble.scribbleLine(x1, y2, x1, y1)
+          s.translate(x1, y1, -depth)
+          pushpop(s, () => {
+            s.rotateX(Math.PI / 2)
+            scribble.scribbleLine(0, 0, 0, depth)
+          })
 
-      s.translate(x1, y1, -depth)
-      s.push()
-      s.rotateX(Math.PI / 2)
-      scribble.scribbleLine(0, 0, 0, depth)
-      s.pop()
+          pushpop(s, () => {
+            s.translate(-x1 * 2, 0, 0)
+            s.rotateX(Math.PI / 2)
+            scribble.scribbleLine(0, 0, 0, depth)
+          })
 
-      s.push()
-      s.translate(-x1 * 2, 0, 0)
-      s.rotateX(Math.PI / 2)
-      scribble.scribbleLine(0, 0, 0, depth)
-      s.pop()
+          pushpop(s, () => {
+            s.translate(-x1 * 2, -y1 * 2, 0)
+            s.rotateX(Math.PI / 2)
+            scribble.scribbleLine(0, 0, 0, depth)
+          })
 
-      s.push()
-      s.translate(-x1 * 2, -y1 * 2, 0)
-      s.rotateX(Math.PI / 2)
-      scribble.scribbleLine(0, 0, 0, depth)
-      s.pop()
-
-      s.push()
-      s.translate(0, -y1 * 2, 0)
-      s.rotateX(Math.PI / 2)
-      scribble.scribbleLine(0, 0, 0, depth)
-      s.pop()
-
-      s.pop()
-    }
-
-    s.pop()
+          pushpop(s, () => {
+            s.translate(0, -y1 * 2, 0)
+            s.rotateX(Math.PI / 2)
+            scribble.scribbleLine(0, 0, 0, depth)
+          })
+        })
+      }
+    })
   }
 }

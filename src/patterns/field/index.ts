@@ -9,6 +9,7 @@ import {
 import { sanitizeHex } from 'utils/color'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle'
+import pushpop from 'utils/pushpop'
 import {
   Props,
   _COLOR_SCHEMES_,
@@ -792,20 +793,20 @@ export default (s) => {
           if (props.showImage) return
 
           s.clear()
-          s.push()
-          s.fill(sanitizeHex(props.background))
-          s.noStroke()
-          s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-          s.pop()
+          pushpop(s, () => {
+            s.fill(sanitizeHex(props.background))
+            s.noStroke()
+            s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+          })
         })
         break
       }
       case 'fluid': {
-        s.push()
-        s.noStroke()
-        s.fill('rgba(0, 0, 0, 0.025)')
-        s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-        s.pop()
+        pushpop(s, () => {
+          s.noStroke()
+          s.fill('rgba(0, 0, 0, 0.025)')
+          s.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+        })
         drawFluid(props, noiseFn)
         break
       }

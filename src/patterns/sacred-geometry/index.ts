@@ -1,4 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
+import pushpop from 'utils/pushpop'
 import { Props, _PATTERNS, _ZECTANGLE_SHAPES } from './common'
 import page71 from './page-71'
 import zectangles from './zectangle'
@@ -117,11 +118,11 @@ export default (s) => {
       return
     }
     s.clear()
-    s.push()
-    // s.fill('#755dd4')
-    s.fill('#d4a45d')
-    s.rect(0, 0, window.innerWidth, window.innerHeight)
-    s.pop()
+    pushpop(s, () => {
+      // s.fill('#755dd4')
+      s.fill('#d4a45d')
+      s.rect(0, 0, window.innerWidth, window.innerHeight)
+    })
     drawPattern(props)
     last = props
   }

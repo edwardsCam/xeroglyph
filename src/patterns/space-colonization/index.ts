@@ -2,6 +2,7 @@ import { Vector } from 'p5'
 import { init as initProps, getProp } from 'utils/propConfig'
 import Tree, { LeafMode } from 'utils/space-colonization/tree'
 import { distance, Point, interpolate } from 'utils/math'
+import pushpop from 'utils/pushpop'
 import { getBoundedSize } from 'utils/window'
 
 type Props = {
@@ -169,39 +170,41 @@ export default (s) => {
       })
     }
 
-    s.push()
-    const noiseDamp = 0.005
-    const noise = (p: Point) =>
-      s.noise(
-        (p.x - window.innerWidth / 2) *
-          noiseDamp *
-          Math.sin(s.frameCount / 100),
-        (p.y - window.innerHeight / 2) * noiseDamp * Math.cos(s.frameCount / 80)
-      ) * waviness
-    display.branches.forEach(([p1, p2], i: number) => {
-      if (!wavy && !showLeaves && i < lastDrawnBranch) return
-      lastDrawnBranch = i
-      const dist = distance(origin, p1)
-      const weight = interpolate(
-        [-0.00001, minSize / (falloff * 2)],
-        thiccCenter ? [maxWeight, minWeight] : [minWeight, maxWeight],
-        dist
-      )
-      const hue = Math.floor(interpolate([0, minSize], [270, 340], dist))
-      const sat = Math.floor(interpolate([0, minSize], [92, 100], dist))
-      const bri = Math.floor(interpolate([0, minSize], [95, 100], dist))
-      s.stroke([hue, sat, bri])
-      s.strokeWeight(weight)
+    pushpop(s, () => {
+      const noiseDamp = 0.005
+      const noise = (p: Point) =>
+        s.noise(
+          (p.x - window.innerWidth / 2) *
+            noiseDamp *
+            Math.sin(s.frameCount / 100),
+          (p.y - window.innerHeight / 2) *
+            noiseDamp *
+            Math.cos(s.frameCount / 80)
+        ) * waviness
+      display.branches.forEach(([p1, p2], i: number) => {
+        if (!wavy && !showLeaves && i < lastDrawnBranch) return
+        lastDrawnBranch = i
+        const dist = distance(origin, p1)
+        const weight = interpolate(
+          [-0.00001, minSize / (falloff * 2)],
+          thiccCenter ? [maxWeight, minWeight] : [minWeight, maxWeight],
+          dist
+        )
+        const hue = Math.floor(interpolate([0, minSize], [270, 340], dist))
+        const sat = Math.floor(interpolate([0, minSize], [92, 100], dist))
+        const bri = Math.floor(interpolate([0, minSize], [95, 100], dist))
+        s.stroke([hue, sat, bri])
+        s.strokeWeight(weight)
 
-      if (wavy) {
-        const z1 = noise(p1)
-        const z2 = noise(p2)
-        s.line(p1.x, p1.y, z1, p2.x, p2.y, z2)
-      } else {
-        s.line(p1.x, p1.y, p2.x, p2.y)
-      }
+        if (wavy) {
+          const z1 = noise(p1)
+          const z2 = noise(p2)
+          s.line(p1.x, p1.y, z1, p2.x, p2.y, z2)
+        } else {
+          s.line(p1.x, p1.y, p2.x, p2.y)
+        }
+      })
     })
-    s.pop()
   }
 
   s.setup = () => {

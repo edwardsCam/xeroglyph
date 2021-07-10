@@ -1,6 +1,5 @@
 import {
   Props,
-  drawHex,
   addTimeout,
   clearTimeouts,
   drawLine as _drawLine,
@@ -12,6 +11,7 @@ import {
   Line,
   getIntersectionPoint,
 } from 'utils/math'
+import pushpop from 'utils/pushpop'
 import { hexGrid, HexData } from 'utils/hex'
 
 const ONE_THIRD = 1 / 3
@@ -49,48 +49,48 @@ export default (s, props: Props) => {
     const outsidePercentage = (sideToSide + a) / sideToSide
     const insidePercentage = a / sideToSide
 
-    s.push()
-    s.strokeWeight(props.strokeWeight)
+    pushpop(s, () => {
+      s.strokeWeight(props.strokeWeight)
 
-    // c1 - c6 intersection
-    const c1c6int = getIntersectionPoint(c1, c6)
-    if (c1c6int) {
-      const outside = progressAlongLine(p12, p5, outsidePercentage)
-      const inside = progressAlongLine(p7, p2, insidePercentage)
-      drawLine(c[2], outside)
-      drawLine(outside, c1c6int)
-      drawLine(c1c6int, p2)
+      // c1 - c6 intersection
+      const c1c6int = getIntersectionPoint(c1, c6)
+      if (c1c6int) {
+        const outside = progressAlongLine(p12, p5, outsidePercentage)
+        const inside = progressAlongLine(p7, p2, insidePercentage)
+        drawLine(c[2], outside)
+        drawLine(outside, c1c6int)
+        drawLine(c1c6int, p2)
 
-      drawLine(p7, inside)
-      drawLine(inside, c[3])
-    }
+        drawLine(p7, inside)
+        drawLine(inside, c[3])
+      }
 
-    // c2 - c4 intersection
-    const c2c4int = getIntersectionPoint(c2, c4)
-    if (c2c4int) {
-      const outside = progressAlongLine(p8, p1, outsidePercentage)
-      const inside = progressAlongLine(p11, p6, insidePercentage)
-      drawLine(c[0], outside)
-      drawLine(outside, c2c4int)
-      drawLine(c2c4int, p10)
+      // c2 - c4 intersection
+      const c2c4int = getIntersectionPoint(c2, c4)
+      if (c2c4int) {
+        const outside = progressAlongLine(p8, p1, outsidePercentage)
+        const inside = progressAlongLine(p11, p6, insidePercentage)
+        drawLine(c[0], outside)
+        drawLine(outside, c2c4int)
+        drawLine(c2c4int, p10)
 
-      drawLine(p11, inside)
-      drawLine(inside, c[5])
-    }
+        drawLine(p11, inside)
+        drawLine(inside, c[5])
+      }
 
-    // c3 - c5 intersection
-    const c3c5int = getIntersectionPoint(c3, c5)
-    if (c3c5int) {
-      const outside = progressAlongLine(p4, p9, outsidePercentage)
-      const inside = progressAlongLine(p3, p10, insidePercentage)
-      drawLine(c[4], outside)
-      drawLine(outside, c3c5int)
-      drawLine(c3c5int, p6)
+      // c3 - c5 intersection
+      const c3c5int = getIntersectionPoint(c3, c5)
+      if (c3c5int) {
+        const outside = progressAlongLine(p4, p9, outsidePercentage)
+        const inside = progressAlongLine(p3, p10, insidePercentage)
+        drawLine(c[4], outside)
+        drawLine(outside, c3c5int)
+        drawLine(c3c5int, p6)
 
-      drawLine(p3, inside)
-      drawLine(inside, c[1])
-    }
-    s.pop()
+        drawLine(p3, inside)
+        drawLine(inside, c[1])
+      }
+    })
   }
 
   const { len, roughness } = props

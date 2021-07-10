@@ -7,6 +7,7 @@ import {
   coordWithAngleAndDistance,
 } from 'utils/math'
 import { getCenter, getBoundedSize } from 'utils/window'
+import pushpop from 'utils/pushpop'
 import Venation from 'utils/space-colonization/venation'
 
 const randomLeafyGreenHue = (
@@ -197,7 +198,7 @@ export default (s) => {
 
     draw(props: Props) {
       this.buildBorder()
-      this.drawBorder(props)
+      this.drawBorder()
 
       if (props.drawMode !== 'Solid Color') {
         this.venation.fillByOne(this.border)
@@ -220,52 +221,36 @@ export default (s) => {
         [Math.PI * 2 - Math.PI / 5, this.len / 4],
         root,
       ]
-
-      // const x = this.len / Math.pow(PHI, 5)
-      // this.border = [
-      //   [Math.PI * 0 / 6, x * Math.pow(PHI, 2)],
-      //   [Math.PI * 1 / 6, x * Math.pow(PHI, 3)],
-      //   [Math.PI * 2 / 6, x * Math.pow(PHI, 4)],
-      //   [Math.PI * 3 / 6, x * Math.pow(PHI, 5)],
-      //   [Math.PI * 4 / 6, x * Math.pow(PHI, 4)],
-      //   [Math.PI * 5 / 6, x * Math.pow(PHI, 3)],
-      //   [Math.PI * 6 / 6, x * Math.pow(PHI, 2)],
-      //   [Math.PI * 7 / 6, x * PHI],
-      //   [Math.PI * 8 / 6, x],
-      //   [Math.PI * 9 / 6, 0],
-      //   [Math.PI * 10 / 6, x],
-      //   [Math.PI * 11 / 6, x * PHI],
-      // ]
     }
 
-    drawBorder(props: Props) {
-      s.push()
-      s.strokeWeight(2.5)
-      s.stroke(...randomLeafyGreenHue(10, 15))
-      s.fill(...this.color)
-      s.beginShape()
-      this.border.forEach((point) => {
-        const cart = this.toCartesian(point)
-        s.vertex(cart.x, cart.y)
-      })
-      s.endShape()
-      s.pop()
-    }
-
-    drawBranches() {
-      s.push()
-      s.stroke('black')
-      s.noFill()
-      s.strokeWeight(0.5)
-      this.venation.branches.forEach((branch) => {
+    drawBorder() {
+      pushpop(s, () => {
+        s.strokeWeight(2.5)
+        s.stroke(...randomLeafyGreenHue(10, 15))
+        s.fill(...this.color)
         s.beginShape()
-        branch.points.forEach((vertex) => {
-          const cart = this.toCartesian(vertex)
+        this.border.forEach((point) => {
+          const cart = this.toCartesian(point)
           s.vertex(cart.x, cart.y)
         })
         s.endShape()
       })
-      s.pop()
+    }
+
+    drawBranches() {
+      pushpop(s, () => {
+        s.stroke('black')
+        s.noFill()
+        s.strokeWeight(0.5)
+        this.venation.branches.forEach((branch) => {
+          s.beginShape()
+          branch.points.forEach((vertex) => {
+            const cart = this.toCartesian(vertex)
+            s.vertex(cart.x, cart.y)
+          })
+          s.endShape()
+        })
+      })
     }
 
     toCartesian = (p: PolarCoord): Point =>

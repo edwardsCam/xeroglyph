@@ -1,5 +1,6 @@
 import { interpolate, diff, randomInRange } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
+import pushpop from 'utils/pushpop'
 import { rir, colorSchemes } from './common'
 import Scribble from '../../p5.scribble'
 
@@ -244,10 +245,10 @@ export default (s) => {
       const hue = randomInRange(174, 180)
       s.fill(hue, 94, 66)
     }
-    s.push()
-    s.noStroke()
-    drawSquare(minX, minY, maxX, maxY, radius)
-    s.pop()
+    pushpop(s, () => {
+      s.noStroke()
+      drawSquare(minX, minY, maxX, maxY, radius)
+    })
     scribble.scribbleRect(
       (minX + maxX) / 2,
       (minY + maxY) / 2,

@@ -6,6 +6,7 @@ import {
   Point,
 } from 'utils/math'
 import shuffle from 'utils/shuffle'
+import pushpop from 'utils/pushpop'
 
 type Props = {
   clearOnDraw: boolean
@@ -100,64 +101,65 @@ export default (s) => {
   }
 
   const drawSpotlights = (props: Props): void => {
-    s.push()
-    shuffle(steps(props.spotlightCount)).forEach((x) => {
-      timeouts.push(
-        setTimeout(() => {
-          drawSpotlight(x, props)
-        }, Math.floor(Math.random() * 50))
-      )
+    pushpop(s, () => {
+      shuffle(steps(props.spotlightCount)).forEach((x) => {
+        timeouts.push(
+          setTimeout(() => {
+            drawSpotlight(x, props)
+          }, Math.floor(Math.random() * 50))
+        )
+      })
     })
-    s.pop()
   }
 
   const drawSpotlight = (x: number, { spotlightBrambliness }: Props) => {
-    s.push()
-    const centerOffset = interpolateSmooth(
-      [0, halfPoint()],
-      [1, 0],
-      distFromCenter(x)
-    )
-    const _h = randomInRange(38, 46, true)
-    const _s = randomInRange(62, 65, true)
-    const _b = randomInRange(68, 72, true)
-    const _a = randomInRange(0, 30) + centerOffset * 40
-    s.stroke(_h, _s, _b, _a)
-    s.strokeWeight(randomInRange(0.1, 1.5))
-    s.noFill()
+    pushpop(s, () => {
+      const centerOffset = interpolateSmooth(
+        [0, halfPoint()],
+        [1, 0],
+        distFromCenter(x)
+      )
+      const _h = randomInRange(38, 46, true)
+      const _s = randomInRange(62, 65, true)
+      const _b = randomInRange(68, 72, true)
+      const _a = randomInRange(0, 30) + centerOffset * 40
+      s.stroke(_h, _s, _b, _a)
+      s.strokeWeight(randomInRange(0.1, 1.5))
+      s.noFill()
 
-    const n = randomInRange(3, 50, true)
-    const randomX = (): number =>
-      x + randomInRange(-spotlightBrambliness, spotlightBrambliness)
-    s.beginShape()
-    s.vertex(randomX(), 0)
-    const step = HEIGHT / n
-    for (let i = 1; i < n - 1; i++) {
-      s.vertex(randomX(), i * step)
-    }
-    s.vertex(randomX(), HEIGHT)
+      const n = randomInRange(3, 50, true)
+      const randomX = (): number =>
+        x + randomInRange(-spotlightBrambliness, spotlightBrambliness)
+      s.beginShape()
+      s.vertex(randomX(), 0)
+      const step = HEIGHT / n
+      for (let i = 1; i < n - 1; i++) {
+        s.vertex(randomX(), i * step)
+      }
+      s.vertex(randomX(), HEIGHT)
 
-    s.endShape()
-    s.pop()
+      s.endShape()
+    })
   }
 
   const drawStars = (props: Props): void => {
-    s.push()
-    s.noStroke()
-    const _halfPoint = halfPoint()
-    shuffle(steps(props.starDensityX)).forEach((x) => {
-      const centerOffset = interpolateSmooth(
-        [0, _halfPoint],
-        [0, 1],
-        distFromCenter(x)
-      )
-      const verticalDensity =
-        s.noise(x) * props.starDensityY * 10 * centerOffset
-      timeouts.push(
-        setTimeout(() => {
-          drawStarLine(x, verticalDensity, props)
-        }, Math.floor(Math.random() * 50))
-      )
+    pushpop(s, () => {
+      s.noStroke()
+      const _halfPoint = halfPoint()
+      shuffle(steps(props.starDensityX)).forEach((x) => {
+        const centerOffset = interpolateSmooth(
+          [0, _halfPoint],
+          [0, 1],
+          distFromCenter(x)
+        )
+        const verticalDensity =
+          s.noise(x) * props.starDensityY * 10 * centerOffset
+        timeouts.push(
+          setTimeout(() => {
+            drawStarLine(x, verticalDensity, props)
+          }, Math.floor(Math.random() * 50))
+        )
+      })
     })
   }
 
@@ -229,10 +231,10 @@ export default (s) => {
     clearTimeouts()
     if (props.clearOnDraw) s.clear()
 
-    s.push()
-    s.fill('black')
-    s.rect(0, 0, WIDTH, HEIGHT)
-    s.pop()
+    pushpop(s, () => {
+      s.fill('black')
+      s.rect(0, 0, WIDTH, HEIGHT)
+    })
 
     if (props.showLines) drawSpotlights(props)
     drawStars(props)

@@ -5,6 +5,7 @@ import {
   randomInRange,
 } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
+import pushpop from 'utils/pushpop'
 
 const WIDTH = window.innerWidth
 const HEIGHT = window.innerHeight
@@ -217,29 +218,29 @@ export default (s) => {
         alpha: number,
         skip = 0
       ) => {
-        s.push()
-        s.strokeWeight(weight)
-        s.stroke(
-          randomInRange(40, 55, true),
-          randomInRange(18, 22, true),
-          100,
-          alpha
-        )
-        s.beginShape()
-        nodes.forEach((n) => {
-          const { x, y } = n.position
-          if (Math.random() < skip) return
-          if (randomness) {
-            s.curveVertex(
-              x + randomInRange(-randomness, randomness),
-              y + randomInRange(-randomness, randomness)
-            )
-          } else {
-            s.curveVertex(x, y)
-          }
+        pushpop(s, () => {
+          s.strokeWeight(weight)
+          s.stroke(
+            randomInRange(40, 55, true),
+            randomInRange(18, 22, true),
+            100,
+            alpha
+          )
+          s.beginShape()
+          nodes.forEach((n) => {
+            const { x, y } = n.position
+            if (Math.random() < skip) return
+            if (randomness) {
+              s.curveVertex(
+                x + randomInRange(-randomness, randomness),
+                y + randomInRange(-randomness, randomness)
+              )
+            } else {
+              s.curveVertex(x, y)
+            }
+          })
+          s.endShape(s.CLOSE)
         })
-        s.endShape(s.CLOSE)
-        s.pop()
       }
 
       s.fill(50, 100, 20, 80)

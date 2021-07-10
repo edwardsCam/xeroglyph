@@ -1,6 +1,7 @@
 import { randomInRange } from 'utils/math'
 import times from 'utils/times'
 import { init as initProps, getProp } from 'utils/propConfig'
+import pushpop from 'utils/pushpop'
 import Scribble from '../../p5.scribble'
 
 type Props = {
@@ -161,10 +162,10 @@ export default (s) => {
       100 - randomInRange(0, 5, true),
       randomInRange(0, 20, true)
     )
-    s.push()
-    s.noStroke()
-    s.rect(...rectArgs)
-    s.pop()
+    pushpop(x, () => {
+      s.noStroke()
+      s.rect(...rectArgs)
+    })
     if (scribble) {
       scribble.scribbleLine(x, y, x, y2)
       scribble.scribbleLine(x2, y, x2, y2)

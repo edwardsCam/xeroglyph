@@ -1,5 +1,3 @@
-// based on this reddit post: https://www.reddit.com/r/oddlysatisfying/comments/90t9oe/zectangles/
-
 import {
   Props,
   drawHex,
@@ -9,65 +7,68 @@ import {
 } from './common'
 import { Point, progressAlongLine, distance } from 'utils/math'
 import { HexData, hexGrid } from 'utils/hex'
+import pushpop from 'utils/pushpop'
 import Scribble from '../../p5.scribble'
 
 export default (s, props: Props) => {
   const drawLine = (p1: Point, p2: Point) => _drawLine(p1, p2, s, scribble)
 
   const drawSquare = (tl: Point, tr: Point, br: Point, bl: Point) => {
-    s.push()
-    s.strokeWeight(props.strokeWeight)
-    drawLine(tl, tr)
-    drawLine(tr, br)
-    drawLine(br, bl)
-    drawLine(bl, tl)
-    s.pop()
+    pushpop(s, () => {
+      s.strokeWeight(props.strokeWeight)
+      drawLine(tl, tr)
+      drawLine(tr, br)
+      drawLine(br, bl)
+      drawLine(bl, tl)
+    })
   }
 
   const drawZexagon = (hex: HexData, degree: number, inverted: boolean) => {
-    s.push()
-    s.strokeWeight(props.strokeWeight)
-    drawHex(hex.corners, s, scribble)
+    debugger
+    pushpop(s, () => {
+      s.strokeWeight(props.strokeWeight)
+      drawHex(hex.corners, s, scribble)
 
-    if (degree === 0) return
-    const p = 1 / degree
-    if (p >= 1) return
+      if (degree === 0) return
+      const p = 1 / degree
+      if (p >= 1) return
 
-    let corners: Point[] = [...hex.corners]
-    const hexes: Point[][] = []
-    while (true) {
-      const size = distance(corners[0], corners[1])
-      if (size < 1) break
-      if (inverted) {
-        corners = [
-          progressAlongLine(corners[1], corners[0], p),
-          progressAlongLine(corners[2], corners[1], p),
-          progressAlongLine(corners[3], corners[2], p),
-          progressAlongLine(corners[4], corners[3], p),
-          progressAlongLine(corners[5], corners[4], p),
-          progressAlongLine(corners[0], corners[5], p),
-        ]
-      } else {
-        corners = [
-          progressAlongLine(corners[0], corners[1], p),
-          progressAlongLine(corners[1], corners[2], p),
-          progressAlongLine(corners[2], corners[3], p),
-          progressAlongLine(corners[3], corners[4], p),
-          progressAlongLine(corners[4], corners[5], p),
-          progressAlongLine(corners[5], corners[0], p),
-        ]
+      let corners: Point[] = [...hex.corners]
+      const hexes: Point[][] = []
+      while (true) {
+        const size = distance(corners[0], corners[1])
+        if (size < 1) break
+        if (inverted) {
+          corners = [
+            progressAlongLine(corners[1], corners[0], p),
+            progressAlongLine(corners[2], corners[1], p),
+            progressAlongLine(corners[3], corners[2], p),
+            progressAlongLine(corners[4], corners[3], p),
+            progressAlongLine(corners[5], corners[4], p),
+            progressAlongLine(corners[0], corners[5], p),
+          ]
+        } else {
+          corners = [
+            progressAlongLine(corners[0], corners[1], p),
+            progressAlongLine(corners[1], corners[2], p),
+            progressAlongLine(corners[2], corners[3], p),
+            progressAlongLine(corners[3], corners[4], p),
+            progressAlongLine(corners[4], corners[5], p),
+            progressAlongLine(corners[5], corners[0], p),
+          ]
+        }
+        hexes.push(corners)
       }
-      hexes.push(corners)
-    }
-    hexes.forEach((hex, i) => {
-      addTimeout(() => {
-        s.push()
-        s.strokeWeight(props.strokeWeight)
-        drawHex(hex, s, scribble)
-        s.pop()
-      }, i * 10)
+      hexes.forEach((hex, i) => {
+        addTimeout(() => {
+          debugger
+          pushpop(s, () => {
+            s.strokeWeight(props.strokeWeight)
+            drawHex(hex, s, scribble)
+          })
+        }, i * 10)
+      })
     })
-    s.pop()
   }
 
   const drawZectangle = (
@@ -140,37 +141,37 @@ export default (s, props: Props) => {
     scribble.roughness = roughness
   }
 
-  s.push()
-  if (shape === 'square') {
-    const rows = Math.ceil(window.innerHeight / len)
-    const cols = Math.ceil(window.innerWidth / len)
-    const points: { r: number; c: number }[] = []
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        points.push({ r, c })
+  pushpop(s, () => {
+    if (shape === 'square') {
+      const rows = Math.ceil(window.innerHeight / len)
+      const cols = Math.ceil(window.innerWidth / len)
+      const points: { r: number; c: number }[] = []
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          points.push({ r, c })
+        }
       }
-    }
 
-    points
-      .sort((a, b) => a.r * a.c - b.r * b.c)
-      .forEach(({ r, c }) => {
+      points
+        .sort((a, b) => a.r * a.c - b.r * b.c)
+        .forEach(({ r, c }) => {
+          addTimeout(() => {
+            const x = c * len
+            const y = r * len
+            const inverted = !((r + c) % 2)
+            drawZectangle({ x, y }, len, degree, inverted)
+          })
+        })
+    } else if (shape === 'hex') {
+      const hexLen = len / Math.sqrt(3)
+      const rows = Math.ceil(window.innerHeight / hexLen)
+      const cols = Math.ceil(window.innerWidth / hexLen)
+      const hexes = hexGrid(hexLen, cols, rows)
+      hexes.forEach((hex, i) => {
         addTimeout(() => {
-          const x = c * len
-          const y = r * len
-          const inverted = !((r + c) % 2)
-          drawZectangle({ x, y }, len, degree, inverted)
+          drawZexagon(hex, degree, !(i % 2))
         })
       })
-  } else if (shape === 'hex') {
-    const hexLen = len / Math.sqrt(3)
-    const rows = Math.ceil(window.innerHeight / hexLen)
-    const cols = Math.ceil(window.innerWidth / hexLen)
-    const hexes = hexGrid(hexLen, cols, rows)
-    hexes.forEach((hex, i) => {
-      addTimeout(() => {
-        drawZexagon(hex, degree, !(i % 2))
-      })
-    })
-  }
-  s.pop()
+    }
+  })
 }

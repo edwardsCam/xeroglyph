@@ -1,5 +1,6 @@
 import { init as initProps, getProp } from 'utils/propConfig'
 import { interpolate } from 'utils/math'
+import pushpop from 'utils/pushpop'
 
 type Props = {
   n: number
@@ -157,12 +158,12 @@ export default (s) => {
           const prev = col[i - 1]
           s.line(p.x, p.y, p.z, prev.x, prev.y, prev.z)
         } else if (mode === 'dots') {
-          s.push()
-          s.fill(...color)
-          s.noStroke()
-          s.translate(p.x, p.y, p.z)
-          s.box(4)
-          s.pop()
+          pushpop(s, () => {
+            s.fill(...color)
+            s.noStroke()
+            s.translate(p.x, p.y, p.z)
+            s.box(4)
+          })
         }
       })
     })

@@ -8,6 +8,7 @@ import {
   interpolate,
   thetaFromTwoPoints_old,
 } from 'utils/math'
+import pushpop from 'utils/pushpop'
 
 type Props = {
   n: number
@@ -268,20 +269,20 @@ export default (s) => {
     }
 
     draw(props: Props) {
-      s.push()
-      if (this.status === 'infected') {
-        s.noFill()
-        const pulse = s.frameCount % PULSE_TIME
-        s.stroke('red')
-        s.circle(
-          this.location.x,
-          this.location.y,
-          interpolate([0, PULSE_TIME / 2], [0, props.spreadRadius], pulse)
-        )
-        s.fill('red')
-      }
-      s.circle(this.location.x, this.location.y, 7)
-      s.pop()
+      pushpop(s, () => {
+        if (this.status === 'infected') {
+          s.noFill()
+          const pulse = s.frameCount % PULSE_TIME
+          s.stroke('red')
+          s.circle(
+            this.location.x,
+            this.location.y,
+            interpolate([0, PULSE_TIME / 2], [0, props.spreadRadius], pulse)
+          )
+          s.fill('red')
+        }
+        s.circle(this.location.x, this.location.y, 7)
+      })
     }
 
     infect() {
@@ -308,31 +309,31 @@ export default (s) => {
   const showInfo = (n: number) => {
     const MARGIN = 20
     const topLeft = window.innerWidth - (100 + MARGIN)
-    s.push()
-    s.fill('grey')
-    s.strokeWeight(2)
-    s.stroke('black')
-    s.rect(topLeft, MARGIN, 100, 97)
-    s.noStroke()
-    s.fill('black')
+    pushpop(s, () => {
+      s.fill('grey')
+      s.strokeWeight(2)
+      s.stroke('black')
+      s.rect(topLeft, MARGIN, 100, 97)
+      s.noStroke()
+      s.fill('black')
 
-    const info = population.getInfo(n)
-    s.text('Population: ' + info.total, topLeft + 5, MARGIN + 15)
-    s.text('Healthy: ' + info.healthy, topLeft + 5, MARGIN + 27)
-    s.text('Infected: ' + info.infected, topLeft + 5, MARGIN + 39)
-    s.text('Dead: ' + info.dead, topLeft + 5, MARGIN + 51)
-    s.text(
-      'Infection: ' + Math.floor((info.infected * 100) / info.total) + '%',
-      topLeft + 5,
-      MARGIN + 63
-    )
-    s.text(
-      'Survival: ' + Math.floor((info.total * 100) / n) + '%',
-      topLeft + 5,
-      MARGIN + 75
-    )
-    s.text('r: ' + info.r.toFixed(2), topLeft + 5, MARGIN + 87)
-    s.pop()
+      const info = population.getInfo(n)
+      s.text('Population: ' + info.total, topLeft + 5, MARGIN + 15)
+      s.text('Healthy: ' + info.healthy, topLeft + 5, MARGIN + 27)
+      s.text('Infected: ' + info.infected, topLeft + 5, MARGIN + 39)
+      s.text('Dead: ' + info.dead, topLeft + 5, MARGIN + 51)
+      s.text(
+        'Infection: ' + Math.floor((info.infected * 100) / info.total) + '%',
+        topLeft + 5,
+        MARGIN + 63
+      )
+      s.text(
+        'Survival: ' + Math.floor((info.total * 100) / n) + '%',
+        topLeft + 5,
+        MARGIN + 75
+      )
+      s.text('r: ' + info.r.toFixed(2), topLeft + 5, MARGIN + 87)
+    })
   }
 
   let population: Population

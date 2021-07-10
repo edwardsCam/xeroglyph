@@ -1,5 +1,6 @@
 import { init as initProps, getProp } from 'utils/propConfig'
 import { interpolate, Point, randomInRange } from 'utils/math'
+import pushpop from 'utils/pushpop'
 
 type Props = {
   n: number
@@ -180,32 +181,32 @@ export default (s) => {
   }
 
   const drawBorealis = (props: Props): void => {
-    s.push()
-    const { innerWidth } = window
-    const halfPoint = innerWidth / 2
-    const step = innerWidth / props.starDensityX
-    for (let x = 0; x < innerWidth; x += step) {
-      const distFromCenter = Math.abs(halfPoint - x)
-      const centerOffset = interpolate([0, halfPoint], [1, 0], distFromCenter)
-      const r = randomInRange(0, 0.2)
-      const a = r + centerOffset / 5
-      s.stroke(`rgba(255, 255, 255, ${a})`)
-      s.strokeWeight(randomInRange(0.2, 1.5))
-      s.line(x, 0, x, window.innerHeight)
-    }
-    s.pop()
+    pushpop(s, () => {
+      const { innerWidth } = window
+      const halfPoint = innerWidth / 2
+      const step = innerWidth / props.starDensityX
+      for (let x = 0; x < innerWidth; x += step) {
+        const distFromCenter = Math.abs(halfPoint - x)
+        const centerOffset = interpolate([0, halfPoint], [1, 0], distFromCenter)
+        const r = randomInRange(0, 0.2)
+        const a = r + centerOffset / 5
+        s.stroke(`rgba(255, 255, 255, ${a})`)
+        s.strokeWeight(randomInRange(0.2, 1.5))
+        s.line(x, 0, x, window.innerHeight)
+      }
+    })
   }
 
   const drawStars = (props: Props): void => {
-    s.push()
-    s.noStroke()
-    const { innerWidth } = window
-    const step = innerWidth / props.starDensityX
-    for (let x = 0; x < innerWidth; x += step) {
-      const verticalDensity = s.noise(x) * props.starDensityY * 6
-      drawStarLine(x, verticalDensity, props)
-    }
-    s.pop()
+    pushpop(s, () => {
+      s.noStroke()
+      const { innerWidth } = window
+      const step = innerWidth / props.starDensityX
+      for (let x = 0; x < innerWidth; x += step) {
+        const verticalDensity = s.noise(x) * props.starDensityY * 6
+        drawStarLine(x, verticalDensity, props)
+      }
+    })
   }
 
   const drawStarLine = (x: number, density: number, props: Props): void => {

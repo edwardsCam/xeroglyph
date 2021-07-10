@@ -1,5 +1,6 @@
 import { progressAlongLine, Point, Line } from 'utils/math'
 import { hexGrid } from 'utils/hex'
+import pushpop from 'utils/pushpop'
 import {
   getTriangle,
   getTriangleGrid,
@@ -16,12 +17,12 @@ export default (s, props: Props) => {
   const drawLine = (p1: Point, p2: Point) => _drawLine(p1, p2, s, scribble)
 
   const drawTriangle = ([p1, p2, p3]: Triangle): void => {
-    s.push()
-    s.strokeWeight(props.strokeWeight)
-    drawLine(p1, p2)
-    drawLine(p2, p3)
-    drawLine(p3, p1)
-    s.pop()
+    pushpop(s, () => {
+      s.strokeWeight(props.strokeWeight)
+      drawLine(p1, p2)
+      drawLine(p2, p3)
+      drawLine(p3, p1)
+    })
   }
 
   const drawHook1 = (grid: Grid): void => {
@@ -47,11 +48,11 @@ export default (s, props: Props) => {
     const h2 = progressAlongLine(gridline1[0], gridline1[1], 3 / 5)
     const h3 = progressAlongLine(gridline2[0], gridline2[1], 1 / 2)
 
-    s.push()
-    s.strokeWeight(props.innerWeight)
-    drawLine(h1, h2)
-    drawLine(h2, h3)
-    s.pop()
+    pushpop(s, () => {
+      s.strokeWeight(props.innerWeight)
+      drawLine(h1, h2)
+      drawLine(h2, h3)
+    })
   }
 
   const drawTile = (start: Point, inverted: boolean) => {
@@ -65,27 +66,27 @@ export default (s, props: Props) => {
   }
 
   clearTimeouts()
-
-  s.push()
-  const { len, roughness } = props
-  if (len === 0) return
-
   let scribble: Scribble
-  if (roughness > 0) {
-    scribble = new Scribble(s)
-    scribble.roughness = roughness
-  }
-  const hexSizeLen = len / Math.sqrt(3)
-  const hexes = hexGrid(
-    hexSizeLen,
-    Math.floor(window.innerWidth / hexSizeLen),
-    Math.floor(window.innerHeight / hexSizeLen)
-  )
-  hexes.forEach(({ center }) => {
-    addTimeout(() => {
-      drawTile(center, false)
-      drawTile(center, true)
+
+  pushpop(s, () => {
+    const { len, roughness } = props
+    if (len === 0) return
+
+    if (roughness > 0) {
+      scribble = new Scribble(s)
+      scribble.roughness = roughness
+    }
+    const hexSizeLen = len / Math.sqrt(3)
+    const hexes = hexGrid(
+      hexSizeLen,
+      Math.floor(window.innerWidth / hexSizeLen),
+      Math.floor(window.innerHeight / hexSizeLen)
+    )
+    hexes.forEach(({ center }) => {
+      addTimeout(() => {
+        drawTile(center, false)
+        drawTile(center, true)
+      })
     })
   })
-  s.pop()
 }

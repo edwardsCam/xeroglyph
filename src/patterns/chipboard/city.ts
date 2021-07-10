@@ -1,5 +1,6 @@
 import { interpolate, diff } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
+import pushpop from 'utils/pushpop'
 import { rir, colorSchemes } from './common'
 
 export default (s) => {
@@ -168,10 +169,10 @@ export default (s) => {
     const [x1, y1, x2, y2, z] = coords
     const dx = x2 - x1
     const dy = y2 - y1
-    s.push()
-    // s.fill(color)
-    s.translate((x1 + x2) / 2, (y1 + y2) / 2, z / 2)
-    s.box(dx, dy, z)
-    s.pop()
+    pushpop(s, () => {
+      // s.fill(color)
+      s.translate((x1 + x2) / 2, (y1 + y2) / 2, z / 2)
+      s.box(dx, dy, z)
+    })
   }
 }
