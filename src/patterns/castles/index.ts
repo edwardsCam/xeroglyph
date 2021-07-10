@@ -2,10 +2,13 @@ import { init as initProps, getProp } from 'utils/propConfig'
 import { Point, randomInRange, interpolate, coinToss } from 'utils/math'
 import chunk from 'utils/chunk'
 import shuffle from 'utils/shuffle'
+import pushpop from 'utils/pushpop'
+import Scribble from '../../p5.scribble'
 
 type Props = {
   n: number
   rows: number
+  roughness: number
 }
 
 const randomColor = (range = 5): [number, number, number] => {
@@ -36,15 +39,23 @@ export default (s) => {
       default: 7,
       min: 1,
     },
+    Roughness: {
+      type: 'number',
+      default: 0.5,
+      min: 0,
+      step: 0.1,
+    },
   })
 
   const get = (prop: string) => getProp('castles', prop)
   const getProps = (): Props => ({
     n: get('Castles'),
     rows: get('Rows'),
+    roughness: get('Roughness'),
   })
 
   let last: Props | undefined
+  let scribble: Scribble
 
   class Castle {
     type: 'turret' | 'spire'
@@ -74,37 +85,71 @@ export default (s) => {
     }
 
     draw(location: Point) {
-      s.strokeWeight(randomInRange(1, 2.5))
-      s.fill(...randomColor())
+      if (!scribble) return
+      const fillColor = randomColor()
       s.stroke(0, 0, randomInRange(65, 75))
+      s.strokeWeight(randomInRange(1, 2.5))
+      s.fill(...fillColor)
       const halfWidth = this.width / 2
       const tlx = location.x - halfWidth
+      const trx = tlx + this.width
       const ty = location.y - this.height
       const t = this.headWidth
       const halft = t / 2
       const headLeftX = location.x - halft
       const headRightX = location.x + halft
 
-      s.rect(tlx, ty, this.width, this.height)
+      pushpop(s, () => {
+        s.noStroke()
+        s.fill(...fillColor)
+        s.rect(tlx, ty, this.width, this.height)
+      })
+      scribble.scribbleLine(tlx, ty, trx, ty)
+      scribble.scribbleLine(trx, ty, trx, ty + this.height)
+      scribble.scribbleLine(trx, ty + this.height, tlx, ty + this.height)
+      scribble.scribbleLine(tlx, ty + this.height, tlx, ty)
       if (this.type === 'spire') {
         const spireBottom = location.y - this.height - randomInRange(7, 25)
         const height = Math.max(
           10,
           Math.sqrt(t * t - halft * halft) + randomInRange(-25, 15)
         )
-        s.quad(
-          tlx,
-          ty,
+        pushpop(s, () => {
+          s.fill(...fillColor)
+          s.noStroke()
+          s.quad(
+            tlx,
+            ty,
+            headLeftX,
+            spireBottom,
+            headRightX,
+            spireBottom,
+            trx,
+            ty
+          )
+          s.triangle(
+            headLeftX,
+            spireBottom,
+            location.x,
+            spireBottom - height,
+            headRightX,
+            spireBottom
+          )
+        })
+        // quad
+        scribble.scribbleLine(tlx, ty, headLeftX, spireBottom)
+        scribble.scribbleLine(headLeftX, spireBottom, headRightX, spireBottom)
+        scribble.scribbleLine(headRightX, spireBottom, trx, ty)
+        scribble.scribbleLine(trx, ty, tlx, ty)
+
+        // tri
+        scribble.scribbleLine(
+          location.x,
+          spireBottom - height,
           headLeftX,
-          spireBottom,
-          headRightX,
-          spireBottom,
-          tlx + this.width,
-          ty
+          spireBottom
         )
-        s.triangle(
-          headLeftX,
-          spireBottom,
+        scribble.scribbleLine(
           location.x,
           spireBottom - height,
           headRightX,
@@ -117,36 +162,62 @@ export default (s) => {
         //     const yrange = randomInRange(0.1, 0.5)
         //     const y1 = ty + this.height * yrange
         //     const y2 = location.y - this.height * yrange
-        //     const x = tlx + this.width * p
+        //     const x = trx * p
         //     s.line(x, y1, x, y2)
         //   }
         // }
       } else if (this.type === 'turret') {
-        let { crenellations } = this
+        const crenellationHeight = 10
+        let { crenellations, width } = this
         const crenellationWidth = this.headWidth / (crenellations * 2 - 1)
         let cursor: Point = { x: headLeftX, y: ty - 20 }
-        s.beginShape()
-        s.vertex(tlx, ty)
-        s.vertex(headLeftX, ty)
-        s.vertex(cursor.x, cursor.y)
+        let old: Point = cursor
+        pushpop(s, () => {
+          s.noStroke()
+          s.fill(...fillColor)
+          const d = this.headWidth - this.width
+          s.rect(
+            tlx - d / 2,
+            ty - crenellationHeight,
+            this.width + d,
+            crenellationHeight
+          )
+        })
+
+        scribble.scribbleLine(tlx, ty, headLeftX, ty)
+        scribble.scribbleLine(headLeftX, ty, cursor.x, cursor.y)
         while (--crenellations) {
+          old = { ...cursor }
           cursor.x += crenellationWidth
-          s.vertex(cursor.x, cursor.y)
+          pushpop(s, () => {
+            s.noStroke()
+            s.fill(...fillColor)
+            s.rect(old.x, old.y, crenellationWidth, crenellationHeight)
+          })
+          scribble.scribbleLine(old.x, old.y, cursor.x, cursor.y)
 
-          cursor.y += 10
-          s.vertex(cursor.x, cursor.y)
+          old = { ...cursor }
+          cursor.y += crenellationHeight
+          scribble.scribbleLine(old.x, old.y, cursor.x, cursor.y)
 
+          old = { ...cursor }
           cursor.x += crenellationWidth
-          s.vertex(cursor.x, cursor.y)
+          scribble.scribbleLine(old.x, old.y, cursor.x, cursor.y)
 
-          cursor.y -= 10
-          s.vertex(cursor.x, cursor.y)
+          old = { ...cursor }
+          cursor.y -= crenellationHeight
+          scribble.scribbleLine(old.x, old.y, cursor.x, cursor.y)
         }
+        old = { ...cursor }
         cursor.x += crenellationWidth
-        s.vertex(cursor.x, cursor.y)
-        s.vertex(cursor.x, ty)
-        s.vertex(tlx, ty)
-        s.endShape()
+        pushpop(s, () => {
+          s.noStroke()
+          s.fill(...fillColor)
+          s.rect(old.x, old.y, crenellationWidth, crenellationHeight)
+        })
+        scribble.scribbleLine(old.x, old.y, cursor.x, cursor.y)
+        scribble.scribbleLine(cursor.x, cursor.y, cursor.x, ty)
+        scribble.scribbleLine(cursor.x, ty, tlx + width, ty)
       }
     }
   }
@@ -199,9 +270,11 @@ export default (s) => {
   }
 
   function initialize() {
+    const props = getProps()
+    scribble = new Scribble(s)
+    scribble.roughness = props.roughness
     last = undefined
     s.clear()
-    const props = getProps()
     const castles = generateCastles(props.n)
     drawCastles(castles, props)
   }
