@@ -3,6 +3,7 @@ import { Point, randomInRange, interpolate, coinToss } from 'utils/math'
 import chunk from 'utils/chunk'
 import shuffle from 'utils/shuffle'
 import pushpop from 'utils/pushpop'
+import times from 'utils/times'
 import Scribble from '../../p5.scribble'
 
 type Props = {
@@ -11,7 +12,7 @@ type Props = {
   roughness: number
 }
 
-const randomColor = (range = 5): [number, number, number] => {
+const randomColor = (range: number): [number, number, number] => {
   const baseH = 270
   const baseS = 8
   const baseB = 5
@@ -36,7 +37,7 @@ export default (s) => {
     },
     Rows: {
       type: 'number',
-      default: 7,
+      default: 4,
       min: 1,
     },
     Roughness: {
@@ -86,9 +87,10 @@ export default (s) => {
 
     draw(location: Point) {
       if (!scribble) return
-      const fillColor = randomColor()
+      const strokeWeight = randomInRange(1, 2.5)
+      const fillColor = randomColor(15)
       s.stroke(0, 0, randomInRange(65, 75))
-      s.strokeWeight(randomInRange(1, 2.5))
+      s.strokeWeight(strokeWeight)
       s.fill(...fillColor)
       const halfWidth = this.width / 2
       const tlx = location.x - halfWidth
@@ -98,6 +100,20 @@ export default (s) => {
       const halft = t / 2
       const headLeftX = location.x - halft
       const headRightX = location.x + halft
+
+      const drawStripes = (tlx: number, trx: number, ty: number) => {
+        const stripes = randomInRange(0, 3, true)
+        times(stripes, (i) => {
+          const dx = trx - tlx
+          const ymarg = this.height / randomInRange(5, 7)
+          const interval = dx / (stripes + 1)
+          const x = interval * (i + 1) + tlx
+          pushpop(s, () => {
+            s.strokeWeight(strokeWeight * randomInRange(0.3, 0.7))
+            scribble.scribbleLine(x, ty + ymarg, x, ty + this.height - ymarg)
+          })
+        })
+      }
 
       pushpop(s, () => {
         s.noStroke()
@@ -141,6 +157,7 @@ export default (s) => {
         scribble.scribbleLine(headLeftX, spireBottom, headRightX, spireBottom)
         scribble.scribbleLine(headRightX, spireBottom, trx, ty)
         scribble.scribbleLine(trx, ty, tlx, ty)
+        drawStripes(tlx, trx, ty)
 
         // tri
         scribble.scribbleLine(
@@ -183,6 +200,7 @@ export default (s) => {
             crenellationHeight
           )
         })
+        drawStripes(tlx, trx, ty)
 
         scribble.scribbleLine(tlx, ty, headLeftX, ty)
         scribble.scribbleLine(headLeftX, ty, cursor.x, cursor.y)
@@ -241,16 +259,15 @@ export default (s) => {
     return castles
   }
 
-  function drawCastles(castles: Castle[], props: Props) {
-    const { rows, n } = props
+  function drawCastles(castles: Castle[], { rows, n }: Props) {
     const cols = Math.floor(Math.max(n / rows, 0))
     const colWidth = window.innerWidth / cols
-
-    const chunks = chunk(castles, cols)
+    const chunks = chunk(castles, cols).filter((_c, i) => i < rows)
+    const increment = window.innerHeight / (rows + 2)
     chunks.forEach((row, i) => {
-      const p = (i + 1) / (rows + 1)
       const rowWithPositions = row.map((castle, pos) => ({ castle, pos }))
       const shuffled = shuffle(rowWithPositions)
+
       shuffled.forEach(({ castle, pos }) => {
         let x = interpolate(
           [0, row.length - 1],
@@ -260,10 +277,7 @@ export default (s) => {
         x += randomInRange(-5, 5)
         if (i % 2) x += colWidth / 2
 
-        let y = window.innerHeight * p
-        y += window.innerHeight / (rows + 1)
-        y += randomInRange(0, 5)
-
+        const y = (i + 2) * increment + randomInRange(50, 55)
         castle.draw({ x, y })
       })
     })
