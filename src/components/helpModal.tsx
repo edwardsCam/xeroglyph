@@ -34,7 +34,10 @@ const infoMap = {
   castles: {
     title: 'Castles',
     instructions: [],
-    description: [],
+    description: [
+      'Randomly generate a bustling medieval city!',
+      'Just look at those crenellations and dentellated cornices!',
+    ],
   },
   spaceColonization: {
     title: 'Space Colonization',
