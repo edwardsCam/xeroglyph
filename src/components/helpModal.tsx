@@ -1,6 +1,12 @@
 import React from 'react'
 
 const infoMap = {
+  hometown: {
+    title: 'Hometown',
+    instructions: [],
+    description: [],
+  },
+
   bamboo: {
     title: 'Bamboo',
     instructions: [],

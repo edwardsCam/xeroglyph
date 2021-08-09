@@ -25,6 +25,7 @@ import ChaosGame from 'patterns/chaos-game'
 import Topo from 'patterns/topo'
 import Waveform from 'patterns/waveform'
 import Bamboo from 'patterns/bamboo'
+import Hometown from 'patterns/hometown'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -63,6 +64,10 @@ const patternMap = {
   spaceColonization: {
     label: 'Space Colonization',
     component: SpaceColonization,
+  },
+  hometown: {
+    label: 'Hometown',
+    component: Hometown,
   },
   chonks: {
     label: 'Chonks',

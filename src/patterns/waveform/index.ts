@@ -1,13 +1,16 @@
 import { init as initProps, getProp } from 'utils/propConfig'
 import { interpolate } from 'utils/math'
 import pushpop from 'utils/pushpop'
+import chull from 'hull.js'
+
+const _DRAW_MODE_ = ['dots', 'lines', 'hull', 'marching squares'] as const
 
 type Props = {
   n: number
   d: number
   contourHeight: number
   peakHeight: number
-  mode: 'dots' | 'lines' | 'marching squares'
+  mode: typeof _DRAW_MODE_[number]
 }
 
 const randomSeed = Math.random() * 30
@@ -21,12 +24,12 @@ export default (s) => {
     },
     n: {
       type: 'number',
-      default: 60,
+      default: 50,
       min: 5,
     },
     d: {
       type: 'number',
-      default: 200,
+      default: 150,
       min: 50,
       step: 10,
     },
@@ -42,8 +45,8 @@ export default (s) => {
     },
     Mode: {
       type: 'dropdown',
-      default: 'dots',
-      options: ['dots', 'lines', 'marching squares'],
+      default: _DRAW_MODE_[0],
+      options: [..._DRAW_MODE_],
     },
   })
   const get = (prop: string) => getProp('waveform', prop)
@@ -79,7 +82,7 @@ export default (s) => {
   function initialize() {
     s.clear()
     s.colorMode(s.HSB)
-    zoom = 1000
+    zoom = 700
   }
 
   function generate(
@@ -95,10 +98,15 @@ export default (s) => {
       for (let r = 0; r < n; r++) {
         const x = Math.floor(interpolate([0, n - 1], [-d, d], r))
         const y = Math.floor(interpolate([0, n - 1], [-d, d], c))
+        const { frameCount } = s
         const z =
           s.noise(
-            x * noiseAmp * (1 - Math.cos(s.frameCount / 50)) + randomSeed,
-            y * noiseAmp * (1 - Math.sin(s.frameCount / 200)) + randomSeed
+            x * noiseAmp * (0.5 - Math.cos(frameCount / 50)) +
+              randomSeed +
+              frameCount / 80,
+            y * noiseAmp * (0.5 - Math.sin(frameCount / 200)) +
+              randomSeed +
+              frameCount / 80
           ) * peakHeight
 
         cols[c].push({
@@ -117,21 +125,45 @@ export default (s) => {
     return cols
   }
 
+  const getBuckets = (
+    points: Point[]
+  ): {
+    [key: number]: Point[]
+  } =>
+    points.reduce((buckets, p) => {
+      const { z } = p
+      if (!buckets[z]) {
+        buckets[z] = []
+      }
+      buckets[z].push(p)
+      return buckets
+    }, {})
+
   s.setup = () => {
     s.createCanvas(window.innerWidth, window.innerHeight, s.WEBGL)
-    s.noCursor()
     initialize()
   }
 
   s.draw = () => {
     s.clear()
+    s.noCursor()
 
     const twopi = Math.PI * 2
-    const { n, d, contourHeight, peakHeight, mode } = getProps()
+    const {
+      n,
+      d,
+      contourHeight: _countourHeight,
+      peakHeight,
+      mode,
+    } = getProps()
+    const contourHeight = interpolate(
+      [-1, 1],
+      [0, 250],
+      Math.sin(s.frameCount / 150)
+    )
     s.camera(0, 0, zoom, 0, 0, 0, 0, 1, 0)
     s.rotateY(interpolate([0, window.innerWidth], [0, twopi], s.mouseX))
     s.rotateX(interpolate([0, window.innerHeight], [0, twopi], s.mouseY))
-
     const cols = generate(n, d, contourHeight, peakHeight)
 
     const flattened = flattenCols(cols)
@@ -144,29 +176,11 @@ export default (s) => {
       Number.NEGATIVE_INFINITY
     )
 
-    cols.forEach((col) => {
-      col.forEach((p, i) => {
-        const color = [
-          interpolate([0, window.innerWidth], [100, 200], p.x),
-          interpolate([minZ, maxZ], [100, 0], p.z),
-          100,
-        ]
-        if (mode === 'lines') {
-          if (i === 0) return
-          s.strokeWeight(1)
-          s.stroke(...color)
-          const prev = col[i - 1]
-          s.line(p.x, p.y, p.z, prev.x, prev.y, prev.z)
-        } else if (mode === 'dots') {
-          pushpop(s, () => {
-            s.fill(...color)
-            s.noStroke()
-            s.translate(p.x, p.y, p.z)
-            s.box(4)
-          })
-        }
-      })
-    })
+    const getColor = (z: number): [number, number, number] => [
+      100,
+      interpolate([minZ, maxZ], [100, 0], z),
+      100,
+    ]
 
     if (mode === 'marching squares') {
       const cellCols = marchingSquares(cols, contourHeight)
@@ -176,6 +190,47 @@ export default (s) => {
         col.forEach((cell) => {
           drawTerrain(cell)
         })
+      })
+    } else if (mode === 'lines' || mode === 'dots') {
+      flattened.forEach((p, i) => {
+        const color = getColor(p.z)
+        if (mode === 'lines') {
+          if (i === 0) return
+          const prev = flattened[i - 1]
+          if (prev.y === p.y) {
+            s.strokeWeight(1)
+            s.stroke(...color)
+            s.line(p.x, p.y, p.z, prev.x, prev.y, prev.z)
+          }
+        } else if (mode === 'dots') {
+          pushpop(s, () => {
+            s.fill(...color)
+            s.noStroke()
+            s.translate(p.x, p.y, p.z)
+            s.sphere(2)
+          })
+        }
+      })
+    } else if (mode === 'hull') {
+      const buckets = getBuckets(flattened)
+      const isStraightLine = (points: [number, number][]): boolean => {
+        if (points.length < 3) return true
+        const [x, y] = points[0]
+        if (points.every((p) => p[0] === x)) return true
+        if (points.every((p) => p[1] === y)) return true
+        return false
+      }
+      Object.keys(buckets).forEach((_bucket) => {
+        const bucket = Number(_bucket)
+        const points: Point[] = buckets[bucket]
+        const sanitized = points.map((p) => [p.x, p.y] as [number, number])
+        if (!isStraightLine(sanitized)) {
+          s.beginShape()
+          s.stroke(...getColor(bucket))
+          s.noFill()
+          chull(sanitized, 20).forEach(([x, y]) => s.vertex(x, y, bucket))
+          s.endShape()
+        }
       })
     }
   }

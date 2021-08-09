@@ -13,7 +13,7 @@
     "prettier": "yarn prettier-specific 'src/**/*.js' 'src/**/*.ts' 'src/**/*.tsx'",
     "prettier-specific": "prettier --write",
     "prettier-watch": "onchange \"src/**/*.{js,ts,tsx}\" -- yarn prettier-specific {{changed}}",
-    "start": "yarn build && webpack serve --hot",
+    "start": "yarn build && webpack serve",
     "test:watch": "karma start karma.conf.js",
     "test": "karma start karma.conf.js --single-run",
     "typecheck": "tsc --noEmit"

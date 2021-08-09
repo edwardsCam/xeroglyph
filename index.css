@@ -125,6 +125,9 @@ body {
   outline: none;
 }
 
+.homepage-link.hometown::before {
+  background-image: url('assets/example_hometown.png');
+}
 .homepage-link.bamboo::before {
   background-image: url('assets/example_bamboo.png');
 }
