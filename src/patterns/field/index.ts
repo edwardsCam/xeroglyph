@@ -10,6 +10,7 @@ import { sanitizeHex } from 'utils/color'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle'
 import pushpop from 'utils/pushpop'
+import { getCenter } from 'utils/window'
 import {
   Props,
   _COLOR_SCHEMES_,
@@ -425,12 +426,7 @@ export default (s) => {
       width: number
     }[] = []
 
-    const isClaimed = (
-      p: Point,
-      pointWidth: number,
-      avoidanceRadius: number,
-      line: Point[]
-    ): boolean =>
+    const isClaimed = (p: Point, pointWidth: number, line: Point[]): boolean =>
       drawnPoints.some(({ point: otherPoint, width: otherPointWidth }) => {
         if (
           p.x < 10 ||
@@ -461,7 +457,7 @@ export default (s) => {
         sliced.forEach((p, i) => {
           cursor = i + 1
           if (breakFlag) return
-          if (isClaimed(p, strokeWeight, avoidanceRadius, line)) {
+          if (isClaimed(p, strokeWeight, line)) {
             breakFlag = true
             return
           }
@@ -689,6 +685,14 @@ export default (s) => {
       return distortionFn(Math.atan2(dx, dy))
     }
 
+  const spiralNoiseFn =
+    (distortionFn: NumberConversionFn, noise: number): NoiseFn =>
+    (x: number, y: number) => {
+      const center = getCenter()
+      const t = thetaFromTwoPoints({ x, y }, center)
+      return distortionFn(t + noise * 1000)
+    }
+
   const imageNoiseFn =
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
     (x: number, y: number) => {
@@ -783,6 +787,10 @@ export default (s) => {
         const y = center.y - totalLength / 2
         s.image(img, x, y, width, totalLength)
         noiseFn = imageNoiseFn(distortionFn, noise)
+      }
+      case 'spiral': {
+        noiseFn = spiralNoiseFn(distortionFn, normalizedNoise)
+        break
       }
     }
     switch (drawMode) {
