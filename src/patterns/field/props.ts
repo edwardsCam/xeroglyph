@@ -7,6 +7,7 @@ export const _NOISE_MODE_ = [
   'simplex',
   'curl',
   'spiral',
+  'wavy',
   'perlin',
   'image',
 ] as const
@@ -44,7 +45,6 @@ export type Props = {
   constraintMode: ConstraintMode
   constraintRadius: number
   continuation: number
-  density: number
   distortion: number
   dotSkip: number
   drawMode: DrawMode

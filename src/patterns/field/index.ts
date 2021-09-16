@@ -83,7 +83,6 @@ const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
   const lines: Point[][] = []
   const {
     n,
-    density,
     constraintMode,
     constraintRadius,
     rectXSize,
@@ -95,7 +94,6 @@ const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
 
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
-      if (Math.random() > density) continue
       const p = getPointFromRC(n, r, c)
       if (constraintMode === 'circle') {
         if (distance(p, center) >= constraintRadius) {
@@ -179,13 +177,6 @@ export default (s) => {
       default: 0,
       min: 0,
       step: 0.01,
-    },
-    Density: {
-      type: 'number',
-      default: 1,
-      min: 0,
-      max: 1,
-      step: 0.025,
     },
     Continuation: {
       type: 'number',
@@ -320,7 +311,6 @@ export default (s) => {
     constraintMode: get('Constraint Mode'),
     constraintRadius: get('Constraint Radius'),
     continuation: get('Continuation'),
-    density: get('Density'),
     distortion: get('Distortion'),
     dotSkip: get('Dot Skip'),
     drawMode: get('Draw Mode'),
@@ -693,6 +683,14 @@ export default (s) => {
       return distortionFn(t + noise * 1000)
     }
 
+  const wavyNoiseFn =
+    (distortionFn: NumberConversionFn, noise: number): NoiseFn =>
+    (x: number, y: number) => {
+      const sin = Math.sin(x * noise * 10)
+      const cos = Math.cos(y * noise * 10)
+      return distortionFn(sin + cos)
+    }
+
   const imageNoiseFn =
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
     (x: number, y: number) => {
@@ -716,11 +714,10 @@ export default (s) => {
     points = []
     firstPoints = []
     const props = getProps()
-    const { n, density } = props
+    const { n } = props
 
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
-        if (Math.random() > density) continue
         const p = getPointFromRC(n, r, c)
         points.push(p)
         firstPoints.push(p)
@@ -790,6 +787,10 @@ export default (s) => {
       }
       case 'spiral': {
         noiseFn = spiralNoiseFn(distortionFn, normalizedNoise)
+        break
+      }
+      case 'wavy': {
+        noiseFn = wavyNoiseFn(distortionFn, normalizedNoise)
         break
       }
     }
