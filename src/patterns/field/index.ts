@@ -10,7 +10,6 @@ import { sanitizeHex } from 'utils/color'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle'
 import pushpop from 'utils/pushpop'
-import { getCenter } from 'utils/window'
 import {
   Props,
   _COLOR_SCHEMES_,
@@ -23,13 +22,8 @@ import {
 } from './props'
 import { getRandomImage } from '../images'
 
-/*
-const CANVAS_WIDTH = 3500
-const CANVAS_HEIGHT = 1750
-/*/
 const CANVAS_WIDTH = window.innerWidth
 const CANVAS_HEIGHT = window.innerHeight
-//*/
 
 const center: Point = {
   x: CANVAS_WIDTH / 2,
@@ -161,16 +155,33 @@ export default (s) => {
       default: 120,
       min: 3,
     },
-    'Line Length': {
-      type: 'number',
-      default: 6,
-      min: 1,
-    },
     Noise: {
       type: 'number',
-      default: 1.4,
+      default: 1.5,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
+      when: () => get('Noise Mode') !== 'vortex',
+    },
+    'Vortex Strength': {
+      type: 'number',
+      default: 1.57079632679,
+      min: Number.NEGATIVE_INFINITY,
+      step: 0.01,
+      when: () => {
+        const noiseMode = get('Noise Mode')
+        return noiseMode === 'vortex' || noiseMode === 'wavy'
+      },
+    },
+    'Noise Mode': {
+      type: 'dropdown',
+      default: _NOISE_MODE_[0],
+      options: [..._NOISE_MODE_],
+    },
+    'Draw Mode': {
+      type: 'dropdown',
+      default: _DRAW_MODE_[0],
+      options: [..._DRAW_MODE_],
+      onChange: initialize,
     },
     Distortion: {
       type: 'number',
@@ -196,32 +207,27 @@ export default (s) => {
     },
     'Max Width': {
       type: 'number',
-      default: 5,
+      default: 6,
       min: 1,
     },
     'Random Width': {
       type: 'boolean',
+      default: true,
+    },
+    'Square Cap': {
+      type: 'boolean',
       default: false,
+      when: () => get('Draw Mode') === 'streams',
     },
     'Avoidance Radius': {
       type: 'number',
-      default: 3,
+      default: 2,
+      step: 0.5,
       min: Number.NEGATIVE_INFINITY,
-    },
-    'Noise Mode': {
-      type: 'dropdown',
-      default: _NOISE_MODE_[0],
-      options: [..._NOISE_MODE_],
-    },
-    'Draw Mode': {
-      type: 'dropdown',
-      default: _DRAW_MODE_[0],
-      options: [..._DRAW_MODE_],
-      onChange: initialize,
     },
     'Dot Skip': {
       type: 'number',
-      default: 2,
+      default: 0,
       min: 0,
       when: () => get('Draw Mode') === 'dots',
     },
@@ -236,6 +242,10 @@ export default (s) => {
       min: 1,
       when: () => get('Constraint Mode') === 'circle',
     },
+    'Allow growth outside constraint': {
+      type: 'boolean',
+      default: false,
+    },
     'Rect X size': {
       type: 'number',
       default: CANVAS_WIDTH,
@@ -247,15 +257,6 @@ export default (s) => {
       default: CANVAS_HEIGHT,
       min: 1,
       when: () => get('Constraint Mode') === 'rect',
-    },
-    'Allow growth outside constraint': {
-      type: 'boolean',
-      default: false,
-    },
-    'Square Cap': {
-      type: 'boolean',
-      default: false,
-      when: () => get('Draw Mode') === 'streams',
     },
     'Color Mode': {
       type: 'dropdown',
@@ -285,6 +286,11 @@ export default (s) => {
       type: 'number',
       default: 3,
       when: () => get('Draw Mode') === 'outlines',
+    },
+    'Line Length': {
+      type: 'number',
+      default: 5,
+      min: 1,
     },
     'Min Line Length': {
       type: 'number',
@@ -322,6 +328,7 @@ export default (s) => {
     monochromeColor: get('Color'),
     n: get('n'),
     noise: get('Noise'),
+    vortexStrength: get('Vortex Strength'),
     noiseMode: get('Noise Mode'),
     outlineWidth: get('Outline Width'),
     randomWidths: get('Random Width'),
@@ -416,7 +423,12 @@ export default (s) => {
       width: number
     }[] = []
 
-    const isClaimed = (p: Point, pointWidth: number, line: Point[]): boolean =>
+    const isClaimed = (
+      p: Point,
+      pIdx: number,
+      pointWidth: number,
+      line: Point[]
+    ): boolean =>
       drawnPoints.some(({ point: otherPoint, width: otherPointWidth }) => {
         if (
           p.x < 10 ||
@@ -430,7 +442,13 @@ export default (s) => {
         const avgWidth = (pointWidth + otherPointWidth) / 2
         const trueDist = dist - avgWidth
         if (trueDist > avoidanceRadius) return false
-        if (line.includes(otherPoint)) return false
+
+        const found = line.findIndex(
+          ({ x, y }) => x === otherPoint.x && y === otherPoint.y
+        )
+        if (found >= 0 ) {
+          return trueDist < 0 && Math.abs(pIdx - found) >= 3
+        }
         return true
       })
 
@@ -447,7 +465,7 @@ export default (s) => {
         sliced.forEach((p, i) => {
           cursor = i + 1
           if (breakFlag) return
-          if (isClaimed(p, strokeWeight, line)) {
+          if (isClaimed(p, i, strokeWeight, line)) {
             breakFlag = true
             return
           }
@@ -639,7 +657,8 @@ export default (s) => {
   const perlinNoiseFn =
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
     (x: number, y: number) => {
-      const angle: number = s.noise(x * noiseDamp, y * noiseDamp)
+      const normalizedNoise = noiseDamp / 1000
+      const angle: number = s.noise(x * normalizedNoise, y * normalizedNoise)
       const distorted = distortionFn(angle)
       return normalizeAngle(distorted)
     }
@@ -647,27 +666,41 @@ export default (s) => {
   const simplexNoiseFn =
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
     (x: number, y: number) => {
+      const normalizedNoise = noiseDamp / 1000
       return normalizeAngle(
-        distortionFn(simplex.noise2D(x * noiseDamp, y * noiseDamp))
+        distortionFn(simplex.noise2D(x * normalizedNoise, y * normalizedNoise))
       )
     }
 
   const curlNoiseFn =
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
     (x: number, y: number) => {
+      const normalizedNoise = noiseDamp / 1000
       const eps = 0.0001
       const eps2 = 2 * eps
 
       // x rate of change
-      const x1: number = s.noise((x + eps) * noiseDamp, y * noiseDamp)
-      const x2: number = s.noise((x - eps) * noiseDamp, y * noiseDamp)
+      const x1: number = s.noise(
+        (x + eps) * normalizedNoise,
+        y * normalizedNoise
+      )
+      const x2: number = s.noise(
+        (x - eps) * normalizedNoise,
+        y * normalizedNoise
+      )
 
       // x derivative
       var dx = (x1 - x2) / eps2
 
       // y rate of change
-      const y1: number = s.noise(x * noiseDamp, (y + eps) * noiseDamp)
-      const y2: number = s.noise(x * noiseDamp, (y - eps) * noiseDamp)
+      const y1: number = s.noise(
+        x * normalizedNoise,
+        (y + eps) * normalizedNoise
+      )
+      const y2: number = s.noise(
+        x * normalizedNoise,
+        (y - eps) * normalizedNoise
+      )
 
       // y derivative
       var dy = (y1 - y2) / eps2
@@ -675,20 +708,24 @@ export default (s) => {
       return distortionFn(Math.atan2(dx, dy))
     }
 
-  const spiralNoiseFn =
-    (distortionFn: NumberConversionFn, noise: number): NoiseFn =>
+  const vortexNoiseFn =
+    (distortionFn: NumberConversionFn, vortexStrength: number): NoiseFn =>
     (x: number, y: number) => {
-      const center = getCenter()
       const t = thetaFromTwoPoints({ x, y }, center)
-      return distortionFn(t + noise * 1000)
+      return distortionFn(t + vortexStrength)
     }
 
   const wavyNoiseFn =
-    (distortionFn: NumberConversionFn, noise: number): NoiseFn =>
+    (
+      distortionFn: NumberConversionFn,
+      noise: number,
+      vortexStrength: number
+    ): NoiseFn =>
     (x: number, y: number) => {
-      const sin = Math.sin(x * noise * 10)
-      const cos = Math.cos(y * noise * 10)
-      return distortionFn(sin + cos)
+      const sin = Math.sin(x * noise * 0.01)
+      const cos = Math.cos(y * noise * 0.01)
+      const t = thetaFromTwoPoints({ x, y }, center)
+      return distortionFn(sin + cos + t * vortexStrength)
     }
 
   const imageNoiseFn =
@@ -752,8 +789,14 @@ export default (s) => {
 
     // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
     // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
-    const { distortion, noise, noiseMode, drawMode, squareCap } = props
-    const normalizedNoise = noise / 1000
+    const {
+      distortion,
+      noise,
+      noiseMode,
+      drawMode,
+      squareCap,
+      vortexStrength,
+    } = props
     const distortionFn: NumberConversionFn = (angle) =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
     let noiseFn: NoiseFn
@@ -765,15 +808,15 @@ export default (s) => {
     s.strokeJoin(s.ROUND)
     switch (noiseMode) {
       case 'perlin': {
-        noiseFn = perlinNoiseFn(distortionFn, normalizedNoise)
+        noiseFn = perlinNoiseFn(distortionFn, noise)
         break
       }
       case 'simplex': {
-        noiseFn = simplexNoiseFn(distortionFn, normalizedNoise)
+        noiseFn = simplexNoiseFn(distortionFn, noise)
         break
       }
       case 'curl': {
-        noiseFn = curlNoiseFn(distortionFn, normalizedNoise)
+        noiseFn = curlNoiseFn(distortionFn, noise)
         break
       }
       case 'image': {
@@ -784,13 +827,14 @@ export default (s) => {
         const y = center.y - totalLength / 2
         s.image(img, x, y, width, totalLength)
         noiseFn = imageNoiseFn(distortionFn, noise)
+        break
       }
-      case 'spiral': {
-        noiseFn = spiralNoiseFn(distortionFn, normalizedNoise)
+      case 'vortex': {
+        noiseFn = vortexNoiseFn(distortionFn, vortexStrength)
         break
       }
       case 'wavy': {
-        noiseFn = wavyNoiseFn(distortionFn, normalizedNoise)
+        noiseFn = wavyNoiseFn(distortionFn, noise, vortexStrength)
         break
       }
     }
