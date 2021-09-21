@@ -5,6 +5,7 @@ import {
   thetaFromTwoPoints,
   distance,
   interpolate,
+  randomInRange,
 } from 'utils/math'
 import { sanitizeHex } from 'utils/color'
 import SimplexNoise from 'simplex-noise'
@@ -68,10 +69,14 @@ const inBounds = (
   }
 }
 
-const getPointFromRC = (n: number, r: number, c: number): Point => ({
-  x: interpolate([0, n - 1], [0, CANVAS_WIDTH], c),
-  y: interpolate([0, n - 1], [0, CANVAS_HEIGHT], r),
-})
+const getPointFromRC = (n: number, r: number, c: number): Point => {
+  const xVar = CANVAS_WIDTH / (n - 1)
+  const yVar = CANVAS_HEIGHT / (n - 1)
+  return {
+    x: interpolate([0, n - 1], [0, CANVAS_WIDTH], c) + randomInRange(0, xVar),
+    y: interpolate([0, n - 1], [0, CANVAS_HEIGHT], r) + randomInRange(0, yVar),
+  }
+}
 
 const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
   const lines: Point[][] = []
@@ -157,20 +162,27 @@ export default (s) => {
     },
     Noise: {
       type: 'number',
-      default: 1.5,
+      default: 2,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
       when: () => get('Noise Mode') !== 'vortex',
     },
     'Vortex Strength': {
       type: 'number',
-      default: 1.57079632679,
+      default: 1,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
       when: () => {
         const noiseMode = get('Noise Mode')
         return noiseMode === 'vortex' || noiseMode === 'wavy'
       },
+    },
+    'Simplex Strength': {
+      type: 'number',
+      default: 0.25,
+      min: Number.NEGATIVE_INFINITY,
+      step: 0.05,
+      when: () => get('Noise Mode') === 'wavy',
     },
     'Noise Mode': {
       type: 'dropdown',
@@ -329,6 +341,7 @@ export default (s) => {
     n: get('n'),
     noise: get('Noise'),
     vortexStrength: get('Vortex Strength'),
+    simplexStrength: get('Simplex Strength'),
     noiseMode: get('Noise Mode'),
     outlineWidth: get('Outline Width'),
     randomWidths: get('Random Width'),
@@ -446,7 +459,7 @@ export default (s) => {
         const found = line.findIndex(
           ({ x, y }) => x === otherPoint.x && y === otherPoint.y
         )
-        if (found >= 0 ) {
+        if (found >= 0) {
           return trueDist < 0 && Math.abs(pIdx - found) >= 3
         }
         return true
@@ -719,13 +732,17 @@ export default (s) => {
     (
       distortionFn: NumberConversionFn,
       noise: number,
-      vortexStrength: number
+      vortexStrength: number,
+      simplexStrength: number
     ): NoiseFn =>
     (x: number, y: number) => {
       const sin = Math.sin(x * noise * 0.01)
       const cos = Math.cos(y * noise * 0.01)
       const t = thetaFromTwoPoints({ x, y }, center)
-      return distortionFn(sin + cos + t * vortexStrength)
+      const _simplex = simplexNoiseFn(distortionFn, noise)(x, y) || 0
+      return distortionFn(
+        sin + cos + t * vortexStrength + _simplex * simplexStrength
+      )
     }
 
   const imageNoiseFn =
@@ -748,18 +765,21 @@ export default (s) => {
     s.colorMode(s.HSB)
     simplex = new SimplexNoise()
 
+    const props = getProps()
+    const { n, drawMode } = props
     points = []
     firstPoints = []
-    const props = getProps()
-    const { n } = props
 
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
-        const p = getPointFromRC(n, r, c)
-        points.push(p)
-        firstPoints.push(p)
+    if (drawMode === 'fluid') {
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          const p = getPointFromRC(n, r, c)
+          points.push(p)
+          firstPoints.push(p)
+        }
       }
     }
+
     last = undefined
   }
 
@@ -796,6 +816,7 @@ export default (s) => {
       drawMode,
       squareCap,
       vortexStrength,
+      simplexStrength,
     } = props
     const distortionFn: NumberConversionFn = (angle) =>
       distortion == 0 ? angle : distortion * Math.floor(angle / distortion)
@@ -834,7 +855,12 @@ export default (s) => {
         break
       }
       case 'wavy': {
-        noiseFn = wavyNoiseFn(distortionFn, noise, vortexStrength)
+        noiseFn = wavyNoiseFn(
+          distortionFn,
+          noise,
+          vortexStrength,
+          simplexStrength
+        )
         break
       }
     }

@@ -1,5 +1,5 @@
 import { progressAlongLine, Point, Line } from 'utils/math'
-import { hexGrid } from 'utils/hex'
+import { hexGrid, spaceHexes } from 'utils/hex'
 import pushpop from 'utils/pushpop'
 import {
   getTriangle,
@@ -69,7 +69,7 @@ export default (s, props: Props) => {
   let scribble: Scribble
 
   pushpop(s, () => {
-    const { len, roughness } = props
+    const { len, roughness, spacing } = props
     if (len === 0) return
 
     if (roughness > 0) {
@@ -77,10 +77,13 @@ export default (s, props: Props) => {
       scribble.roughness = roughness
     }
     const hexSizeLen = len / Math.sqrt(3)
-    const hexes = hexGrid(
-      hexSizeLen,
-      Math.floor(window.innerWidth / hexSizeLen),
-      Math.floor(window.innerHeight / hexSizeLen)
+    const hexes = spaceHexes(
+      hexGrid(
+        hexSizeLen,
+        Math.floor(window.innerWidth / hexSizeLen),
+        Math.floor(window.innerHeight / hexSizeLen)
+      ),
+      spacing
     )
     hexes.forEach(({ center }) => {
       addTimeout(() => {

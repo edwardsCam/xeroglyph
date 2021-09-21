@@ -12,7 +12,7 @@ import {
   getIntersectionPoint,
 } from 'utils/math'
 import pushpop from 'utils/pushpop'
-import { hexGrid, HexData } from 'utils/hex'
+import { hexGrid, HexData, spaceHexes } from 'utils/hex'
 
 const ONE_THIRD = 1 / 3
 const TWO_THIRDS = 2 / 3
@@ -93,7 +93,7 @@ export default (s, props: Props) => {
     })
   }
 
-  const { len, roughness } = props
+  const { len, roughness, spacing } = props
   if (len === 0) return
 
   let scribble: Scribble
@@ -104,7 +104,7 @@ export default (s, props: Props) => {
   const hexLen = len / Math.sqrt(3)
   const rows = Math.ceil(window.innerHeight / hexLen)
   const cols = Math.ceil(window.innerWidth / hexLen)
-  const hexes = hexGrid(hexLen, cols, rows)
+  const hexes = spaceHexes(hexGrid(hexLen, cols, rows), spacing)
   hexes.forEach((hex) => {
     // drawHex(s, hex.corners)
     addTimeout(() => drawArrows(hex))

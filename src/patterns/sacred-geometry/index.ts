@@ -18,6 +18,12 @@ export default (s) => {
       default: _PATTERNS[0],
       options: [..._PATTERNS],
     },
+    shape: {
+      type: 'dropdown',
+      default: _ZECTANGLE_SHAPES[0],
+      options: [..._ZECTANGLE_SHAPES],
+      when: () => get('pattern') === 'Zectangle',
+    },
     len: {
       type: 'number',
       default: 80,
@@ -50,10 +56,10 @@ export default (s) => {
       step: 0.1,
       when: () => get('pattern') === 'Zectangle',
     },
-    shape: {
-      type: 'dropdown',
-      default: _ZECTANGLE_SHAPES[0],
-      options: [..._ZECTANGLE_SHAPES],
+    max: {
+      type: 'number',
+      default: 10,
+      min: 0,
       when: () => get('pattern') === 'Zectangle',
     },
     roughness: {
@@ -61,6 +67,11 @@ export default (s) => {
       min: 0,
       step: 0.25,
       default: 0.5,
+    },
+    spacing: {
+      type: 'number',
+      default: 0,
+      min: Number.NEGATIVE_INFINITY,
     },
   })
 
@@ -74,8 +85,10 @@ export default (s) => {
     strokeWeight: get('strokeWeight'),
     n: get('n'),
     degree: get('degree'),
+    max: get('max'),
     shape: get('shape'),
     roughness: get('roughness'),
+    spacing: get('spacing'),
   })
 
   const drawPattern = (props: Props): void => {

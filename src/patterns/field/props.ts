@@ -4,14 +4,14 @@ export const _COLOR_SCHEMES_ = [
   'fiery furnace',
 ] as const
 export const _NOISE_MODE_ = [
-  'vortex',
   'wavy',
   'simplex',
+  'vortex',
   'curl',
   'perlin',
   'image',
 ] as const
-export const _DRAW_MODE_ = ['streams', 'dots', 'outlines', 'fluid'] as const
+export const _DRAW_MODE_ = ['dots', 'streams', 'outlines', 'fluid'] as const
 export const _CONSTRAINT_MODE_ = ['rect', 'circle'] as const
 export const _COLOR_MODE_ = [
   'sectors',
@@ -64,4 +64,5 @@ export type Props = {
   showImage: boolean
   squareCap: boolean
   vortexStrength: number
+  simplexStrength: number
 }

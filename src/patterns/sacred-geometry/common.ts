@@ -33,8 +33,10 @@ export type Props = {
   strokeWeight: number
   n: number
   degree: number
+  max: number
   shape: typeof _ZECTANGLE_SHAPES[number]
   roughness: number
+  spacing: number
 }
 
 export const getCenter = (): Point => ({
@@ -81,32 +83,21 @@ export const getTriangleGrid = ([p1, p2, p3]: Triangle, n: number): Grid => {
     s3: [],
   }
   for (let i = 1; i <= n; i++) {
-    const g1 = progressAlongLine(p1, p2, i / 6)
-    const g2 = progressAlongLine(p1, p3, i / 6)
+    const g1 = progressAlongLine(p1, p2, i / n)
+    const g2 = progressAlongLine(p1, p3, i / n)
     grid.s1.push([g1, g2])
   }
   for (let i = 1; i <= n; i++) {
-    const g1 = progressAlongLine(p2, p3, i / 6)
-    const g2 = progressAlongLine(p2, p1, i / 6)
+    const g1 = progressAlongLine(p2, p3, i / n)
+    const g2 = progressAlongLine(p2, p1, i / n)
     grid.s2.push([g1, g2])
   }
   for (let i = 1; i <= n; i++) {
-    const g1 = progressAlongLine(p3, p1, i / 6)
-    const g2 = progressAlongLine(p3, p2, i / 6)
+    const g1 = progressAlongLine(p3, p1, i / n)
+    const g2 = progressAlongLine(p3, p2, i / n)
     grid.s3.push([g1, g2])
   }
   return grid
-}
-
-export const drawHex = (
-  corners: Point[],
-  s: any,
-  scribble?: Scribble
-): void => {
-  corners.forEach((corner, i) => {
-    const nextCorner = i === corners.length - 1 ? corners[0] : corners[i + 1]
-    drawLine(corner, nextCorner, s, scribble)
-  })
 }
 
 export const drawLine = (p1: Point, p2: Point, s: any, scribble?: Scribble) => {
