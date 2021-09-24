@@ -26,6 +26,7 @@ import Topo from 'patterns/topo'
 import Waveform from 'patterns/waveform'
 import Bamboo from 'patterns/bamboo'
 import Hometown from 'patterns/hometown'
+import Lindenmayer from 'patterns/lindenmayer'
 // import Checkers from 'patterns/checkers'
 import Eye from 'patterns/eye'
 // import ISpy from 'patterns/i-spy'
@@ -72,6 +73,10 @@ const patternMap = {
   chonks: {
     label: 'Chonks',
     component: Chonks,
+  },
+  lindenmayer: {
+    label: 'Lindenmayer System',
+    component: Lindenmayer,
   },
   starscape: {
     label: 'Starscape',

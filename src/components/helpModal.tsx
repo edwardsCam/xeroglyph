@@ -1,12 +1,16 @@
 import React from 'react'
 
 const infoMap = {
+  lindenmayer: {
+    title: 'Lindenmayer System',
+    instructions: [],
+    description: [],
+  },
   hometown: {
     title: 'Hometown',
     instructions: [],
     description: [],
   },
-
   bamboo: {
     title: 'Bamboo',
     instructions: [],

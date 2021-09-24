@@ -1,6 +1,12 @@
 type PatternConfig = {
   [propName: string]: {
-    type: 'number' | 'boolean' | 'func' | 'dropdown' | 'string'
+    type:
+      | 'number'
+      | 'boolean'
+      | 'func'
+      | 'dropdown'
+      | 'string'
+      | 'string-multiline'
     default?: any
     min?: number
     max?: number

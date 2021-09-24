@@ -1,5 +1,5 @@
 import React from 'react'
-import { getConfig, setProp } from 'utils/propConfig.ts'
+import { getConfig, setProp } from 'utils/propConfig'
 
 export default class Knobs extends React.Component<{ pattern: string }> {
   render() {
@@ -91,6 +91,18 @@ export default class Knobs extends React.Component<{ pattern: string }> {
             <label key={prop} className="knob">
               {`${prop}: `}
               <input
+                name={prop}
+                onChange={onChange((e) => e.target.value)}
+                value={values[prop]}
+              />
+            </label>
+          )
+
+        case 'string-multiline':
+          return (
+            <label key={prop} className="knob">
+              {`${prop}: `}
+              <textarea
                 name={prop}
                 onChange={onChange((e) => e.target.value)}
                 value={values[prop]}
