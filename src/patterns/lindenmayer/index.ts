@@ -4,15 +4,23 @@ import * as sierpinski from 'l-system/sierpinski'
 import * as hilbert from 'l-system/hilbert'
 import * as branch1 from 'l-system/branch1'
 import * as penrose from 'l-system/penrose'
-// import { generate, drawRules } from 'l-system/dragon-curve'
+import * as dragon from 'l-system/dragon-curve'
+import * as peano from 'l-system/peano-gosper'
 import Turtle from 'utils/turtle'
 import pushpop from 'utils/pushpop'
-import { randomInRange, Point } from 'utils/math'
-import { randomColor } from 'utils/color'
+import { randomInRange, Point, interpolate } from 'utils/math'
 import { growLine } from 'utils/drawing'
+import times from 'utils/times'
 
 type Props = {
-  pattern: 'custom' | 'sierpinski' | 'hilbert' | 'branch' | 'penrose'
+  pattern:
+    | 'custom'
+    | 'sierpinski'
+    | 'hilbert'
+    | 'branch'
+    | 'penrose'
+    | 'dragon'
+    | 'peano-gosper'
   n: number
   distance: number
   weight: number
@@ -22,6 +30,7 @@ type Props = {
   drawTimeout: number
   startX: number
   startY: number
+  speed: number
 }
 
 export default (s) => {
@@ -34,59 +43,44 @@ export default (s) => {
     Pattern: {
       type: 'dropdown',
       default: 'custom',
-      options: ['custom', 'sierpinski', 'hilbert', 'branch', 'penrose'],
+      options: [
+        'custom',
+        'sierpinski',
+        'hilbert',
+        'branch',
+        'penrose',
+        'dragon',
+        'peano-gosper',
+      ],
       onChange: (pattern) => {
+        const fill = (pattern) => {
+          setProp('lindenmayer', 'Axiom', pattern.axiom)
+          setProp('lindenmayer', 'Generation Rules', pattern.productionRules)
+          setProp('lindenmayer', 'Drawing Rules', pattern.drawingRules)
+        }
+
         switch (pattern) {
           case 'sierpinski':
-            {
-              setProp('lindenmayer', 'Axiom', sierpinski.axiom)
-              setProp(
-                'lindenmayer',
-                'Generation Rules',
-                sierpinski.productionRules
-              )
-              setProp('lindenmayer', 'Drawing Rules', sierpinski.drawingRules)
-            }
+            fill(sierpinski)
             break
           case 'hilbert':
-            {
-              setProp('lindenmayer', 'Axiom', hilbert.axiom)
-              setProp(
-                'lindenmayer',
-                'Generation Rules',
-                hilbert.productionRules
-              )
-              setProp('lindenmayer', 'Drawing Rules', hilbert.drawingRules)
-            }
+            fill(hilbert)
             break
           case 'branch':
-            {
-              setProp('lindenmayer', 'Axiom', branch1.axiom)
-              setProp(
-                'lindenmayer',
-                'Generation Rules',
-                branch1.productionRules
-              )
-              setProp('lindenmayer', 'Drawing Rules', branch1.drawingRules)
-            }
+            fill(branch1)
             break
           case 'penrose':
-            {
-              setProp('lindenmayer', 'Axiom', penrose.axiom)
-              setProp(
-                'lindenmayer',
-                'Generation Rules',
-                penrose.productionRules
-              )
-              setProp('lindenmayer', 'Drawing Rules', penrose.drawingRules)
-            }
+            fill(penrose)
             break
+          case 'dragon':
+            fill(dragon)
+            break
+          case 'peano-gosper': {
+            fill(peano)
+            break
+          }
           case 'custom':
-            {
-              setProp('lindenmayer', 'Axiom', '')
-              setProp('lindenmayer', 'Generation Rules', '')
-              setProp('lindenmayer', 'Drawing Rules', '')
-            }
+            fill({ axiom: '', productionRules: '', drawingRules: '' })
             break
         }
       },
@@ -117,13 +111,18 @@ export default (s) => {
     Weight: {
       type: 'number',
       default: 0.5,
-      min: 0.5,
+      min: 0,
       step: 0.5,
     },
     'Draw Timeout': {
       type: 'number',
       default: 0,
       min: Number.NEGATIVE_INFINITY,
+    },
+    Speed: {
+      type: 'number',
+      default: 1,
+      min: 1,
     },
     Axiom: {
       type: 'string',
@@ -150,6 +149,7 @@ export default (s) => {
     drawTimeout: get('Draw Timeout'),
     startX: get('x'),
     startY: get('y'),
+    speed: get('Speed'),
   })
   let timeouts: NodeJS.Timeout[] = []
   let last: Props | undefined
@@ -168,11 +168,12 @@ export default (s) => {
         c[1] + randomInRange(-10, 10),
         c[2] + randomInRange(-10, 10),
       ]
-      s.strokeWeight(1)
-      s.stroke('black')
+      // s.strokeWeight(0.7)
+      // s.stroke('black')
+      s.noStroke()
 
       s.fill(_h, _s, _b)
-      s.circle(p.x, p.y, randomInRange(10, 20))
+      s.circle(p.x, p.y, 14)
     })
   }
 
@@ -213,7 +214,6 @@ export default (s) => {
       startY,
       startX,
     } = props
-    s.stroke('black')
     s.strokeWeight(weight)
     const turtle = new Turtle(
       {
@@ -228,6 +228,7 @@ export default (s) => {
     const generationRules = parseRules(_generationRules)
     const drawingRules = parseRules(_drawingRules)
     const output = generate(axiom, generationRules, n)
+    const lineCount = output.length
     if (output) {
       let i = 0
       const interpretNextChar = () => {
@@ -240,8 +241,14 @@ export default (s) => {
           const rule = drawingRules[c] || ''
           if (rule === 'DRAW') {
             const line = turtle.move()
+            // const domain: [number, number] = [0, lineCount - 1]
+            // s.stroke(
+            //   interpolate(domain, [46, 154], i),
+            //   interpolate(domain, [5, 31], i),
+            //   interpolate(domain, [94, 49], i)
+            // )
             // s.line(line[0].x, line[0].y, line[1].x, line[1].y)
-            growLine(line, 3000, 6, s).forEach((t) => timeouts.push(t))
+            growLine(line, 600, 4, s).forEach((t) => timeouts.push(t))
           } else if (rule === 'MOVE') {
             turtle.move()
           } else if (rule.includes('TURN ')) {
@@ -251,7 +258,7 @@ export default (s) => {
             // const whereAmI = turtle.whereAmI()
             // timeouts.push(setTimeout(() => drawWidget(whereAmI), 0))
             // timeouts.push(
-            //   setTimeout(() => drawWidget(whereAmI), randomInRange(1000, 2000))
+            //   setTimeout(() => drawWidget(whereAmI), randomInRange(600, 800))
             // )
           }
         }
@@ -259,17 +266,18 @@ export default (s) => {
         if (++i < output.length) {
           timeouts.push(
             setTimeout(() => {
-              interpretNextChar()
-              // interpretNextChar()
+              times(props.speed, interpretNextChar)
             }, drawTimeout)
           )
+        } else {
+          // timeouts.push(setTimeout(() => clearTimeouts()))
         }
       }
 
       timeouts.push(
         setTimeout(() => {
           interpretNextChar()
-        }, drawTimeout)
+        }, 0)
       )
     }
 
