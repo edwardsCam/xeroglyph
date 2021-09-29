@@ -31,6 +31,10 @@ type Props = {
   startX: number
   startY: number
   speed: number
+  roughness: number
+  showWidgets: boolean
+  lineGrowTime: number
+  lineGrowSegments: number
 }
 
 export default (s) => {
@@ -110,14 +114,35 @@ export default (s) => {
     },
     Weight: {
       type: 'number',
-      default: 0.5,
+      default: 1,
       min: 0,
       step: 0.5,
+    },
+    Roughness: {
+      type: 'number',
+      default: 2,
+      min: 0,
+      step: 0.5,
+    },
+    'Show Widgets': {
+      type: 'boolean',
+      default: true,
     },
     'Draw Timeout': {
       type: 'number',
       default: 0,
       min: Number.NEGATIVE_INFINITY,
+    },
+    'Line Grow Time': {
+      type: 'number',
+      default: 500,
+      min: Number.NEGATIVE_INFINITY,
+    },
+    'Line Grow Segments': {
+      type: 'number',
+      default: 3,
+      min: Number.NEGATIVE_INFINITY,
+      when: () => get('Line Grow Time') > 0,
     },
     Speed: {
       type: 'number',
@@ -150,16 +175,28 @@ export default (s) => {
     startX: get('x'),
     startY: get('y'),
     speed: get('Speed'),
+    roughness: get('Roughness'),
+    showWidgets: get('Show Widgets'),
+    lineGrowTime: get('Line Grow Time'),
+    lineGrowSegments: get('Line Grow Segments'),
   })
   let timeouts: NodeJS.Timeout[] = []
   let last: Props | undefined
 
+  const addTimeout = (cb: () => any, n = 0) => {
+    const t = setTimeout(() => {
+      cb()
+      clearTimeout(t)
+    }, n)
+    timeouts.push(t)
+  }
+
   const drawWidget = (p: Point) => {
     const bases = [
       [164, 30, 71],
-      [20, 71, 76],
-      [20, 93, 53],
-      [33, 23, 91],
+      // [20, 71, 76],
+      // [20, 93, 53],
+      // [33, 23, 91],
     ]
     pushpop(s, () => {
       const c = bases[randomInRange(0, bases.length - 1, true)]
@@ -168,12 +205,15 @@ export default (s) => {
         c[1] + randomInRange(-10, 10),
         c[2] + randomInRange(-10, 10),
       ]
-      // s.strokeWeight(0.7)
-      // s.stroke('black')
       s.noStroke()
 
       s.fill(_h, _s, _b)
-      s.circle(p.x, p.y, 14)
+
+      const radius = randomInRange(10, 20)
+      s.translate(p.x - radius / 2, p.y - radius / 2)
+      s.rotate(randomInRange(-0.1, 0.1))
+      s.rect(0, 0, radius, radius)
+      // s.circle(p.x, p.y, 14)
     })
   }
 
@@ -211,8 +251,12 @@ export default (s) => {
       generationRules: _generationRules,
       drawingRules: _drawingRules,
       drawTimeout,
+      lineGrowTime,
+      lineGrowSegments,
       startY,
       startX,
+      roughness,
+      showWidgets,
     } = props
     s.strokeWeight(weight)
     const turtle = new Turtle(
@@ -225,14 +269,12 @@ export default (s) => {
         angleType: 'degree',
       }
     )
+
     const generationRules = parseRules(_generationRules)
     const drawingRules = parseRules(_drawingRules)
     const output = generate(axiom, generationRules, n)
-    const lineCount = output.length
-    if (output) {
-      let i = 0
-      const interpretNextChar = () => {
-        const c = output[i]
+    const generateLines = (output: string): [Point, Point][] =>
+      output.split('').reduce((acc, c) => {
         if (c === '[') {
           turtle.push()
         } else if (c === ']') {
@@ -241,45 +283,59 @@ export default (s) => {
           const rule = drawingRules[c] || ''
           if (rule === 'DRAW') {
             const line = turtle.move()
-            // const domain: [number, number] = [0, lineCount - 1]
-            // s.stroke(
-            //   interpolate(domain, [46, 154], i),
-            //   interpolate(domain, [5, 31], i),
-            //   interpolate(domain, [94, 49], i)
-            // )
-            // s.line(line[0].x, line[0].y, line[1].x, line[1].y)
-            growLine(line, 600, 4, s).forEach((t) => timeouts.push(t))
+            acc.push(line)
           } else if (rule === 'MOVE') {
             turtle.move()
           } else if (rule.includes('TURN ')) {
             const [, num] = rule.split('TURN ')
-            const turn = Number(num)
-            turtle.turn(turn)
-            // const whereAmI = turtle.whereAmI()
-            // timeouts.push(setTimeout(() => drawWidget(whereAmI), 0))
-            // timeouts.push(
-            //   setTimeout(() => drawWidget(whereAmI), randomInRange(600, 800))
-            // )
+            turtle.turn(Number(num))
           }
         }
+        return acc
+      }, [] as [Point, Point][])
+    const lines = generateLines(output)
 
-        if (++i < output.length) {
-          timeouts.push(
-            setTimeout(() => {
-              times(props.speed, interpretNextChar)
-            }, drawTimeout)
-          )
-        } else {
-          // timeouts.push(setTimeout(() => clearTimeouts()))
-        }
+    let i = 0
+    const interpretNextChar = () => {
+      if (!lines.length) return
+      const line = lines[i]
+      if (roughness) {
+        line[0].x += s.noise(line[0].x, line[0].y) * roughness
+        line[0].y += s.noise(line[0].y, line[0].x) * roughness
+        line[1].x += s.noise(line[1].x, line[1].y) * roughness
+        line[1].y += s.noise(line[1].y, line[1].x) * roughness
       }
 
-      timeouts.push(
-        setTimeout(() => {
-          interpretNextChar()
-        }, 0)
-      )
+      // const progress = i / (lines.length - 1)
+      // const domain: [number, number] = [0, 1]
+      // s.stroke(
+      //   interpolate(domain, [46, 154], progress),
+      //   interpolate(domain, [5, 31], progress),
+      //   interpolate(domain, [94, 49], progress)
+      // )
+      if (lineGrowTime) {
+        growLine(line, lineGrowTime, lineGrowSegments, s).forEach(
+          ({ time, cb }) => {
+            addTimeout(cb, time)
+          }
+        )
+      } else {
+        s.line(line[0].x, line[0].y, line[1].x, line[1].y)
+      }
+
+      if (showWidgets) {
+        if (i === 0) drawWidget(line[0])
+        drawWidget(line[1])
+      }
+
+      if (++i < lines.length) {
+        addTimeout(() => {
+          times(props.speed, interpretNextChar)
+        }, drawTimeout)
+      }
     }
+
+    addTimeout(interpretNextChar)
 
     last = props
   }

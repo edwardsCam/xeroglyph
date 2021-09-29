@@ -129,6 +129,9 @@ body {
   outline: none;
 }
 
+.homepage-link.lindenmayer::before {
+  background-image: url('assets/example_lindenmayer.png');
+}
 .homepage-link.hometown::before {
   background-image: url('assets/example_hometown.png');
 }

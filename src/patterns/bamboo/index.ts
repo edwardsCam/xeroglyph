@@ -162,7 +162,7 @@ export default (s) => {
       100 - randomInRange(0, 5, true),
       randomInRange(0, 20, true)
     )
-    pushpop(x, () => {
+    pushpop(s, () => {
       s.noStroke()
       s.rect(...rectArgs)
     })
