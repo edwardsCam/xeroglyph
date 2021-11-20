@@ -1,5 +1,4 @@
 import {
-  Point,
   PolarCoord,
   randomInRange,
   coordWithAngleAndDistance,

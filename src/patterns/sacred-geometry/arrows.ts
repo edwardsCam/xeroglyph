@@ -5,12 +5,7 @@ import {
   drawLine as _drawLine,
 } from './common'
 import Scribble from '../../p5.scribble'
-import {
-  progressAlongLine,
-  Point,
-  Line,
-  getIntersectionPoint,
-} from 'utils/math'
+import { progressAlongLine, getIntersectionPoint } from 'utils/math'
 import pushpop from 'utils/pushpop'
 import { hexGrid, HexData, spaceHexes } from 'utils/hex'
 

@@ -1,4 +1,4 @@
-import { interpolate, Point } from 'utils/math'
+import { interpolate } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 import pushpop from 'utils/pushpop'
 

@@ -8,7 +8,7 @@ import * as dragon from 'l-system/dragon-curve'
 import * as peano from 'l-system/peano-gosper'
 import Turtle from 'utils/turtle'
 import pushpop from 'utils/pushpop'
-import { randomInRange, Point, interpolate } from 'utils/math'
+import { randomInRange } from 'utils/math'
 import { growLine } from 'utils/drawing'
 import times from 'utils/times'
 
@@ -239,6 +239,7 @@ export default (s) => {
 
   s.draw = () => {
     const props = getProps()
+    // @ts-ignore
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop])) {
       return
     }

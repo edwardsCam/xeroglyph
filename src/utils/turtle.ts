@@ -1,4 +1,4 @@
-import { Point, coordWithAngleAndDistance, toRadians } from './math'
+import { coordWithAngleAndDistance, toRadians } from './math'
 
 function Turtle(
   startPos: Point,

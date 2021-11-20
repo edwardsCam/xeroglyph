@@ -2,7 +2,7 @@ import { init as initProps, getProp } from 'utils/propConfig'
 
 type Props = {}
 
-export default (s) => {
+export default (s: Sketch) => {
   initProps('${PATTERN}', {
     restart: {
       type: 'func',

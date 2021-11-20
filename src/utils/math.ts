@@ -5,18 +5,12 @@ import { Vector } from 'p5'
     Extensions to the Math class.
 * */
 
-export interface Point {
-  x: number
-  y: number
-  z?: number
-}
 export type PolarCoord = [number, number]
 
 export const TWO_PI = Math.PI * 2
 export const PI_HALVES = Math.PI / 2
 
 type Range = [number, number]
-export type Line = [Point, Point]
 
 export const PHI = (1 + Math.sqrt(5)) / 2
 

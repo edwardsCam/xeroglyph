@@ -1,6 +1,6 @@
 import { init as initProps, getProp } from 'utils/propConfig'
 import times from 'utils/times'
-import { interpolate, coordWithAngleAndDistance, Point } from 'utils/math'
+import { interpolate, coordWithAngleAndDistance } from 'utils/math'
 import pushpop from 'utils/pushpop'
 import SimplexNoise from 'simplex-noise'
 

@@ -1,6 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
 import {
-  Point,
   coordWithAngleAndDistance,
   interpolate,
   progressAlongLine,

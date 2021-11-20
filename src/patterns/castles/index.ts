@@ -1,5 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
-import { Point, randomInRange, interpolate, coinToss } from 'utils/math'
+import { randomInRange, interpolate, coinToss } from 'utils/math'
 import chunk from 'utils/chunk'
 import shuffle from 'utils/shuffle'
 import pushpop from 'utils/pushpop'
@@ -302,6 +302,7 @@ export default (s) => {
   s.draw = () => {
     const props = getProps()
     if (last) {
+      // @ts-ignore
       if (Object.keys(last).some((prop) => last[prop] !== props[prop])) {
         initialize()
       }

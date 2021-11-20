@@ -58,6 +58,7 @@ export default (s) => {
 
   s.draw = () => {
     const props = getProps()
+    // @ts-ignore
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop])) {
       return
     }

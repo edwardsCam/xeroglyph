@@ -1,4 +1,4 @@
-import { Point, progressAlongLine } from './math'
+import { progressAlongLine } from './math'
 import times from './times'
 
 type Wat = { time: number; cb: () => any }

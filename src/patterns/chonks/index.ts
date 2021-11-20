@@ -1,5 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
-import { Point, interpolate } from 'utils/math'
+import { interpolate } from 'utils/math'
 import { getCenter, getBoundedSize } from 'utils/window'
 import chull from 'hull.js'
 import { getRandomImage } from '../images'
@@ -189,7 +189,7 @@ export default (s) => {
           /*
         }
         */
-        })
+        }, 0)
       )
     })
 
@@ -205,7 +205,7 @@ export default (s) => {
 
   let img
   let last: Props | undefined
-  let timeouts: number[] = []
+  let timeouts: NodeJS.Timeout[] = []
 
   const clearTimeouts = () => {
     timeouts.forEach((timeout) => clearTimeout(timeout))
@@ -230,6 +230,7 @@ export default (s) => {
 
   s.draw = () => {
     const props = getProps()
+    // @ts-ignore
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop])) {
       return
     }

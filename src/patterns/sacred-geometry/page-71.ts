@@ -1,4 +1,4 @@
-import { progressAlongLine, Point, Line } from 'utils/math'
+import { progressAlongLine } from 'utils/math'
 import { hexGrid, spaceHexes } from 'utils/hex'
 import pushpop from 'utils/pushpop'
 import {

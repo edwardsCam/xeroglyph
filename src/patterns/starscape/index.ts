@@ -1,10 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
-import {
-  interpolate,
-  interpolateSmooth,
-  randomInRange,
-  Point,
-} from 'utils/math'
+import { interpolate, interpolateSmooth, randomInRange } from 'utils/math'
 import shuffle from 'utils/shuffle'
 import pushpop from 'utils/pushpop'
 
@@ -224,6 +219,7 @@ export default (s) => {
 
   s.draw = () => {
     const props = getProps()
+    // @ts-ignore
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop])) {
       return
     }

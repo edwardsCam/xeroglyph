@@ -3,7 +3,6 @@ import {
   randomInRange,
   distance,
   interpolate,
-  Point,
   coinToss,
   interpolateWithCustomFunction,
 } from '../math'

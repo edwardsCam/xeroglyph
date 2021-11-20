@@ -1,5 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
-import { Point, colorDistance } from 'utils/math'
+import { colorDistance } from 'utils/math'
 import { getCenter, getBoundedSize } from 'utils/window'
 import shuffle from 'utils/shuffle'
 import { getRandomImage } from '../images'
@@ -188,6 +188,7 @@ export default (s) => {
 
   s.draw = () => {
     const props = getProps()
+    // @ts-ignore
     if (last && Object.keys(last).every((prop) => last[prop] === props[prop])) {
       return
     }

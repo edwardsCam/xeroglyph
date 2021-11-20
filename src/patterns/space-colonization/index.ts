@@ -1,7 +1,7 @@
 import { Vector } from 'p5'
 import { init as initProps, getProp } from 'utils/propConfig'
 import Tree, { LeafMode } from 'utils/space-colonization/tree'
-import { distance, Point, interpolate } from 'utils/math'
+import { distance, interpolate } from 'utils/math'
 import pushpop from 'utils/pushpop'
 import { getBoundedSize } from 'utils/window'
 

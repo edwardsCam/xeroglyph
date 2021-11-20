@@ -1,6 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
 import {
-  Point,
   coordWithAngleAndDistance,
   thetaFromTwoPoints,
   distance,
@@ -800,6 +799,7 @@ export default (s) => {
     if (
       props.drawMode !== 'fluid' &&
       last &&
+      // @ts-ignore
       Object.keys(last).every((prop) => last[prop] === props[prop])
     ) {
       return

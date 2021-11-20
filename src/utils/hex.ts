@@ -1,4 +1,3 @@
-import { Point } from 'utils/math'
 import { defineGrid, extendHex, Hex } from 'honeycomb-grid'
 import Scribble from '../p5.scribble'
 

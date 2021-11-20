@@ -2,7 +2,6 @@ import { init as initProps, getProp } from 'utils/propConfig'
 import {
   randomPoint,
   randomInRange,
-  Point,
   coordWithAngleAndDistance,
   distance,
   interpolate,
@@ -107,7 +106,7 @@ export default (s) => {
       this.indivs = []
       this.deathCount = 0
       for (let i = 0; i < props.n; i++) {
-        this.indivs.push(new Individual(props, randomPoint()))
+        this.indivs.push(new Individual(randomPoint()))
       }
     }
 
@@ -187,7 +186,7 @@ export default (s) => {
     infectiousness: number
     infectionCount: number
 
-    constructor(props: Props, startPoint: Point) {
+    constructor(startPoint: Point) {
       this.location = startPoint
       this.velocity = { x: 0, y: 0 }
       this.acceleration = { x: 0, y: 0 }

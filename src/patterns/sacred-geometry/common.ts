@@ -1,4 +1,4 @@
-import { Point, progressAlongLine, Line } from 'utils/math'
+import { progressAlongLine } from 'utils/math'
 import Scribble from '../../p5.scribble'
 
 export type Triangle = [Point, Point, Point]

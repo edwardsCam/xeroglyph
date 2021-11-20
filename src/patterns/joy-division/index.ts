@@ -1,4 +1,4 @@
-import { interpolate, clamp, Point } from 'utils/math'
+import { interpolate, clamp } from 'utils/math'
 import { init as initProps, getProp } from 'utils/propConfig'
 import { Vector } from 'p5'
 

@@ -4,7 +4,7 @@ import {
   clearTimeouts,
   drawLine as _drawLine,
 } from './common'
-import { Point, progressAlongLine, distance } from 'utils/math'
+import { progressAlongLine, distance } from 'utils/math'
 import { HexData, hexGrid, drawHex, spaceHexes } from 'utils/hex'
 import pushpop from 'utils/pushpop'
 import Scribble from '../../p5.scribble'

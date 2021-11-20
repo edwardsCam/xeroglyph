@@ -1,7 +1,6 @@
 import { init as initProps, getProp } from 'utils/propConfig'
 import {
   randomInRange,
-  Point,
   PolarCoord,
   interpolate,
   coordWithAngleAndDistance,
@@ -105,7 +104,7 @@ export default (s) => {
   class Flower {
     leaves: Leaf[]
 
-    constructor(props: Props) {
+    constructor() {
       this.leaves = []
     }
 
@@ -272,8 +271,7 @@ export default (s) => {
   function initialize() {
     s.clear()
     clearInterval(leafTimeout)
-    const props = getProps()
-    flower = new Flower(props)
+    flower = new Flower()
     startLeafTimer()
   }
 

@@ -1,9 +1,5 @@
 import { init as initProps, getProp } from 'utils/propConfig'
-import {
-  Point,
-  coordWithAngleAndDistance,
-  thetaFromTwoPoints_old,
-} from 'utils/math'
+import { coordWithAngleAndDistance, thetaFromTwoPoints_old } from 'utils/math'
 import { Vector } from 'p5'
 
 type Props = {

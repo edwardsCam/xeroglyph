@@ -1,5 +1,4 @@
 import { init as initProps, getProp } from 'utils/propConfig'
-import { Point } from 'utils/math'
 
 const getRandomValue = <T>(arr: T[]): T =>
   arr[Math.floor(Math.random() * arr.length)]
