@@ -30,7 +30,13 @@ const center: Point = {
   y: CANVAS_HEIGHT / 2,
 }
 
-type NoiseFn = (x: number, y: number) => number | null
+type NoiseFn = (
+  x: number,
+  y: number
+) => {
+  angle?: number
+  color?: [number, number, number]
+}
 type NumberConversionFn = (n: number) => number
 
 const coolColors = ['#314B99', '#058FE6', '#0FFFCF', '#0296BF', '#FFF8DB']
@@ -75,50 +81,6 @@ const getPointFromRC = (n: number, r: number, c: number): Point => {
     x: interpolate([0, n - 1], [0, CANVAS_WIDTH], c) + randomInRange(0, xVar),
     y: interpolate([0, n - 1], [0, CANVAS_HEIGHT], r) + randomInRange(0, yVar),
   }
-}
-
-const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
-  const lines: Point[][] = []
-  const {
-    n,
-    constraintMode,
-    constraintRadius,
-    rectXSize,
-    rectYSize,
-    lineLength,
-    continuation,
-    minLineLength,
-  } = props
-
-  for (let r = 0; r < n; r++) {
-    for (let c = 0; c < n; c++) {
-      const p = getPointFromRC(n, r, c)
-      if (constraintMode === 'circle') {
-        if (distance(p, center) >= constraintRadius) {
-          continue
-        }
-      } else if (constraintMode === 'rect') {
-        if (
-          Math.abs(center.x - p.x) * 2 >= rectXSize ||
-          Math.abs(center.y - p.y) * 2 >= rectYSize
-        ) {
-          continue
-        }
-      }
-
-      lines.push([])
-      while (Math.random() < continuation - 0.01 && inBounds(p, props)) {
-        const angle = noiseFn(p.x, p.y)
-        if (angle == null) break
-
-        const nextP = coordWithAngleAndDistance(p, angle, lineLength)
-        lines[lines.length - 1].push(nextP)
-        p.x = nextP.x
-        p.y = nextP.y
-      }
-    }
-  }
-  return lines.filter((line) => line.length >= minLineLength)
 }
 
 const getWidth = (
@@ -249,7 +211,7 @@ export default (s) => {
     },
     'Constraint Radius': {
       type: 'number',
-      default: Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 2.5,
+      default: Math.floor(Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 2.2),
       min: 1,
       when: () => get('Constraint Mode') === 'circle',
     },
@@ -300,12 +262,12 @@ export default (s) => {
     },
     'Line Length': {
       type: 'number',
-      default: 5,
+      default: 4,
       min: 1,
     },
     'Min Line Length': {
       type: 'number',
-      default: 5,
+      default: 4,
       min: 0,
     },
     'Line Sort': {
@@ -355,6 +317,66 @@ export default (s) => {
   let timeouts: NodeJS.Timeout[] = []
   let simplex: SimplexNoise
   let img
+  let imgColorData = {}
+
+  const buildStreamLines = (props: Props, noiseFn: NoiseFn): Point[][] => {
+    const lines: Point[][] = []
+    const {
+      n,
+      constraintMode,
+      constraintRadius,
+      noiseMode,
+      rectXSize,
+      rectYSize,
+      lineLength,
+      continuation,
+      minLineLength,
+    } = props
+
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        const p = getPointFromRC(n, r, c)
+        if (constraintMode === 'circle') {
+          if (distance(p, center) >= constraintRadius) {
+            continue
+          }
+        } else if (constraintMode === 'rect') {
+          if (
+            Math.abs(center.x - p.x) * 2 >= rectXSize ||
+            Math.abs(center.y - p.y) * 2 >= rectYSize
+          ) {
+            continue
+          }
+        }
+
+        lines.push([])
+        while (Math.random() < continuation - 0.01 && inBounds(p, props)) {
+          const { angle, color } = noiseFn(p.x, p.y)
+          if (angle == null) break
+
+          if (color && noiseMode === 'image') {
+            const _x = Math.floor(p.x)
+            const _y = Math.floor(p.y)
+            if (!imgColorData[_x]) {
+              imgColorData[_x] = {}
+            }
+            const [r, g, b] = color
+            const colorData = s.color(`rgb(${r}, ${g}, ${b})`)
+            imgColorData[_x][_y] = [
+              s.hue(colorData),
+              s.saturation(colorData),
+              s.brightness(colorData),
+            ]
+          }
+          const nextP = coordWithAngleAndDistance(p, angle, lineLength)
+          lines[lines.length - 1].push(nextP)
+          p.x = nextP.x
+          p.y = nextP.y
+        }
+      }
+    }
+    return lines.filter((line) => line.length >= minLineLength)
+  }
 
   const setColor = (
     { colorMode, colorScheme, monochromeColor }: Props,
@@ -377,9 +399,9 @@ export default (s) => {
       )
       const domain: [number, number] = [0, 1]
       setFn(
-        Math.floor(interpolate(domain, [215, 269], val) + salt),
-        Math.floor(interpolate(domain, [62, 51], val)),
-        Math.floor(interpolate(domain, [90, 100], val))
+        Math.floor(interpolate(domain, [173, 57], val) + salt),
+        Math.floor(interpolate(domain, [14, 19], val)),
+        Math.floor(interpolate(domain, [71, 84], val))
       )
     }
 
@@ -404,6 +426,9 @@ export default (s) => {
       interpolateColor(Math.sin(angle / 2 + Math.PI / 2))
     } else if (colorMode === 'gradual' && progress != null) {
       interpolateColor(progress)
+    } else if (colorMode === 'image') {
+      const colorData = imgColorData[Math.floor(x)][Math.floor(y)]
+      type === 'stroke' ? s.stroke(colorData) : s.fill(colorData)
     } else if (colorMode === 'random') {
       setFn(
         Math.floor(interpolate([0, 1], [0, 360], Math.random())),
@@ -672,16 +697,22 @@ export default (s) => {
       const normalizedNoise = noiseDamp / 1000
       const angle: number = s.noise(x * normalizedNoise, y * normalizedNoise)
       const distorted = distortionFn(angle)
-      return normalizeAngle(distorted)
+      return {
+        angle: normalizeAngle(distorted),
+      }
     }
 
   const simplexNoiseFn =
     (distortionFn: NumberConversionFn, noiseDamp: number): NoiseFn =>
     (x: number, y: number) => {
       const normalizedNoise = noiseDamp / 1000
-      return normalizeAngle(
-        distortionFn(simplex.noise2D(x * normalizedNoise, y * normalizedNoise))
-      )
+      return {
+        angle: normalizeAngle(
+          distortionFn(
+            simplex.noise2D(x * normalizedNoise, y * normalizedNoise)
+          )
+        ),
+      }
     }
 
   const curlNoiseFn =
@@ -717,14 +748,18 @@ export default (s) => {
       // y derivative
       var dy = (y1 - y2) / eps2
 
-      return distortionFn(Math.atan2(dx, dy))
+      return {
+        angle: distortionFn(Math.atan2(dx, dy)),
+      }
     }
 
   const vortexNoiseFn =
     (distortionFn: NumberConversionFn, vortexStrength: number): NoiseFn =>
     (x: number, y: number) => {
       const t = thetaFromTwoPoints({ x, y }, center)
-      return distortionFn(t + vortexStrength)
+      return {
+        angle: distortionFn(t + vortexStrength),
+      }
     }
 
   const wavyNoiseFn =
@@ -738,10 +773,13 @@ export default (s) => {
       const sin = Math.sin(x * noise * 0.01)
       const cos = Math.cos(y * noise * 0.01)
       const t = thetaFromTwoPoints({ x, y }, center)
-      const _simplex = simplexNoiseFn(distortionFn, noise)(x, y) || 0
-      return distortionFn(
-        sin + cos + t * vortexStrength + _simplex * simplexStrength
-      )
+      const { angle: _simplex = 0 } =
+        simplexNoiseFn(distortionFn, noise)(x, y) || 0
+      return {
+        angle: distortionFn(
+          sin + cos + t * vortexStrength + _simplex * simplexStrength
+        ),
+      }
     }
 
   const imageNoiseFn =
@@ -750,7 +788,10 @@ export default (s) => {
       const [r, g, b] = s.get(x, y)
       const avg = (r + g + b) / 3
       const angle = interpolate([0, 255], [0, Math.PI * noiseDamp], avg)
-      return distortionFn(angle)
+      return {
+        angle: distortionFn(angle),
+        color: [r, g, b],
+      }
     }
 
   const clearTimeouts = () => {
@@ -807,8 +848,6 @@ export default (s) => {
 
     clearTimeouts()
 
-    // setProp('field', 'noise', Math.sin(s.frameCount / 5000) + 0.25)
-    // setProp('field', 'distortion', interpolate([-1, 1], [0.75, 0], Math.sin(s.frameCount / 200)))
     const {
       distortion,
       noise,

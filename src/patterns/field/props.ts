@@ -20,6 +20,7 @@ export const _COLOR_MODE_ = [
   'random',
   'monochrome',
   'gradual',
+  'image',
 ] as const
 export const _LINE_SORT_ = [
   'long',
