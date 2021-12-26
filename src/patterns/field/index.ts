@@ -22,8 +22,9 @@ import {
 } from './props'
 import { getRandomImage } from '../images'
 
-const CANVAS_WIDTH = window.innerWidth
-const CANVAS_HEIGHT = window.innerHeight
+const CANVAS_MODIFIER = 1
+const CANVAS_WIDTH = window.innerWidth * CANVAS_MODIFIER
+const CANVAS_HEIGHT = window.innerHeight * CANVAS_MODIFIER
 
 const center: Point = {
   x: CANVAS_WIDTH / 2,
@@ -49,30 +50,6 @@ const oceanScapeColors = [
   '#0FFFF3',
   '#DEFFFC',
 ]
-
-const inBounds = (
-  p: Point,
-  {
-    constraintMode,
-    constraintRadius,
-    rectXSize,
-    rectYSize,
-    allowGrowthOutsideRadius,
-  }: Props
-): boolean => {
-  if (allowGrowthOutsideRadius) {
-    return p.x >= 0 && p.x <= CANVAS_WIDTH && p.y >= 0 && p.y <= CANVAS_HEIGHT
-  }
-
-  if (constraintMode === 'circle') {
-    return distance(p, center) < constraintRadius
-  } else {
-    return (
-      Math.abs(center.x - p.x) * 2 < rectXSize &&
-      Math.abs(center.y - p.y) * 2 < rectYSize
-    )
-  }
-}
 
 const getPointFromRC = (n: number, r: number, c: number): Point => {
   const xVar = CANVAS_WIDTH / (n - 1)
@@ -107,6 +84,17 @@ const getColors = (colorScheme: ColorScheme): string[] => {
 const randomColor = (colorScheme: ColorScheme): string => {
   const colors = getColors(colorScheme)
   return colors[Math.floor(Math.random() * (colors.length - 1))]
+}
+
+const imageBoundaries = (
+  img: any
+): { x: number; y: number; width: number; height: number } => {
+  const height = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)
+  const aspect = img.width / img.height
+  const width = height * aspect
+  const x = center.x - width / 2
+  const y = center.y - height / 2
+  return { x, y, width, height }
 }
 
 export default (s) => {
@@ -688,6 +676,37 @@ export default (s) => {
     })
   }
 
+  const inBounds = (
+    p: Point,
+    {
+      constraintMode,
+      constraintRadius,
+      rectXSize,
+      rectYSize,
+      allowGrowthOutsideRadius,
+      noiseMode,
+    }: Props
+  ): boolean => {
+    if (allowGrowthOutsideRadius) {
+      return p.x >= 0 && p.x <= CANVAS_WIDTH && p.y >= 0 && p.y <= CANVAS_HEIGHT
+    }
+    if (noiseMode === 'image') {
+      const { x, y, width, height } = imageBoundaries(img)
+      if (p.x < x) return false
+      if (p.x > x + width) return false
+      if (p.y < y) return false
+      if (p.y > y + height) return false
+    }
+    if (constraintMode === 'circle') {
+      return distance(p, center) < constraintRadius
+    }
+
+    return (
+      Math.abs(center.x - p.x) * 2 < rectXSize &&
+      Math.abs(center.y - p.y) * 2 < rectYSize
+    )
+  }
+
   const normalizeAngle: NumberConversionFn = (angle) =>
     s.map(angle, 0, 1, 0, Math.PI * 2)
 
@@ -880,12 +899,8 @@ export default (s) => {
         break
       }
       case 'image': {
-        const totalLength = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)
-        const aspect = img.width / img.height
-        const width = totalLength * aspect
-        const x = center.x - width / 2
-        const y = center.y - totalLength / 2
-        s.image(img, x, y, width, totalLength)
+        const { x, y, width, height } = imageBoundaries(img)
+        s.image(img, x, y, width, height)
         noiseFn = imageNoiseFn(distortionFn, noise)
         break
       }
