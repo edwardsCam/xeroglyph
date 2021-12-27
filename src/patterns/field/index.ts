@@ -10,6 +10,7 @@ import { sanitizeHex } from 'utils/color'
 import SimplexNoise from 'simplex-noise'
 import shuffle from 'utils/shuffle'
 import pushpop from 'utils/pushpop'
+import chunk from 'utils/chunk'
 import {
   Props,
   _COLOR_SCHEMES_,
@@ -25,6 +26,7 @@ import { getRandomImage } from '../images'
 const CANVAS_MODIFIER = 1
 const CANVAS_WIDTH = window.innerWidth * CANVAS_MODIFIER
 const CANVAS_HEIGHT = window.innerHeight * CANVAS_MODIFIER
+const CHUNK_SIZE = 3
 
 const center: Point = {
   x: CANVAS_WIDTH / 2,
@@ -51,12 +53,28 @@ const oceanScapeColors = [
   '#DEFFFC',
 ]
 
-const getPointFromRC = (n: number, r: number, c: number): Point => {
-  const xVar = CANVAS_WIDTH / (n - 1)
-  const yVar = CANVAS_HEIGHT / (n - 1)
-  return {
-    x: interpolate([0, n - 1], [0, CANVAS_WIDTH], c) + randomInRange(0, xVar),
-    y: interpolate([0, n - 1], [0, CANVAS_HEIGHT], r) + randomInRange(0, yVar),
+const getPointFromRC = (
+  r: number,
+  c: number,
+  xVariance: number,
+  yVariance: number,
+  maxN: number,
+  imgBoundaries: ImgBoundaries,
+  { noiseMode }: Props
+): Point => {
+  const xSalt = randomInRange(0, xVariance)
+  const ySalt = randomInRange(0, yVariance)
+  if (noiseMode === 'image') {
+    const { x, y, width, height } = imgBoundaries
+    return {
+      x: interpolate([0, maxN], [x, x + width], c) + xSalt,
+      y: interpolate([0, maxN], [y, y + height], r) + ySalt,
+    }
+  } else {
+    return {
+      x: interpolate([0, maxN], [0, CANVAS_WIDTH], c) + xSalt,
+      y: interpolate([0, maxN], [0, CANVAS_HEIGHT], r) + ySalt,
+    }
   }
 }
 
@@ -86,9 +104,9 @@ const randomColor = (colorScheme: ColorScheme): string => {
   return colors[Math.floor(Math.random() * (colors.length - 1))]
 }
 
-const imageBoundaries = (
-  img: any
-): { x: number; y: number; width: number; height: number } => {
+type ImgBoundaries = { x: number; y: number; width: number; height: number }
+
+const imageBoundaries = (img: any): ImgBoundaries => {
   const height = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)
   const aspect = img.width / img.height
   const width = height * aspect
@@ -321,9 +339,20 @@ export default (s) => {
       minLineLength,
     } = props
 
+    const xVariance = CANVAS_WIDTH / (n - 1)
+    const yVariance = CANVAS_HEIGHT / (n - 1)
+    const imgBoundaries = imageBoundaries(img)
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
-        const p = getPointFromRC(n, r, c)
+        const p = getPointFromRC(
+          r,
+          c,
+          xVariance,
+          yVariance,
+          n - 1,
+          imgBoundaries,
+          props
+        )
         if (constraintMode === 'circle') {
           if (distance(p, center) >= constraintRadius) {
             continue
@@ -338,7 +367,11 @@ export default (s) => {
         }
 
         lines.push([])
-        while (Math.random() < continuation - 0.01 && inBounds(p, props)) {
+        const last = lines.length - 1
+        while (
+          Math.random() < continuation - 0.01 &&
+          inBounds(p, imgBoundaries, props)
+        ) {
           const { angle, color } = noiseFn(p.x, p.y)
           if (angle == null) break
 
@@ -357,13 +390,15 @@ export default (s) => {
             ]
           }
           const nextP = coordWithAngleAndDistance(p, angle, lineLength)
-          lines[lines.length - 1].push(nextP)
+          lines[last].push(nextP)
           p.x = nextP.x
           p.y = nextP.y
         }
       }
     }
-    return lines.filter((line) => line.length >= minLineLength)
+    return minLineLength > 0
+      ? lines.filter((line) => line.length >= minLineLength)
+      : lines
   }
 
   const setColor = (
@@ -415,7 +450,7 @@ export default (s) => {
     } else if (colorMode === 'gradual' && progress != null) {
       interpolateColor(progress)
     } else if (colorMode === 'image') {
-      const colorData = imgColorData[Math.floor(x)][Math.floor(y)]
+      const colorData = getImageColorAtPixel({ x, y })
       type === 'stroke' ? s.stroke(colorData) : s.fill(colorData)
     } else if (colorMode === 'random') {
       setFn(
@@ -487,10 +522,11 @@ export default (s) => {
         const sliced = line.slice(cursor)
         let breakFlag = false
         choppedLines.push([])
+        const lastIdx = choppedLines.length - 1
         sliced.forEach((p, i) => {
           cursor = i + 1
           if (breakFlag) return
-          if (isClaimed(p, i, strokeWeight, line)) {
+          if (avoidanceRadius >= 0 && isClaimed(p, i, strokeWeight, line)) {
             breakFlag = true
             return
           }
@@ -498,13 +534,12 @@ export default (s) => {
             point: p,
             width: strokeWeight,
           })
-          choppedLines[choppedLines.length - 1].push(p)
+          choppedLines[lastIdx].push(p)
         })
       }
-      const filteredByLength = choppedLines.filter(
-        (line) => line.length > minLineLength
-      )
-      return filteredByLength
+      return minLineLength > 0
+        ? choppedLines.filter((line) => line.length > minLineLength)
+        : choppedLines
     }
 
     const isAngularColorMode = colorMode === 'angular'
@@ -540,117 +575,118 @@ export default (s) => {
       }
     }
 
-    sortedLines.forEach((line, lineIndex) => {
-      timeouts.push(
-        setTimeout(() => {
-          const [firstPoint] = line
-          if (!firstPoint) return
+    chunk(sortedLines, CHUNK_SIZE).forEach((chunk, chunkIndex) => {
+      const f = (line: Point[], _lineIndex: number) => {
+        const lineIndex = chunkIndex * CHUNK_SIZE + _lineIndex
 
-          const strokeWeight = getWidth(
-            minWidth,
-            maxWidth,
-            randomWidths,
-            lineIndex / (sortedLines.length - 1)
+        const [firstPoint] = line
+        if (!firstPoint) return
+
+        const progress = lineIndex / (sortedLines.length - 1)
+        const strokeWeight = getWidth(
+          minWidth,
+          maxWidth,
+          randomWidths,
+          progress
+        )
+        if (drawMode !== 'dots') s.strokeWeight(strokeWeight)
+        setColor(
+          props,
+          firstPoint.x,
+          firstPoint.y,
+          drawMode === 'dots' ? 'fill' : 'stroke',
+          { progress: lineIndex / sortedLines.length }
+        )
+
+        const drawDot = (p: Point, i: number) => {
+          if (i % (dotSkip + 1)) return
+          s.circle(
+            p.x,
+            p.y,
+            getWidth(minWidth, maxWidth, randomWidths, progress)
           )
-          s.strokeWeight(strokeWeight)
-          setColor(
-            props,
-            firstPoint.x,
-            firstPoint.y,
-            drawMode === 'dots' ? 'fill' : 'stroke',
-            { progress: lineIndex / sortedLines.length }
-          )
+        }
 
-          const drawDot = (p: Point, i: number) => {
-            if (i % (dotSkip + 1)) return
-            s.noStroke()
-            s.circle(
-              p.x,
-              p.y,
-              getWidth(
-                minWidth,
-                maxWidth,
-                randomWidths,
-                lineIndex / (sortedLines.length - 1)
-              )
-            )
-          }
-
-          const choppedLines = constructChoppedLines(line, strokeWeight)
-          if (drawMode === 'outlines') {
-            choppedLines.forEach((line) => {
-              const queue: Point[] = []
-              const stack: Point[] = []
-              line.forEach((p, i) => {
+        const choppedLines = constructChoppedLines(line, strokeWeight)
+        if (drawMode === 'outlines') {
+          choppedLines.forEach((line) => {
+            const queue: Point[] = []
+            const stack: Point[] = []
+            line.forEach((p, i) => {
+              if (i > 0) {
+                const prev = line[i - 1]
+                const theta = thetaFromTwoPoints(p, prev)
+                const p1 = coordWithAngleAndDistance(
+                  prev,
+                  theta - Math.PI / 2,
+                  strokeWeight / 2
+                )
+                const p2 = coordWithAngleAndDistance(
+                  prev,
+                  theta + Math.PI / 2,
+                  strokeWeight / 2
+                )
+                queue.push(p1)
+                stack.push(p2)
+              }
+            })
+            s.strokeWeight(props.outlineWidth)
+            s.beginShape()
+            line.forEach(() => {
+              const p = queue.shift()
+              if (!p) return
+              s.vertex(p.x, p.y)
+            })
+            line.forEach(() => {
+              const p = stack.pop()
+              if (!p) return
+              s.vertex(p.x, p.y)
+            })
+            s.endShape(s.CLOSE)
+          })
+        } else {
+          if (drawMode === 'dots') s.noStroke()
+          choppedLines.forEach((line) => {
+            if (!isAngularColorMode && drawMode !== 'dots') s.beginShape()
+            line.forEach((p, i) => {
+              if (isAngularColorMode) {
                 if (i > 0) {
                   const prev = line[i - 1]
-                  const theta = thetaFromTwoPoints(p, prev)
-                  const p1 = coordWithAngleAndDistance(
-                    prev,
-                    theta - Math.PI / 2,
-                    strokeWeight / 2
+                  const theta = thetaFromTwoPoints(prev, p)
+                  setColor(
+                    props,
+                    p.x,
+                    p.y,
+                    drawMode === 'dots' ? 'fill' : 'stroke',
+                    { angle: theta }
                   )
-                  const p2 = coordWithAngleAndDistance(
-                    prev,
-                    theta + Math.PI / 2,
-                    strokeWeight / 2
-                  )
-                  queue.push(p1)
-                  stack.push(p2)
-                }
-              })
-              s.strokeWeight(props.outlineWidth)
-              s.beginShape()
-              line.forEach(() => {
-                const p = queue.shift()
-                if (!p) return
-                s.vertex(p.x, p.y)
-              })
-              line.forEach(() => {
-                const p = stack.pop()
-                if (!p) return
-                s.vertex(p.x, p.y)
-              })
-              s.endShape(s.CLOSE)
-            })
-          } else {
-            choppedLines.forEach((line) => {
-              if (!isAngularColorMode && drawMode !== 'dots') s.beginShape()
-              line.forEach((p, i) => {
-                if (isAngularColorMode) {
-                  if (i > 0) {
-                    const prev = line[i - 1]
-                    const theta = thetaFromTwoPoints(prev, p)
-                    setColor(
-                      props,
-                      p.x,
-                      p.y,
-                      drawMode === 'dots' ? 'fill' : 'stroke',
-                      { angle: theta }
-                    )
-                    if (drawMode === 'dots') {
-                      drawDot(p, i)
-                    } else {
-                      const d = distance(prev, p)
-                      const extrapolated = coordWithAngleAndDistance(
-                        prev,
-                        theta,
-                        d * 1.25
-                      )
-                      s.line(prev.x, prev.y, extrapolated.x, extrapolated.y)
-                    }
-                  }
-                } else {
                   if (drawMode === 'dots') {
                     drawDot(p, i)
                   } else {
-                    s.vertex(p.x, p.y)
+                    const d = distance(prev, p)
+                    const extrapolated = coordWithAngleAndDistance(
+                      prev,
+                      theta,
+                      d * 1.25
+                    )
+                    s.line(prev.x, prev.y, extrapolated.x, extrapolated.y)
                   }
                 }
-              })
-              if (!isAngularColorMode && drawMode !== 'dots') s.endShape()
+              } else {
+                if (drawMode === 'dots') {
+                  drawDot(p, i)
+                } else {
+                  s.vertex(p.x, p.y)
+                }
+              }
             })
-          }
+            if (!isAngularColorMode && drawMode !== 'dots') s.endShape()
+          })
+        }
+      }
+      timeouts.push(
+        setTimeout(() => {
+          chunk.forEach(f)
         })
       )
     })
@@ -678,6 +714,7 @@ export default (s) => {
 
   const inBounds = (
     p: Point,
+    imgBoundaries: ImgBoundaries,
     {
       constraintMode,
       constraintRadius,
@@ -691,11 +728,10 @@ export default (s) => {
       return p.x >= 0 && p.x <= CANVAS_WIDTH && p.y >= 0 && p.y <= CANVAS_HEIGHT
     }
     if (noiseMode === 'image') {
-      const { x, y, width, height } = imageBoundaries(img)
-      if (p.x < x) return false
-      if (p.x > x + width) return false
-      if (p.y < y) return false
-      if (p.y > y + height) return false
+      if (p.x < imgBoundaries.x) return false
+      if (p.x > imgBoundaries.x + imgBoundaries.width) return false
+      if (p.y < imgBoundaries.y) return false
+      if (p.y > imgBoundaries.y + imgBoundaries.height) return false
     }
     if (constraintMode === 'circle') {
       return distance(p, center) < constraintRadius
@@ -706,6 +742,9 @@ export default (s) => {
       Math.abs(center.y - p.y) * 2 < rectYSize
     )
   }
+
+  const getImageColorAtPixel = ({ x, y }: Point): [number, number, number] =>
+    imgColorData[Math.floor(x)][Math.floor(y)]
 
   const normalizeAngle: NumberConversionFn = (angle) =>
     s.map(angle, 0, 1, 0, Math.PI * 2)
@@ -830,9 +869,20 @@ export default (s) => {
     firstPoints = []
 
     if (drawMode === 'fluid') {
+      const xVariance = CANVAS_WIDTH / (n - 1)
+      const yVariance = CANVAS_HEIGHT / (n - 1)
+      const imgBoundaries = imageBoundaries(img)
       for (let r = 0; r < n; r++) {
         for (let c = 0; c < n; c++) {
-          const p = getPointFromRC(n, r, c)
+          const p = getPointFromRC(
+            r,
+            c,
+            xVariance,
+            yVariance,
+            n - 1,
+            imgBoundaries,
+            props
+          )
           points.push(p)
           firstPoints.push(p)
         }

@@ -9,6 +9,8 @@ const images: string[] = [
   'aloe.jpeg',
   'desert.jpeg',
   'boat.jpg',
+  'delicate-arch.jpeg',
+  'emma.jpeg',
 ]
 
 export const getRandomImage = (): string =>
