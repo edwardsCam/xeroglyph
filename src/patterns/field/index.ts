@@ -283,7 +283,7 @@ export default (s) => {
     },
     Background: {
       type: 'string',
-      default: '#000',
+      default: '#fffff7',
     },
   })
   const get = (prop: string) => getProp('field', prop)
@@ -417,14 +417,14 @@ export default (s) => {
     const interpolateColor = (val: number) => {
       const salt = interpolate(
         [0, CANVAS_WIDTH + CANVAS_HEIGHT],
-        [-65, 65],
+        [-40, 40],
         x + y
       )
       const domain: [number, number] = [0, 1]
       setFn(
         Math.floor(interpolate(domain, [173, 57], val) + salt),
-        Math.floor(interpolate(domain, [14, 19], val)),
-        Math.floor(interpolate(domain, [71, 84], val))
+        Math.floor(interpolate(domain, [14, 30], val)),
+        Math.floor(interpolate(domain, [65, 100], val))
       )
     }
 
@@ -442,9 +442,7 @@ export default (s) => {
       const quadrant = Math.floor(
         interpolate([0, 1], [0, colors.length - 1], colorNoise)
       )
-      const alpha = interpolate([0, 1], [200, 255], Math.random())
-      const alphaHex = Math.round(alpha).toString(16)
-      setFn(`${colors[quadrant]}${alphaHex}`)
+      setFn(`${colors[quadrant]}`)
     } else if (colorMode === 'angular' && angle != null) {
       interpolateColor(Math.sin(angle / 2 + Math.PI / 2))
     } else if (colorMode === 'gradual' && progress != null) {
@@ -595,7 +593,7 @@ export default (s) => {
           firstPoint.x,
           firstPoint.y,
           drawMode === 'dots' ? 'fill' : 'stroke',
-          { progress: lineIndex / sortedLines.length }
+          { progress: Math.min(1, (2 * lineIndex) / sortedLines.length) }
         )
 
         const drawDot = (p: Point, i: number) => {
