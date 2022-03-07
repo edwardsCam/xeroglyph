@@ -70,7 +70,6 @@ export const spaceHexes = (hexes: HexData[], spacing: number): HexData[] => {
   const clone = [...hexes]
   const addSpacing = (val: number, mult: number, skip = false): number =>
     val + mult * spacing + (skip ? spacing / 2 : 0)
-  debugger
   return clone.map((hex) => {
     const { raw, center, corners, rectCorner } = hex
     const { x: xCol, y: yCol } = raw

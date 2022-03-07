@@ -65,7 +65,6 @@ export default (s, props: Props) => {
       }
       hexes.forEach((hex, i) => {
         addTimeout(() => {
-          debugger
           pushpop(s, () => {
             s.strokeWeight(props.strokeWeight)
             drawHex(hex, s, scribble)
