@@ -168,6 +168,8 @@ const patternMap = {
   },
 }
 
+const COLUMNS = 3
+
 type State = {
   init: boolean
   pattern: string | null
@@ -266,29 +268,20 @@ class App extends React.Component<{}, State> {
   renderIndex() {
     const patterns = Object.keys(patternMap)
 
+    const drawCol = (mod: number) => (
+      <div className="index-column">
+        {patterns
+          .filter((_p, i) => i % COLUMNS === mod)
+          .map((pattern) => (
+            <HomepageLink key={pattern} {...this.generateLinkProps(pattern)} />
+          ))}
+      </div>
+    )
+
     return (
       <div className="index">
         <div className="index-list">
-          <div className="index-column">
-            {patterns
-              .filter((_p, i) => !(i % 2))
-              .map((pattern) => (
-                <HomepageLink
-                  key={pattern}
-                  {...this.generateLinkProps(pattern)}
-                />
-              ))}
-          </div>
-          <div className="index-column">
-            {patterns
-              .filter((_p, i) => i % 2)
-              .map((pattern) => (
-                <HomepageLink
-                  key={pattern}
-                  {...this.generateLinkProps(pattern)}
-                />
-              ))}
-          </div>
+          {Array.from(Array(COLUMNS).keys()).map(drawCol)}
         </div>
         <div className="footer">
           <a

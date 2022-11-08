@@ -252,8 +252,16 @@ export default class HelpModal extends React.Component<{
     return info ? (
       <div className="helpModal">
         <h1>{info.title}</h1>
-        <br />
 
+        {info.description && !!info.description.length && (
+          <>
+            <br />
+            {info.description.map((line, i) =>
+              line === '' ? <hr key={i} /> : <p key={i}>{line}</p>
+            )}
+          </>
+        )}
+        <br />
         <h2>{'Instructions'}</h2>
         <p>{'At any time, hit Escape or `i` to open this info modal.'}</p>
         <p>
@@ -268,16 +276,6 @@ export default class HelpModal extends React.Component<{
           <>
             <br />
             <p>{'Click anywhere or hit Escape to begin!'}</p>
-          </>
-        )}
-
-        {info.description && !!info.description.length && (
-          <>
-            <br />
-            <h2>{'Description'}</h2>
-            {info.description.map((line, i) =>
-              line === '' ? <hr key={i} /> : <p key={i}>{line}</p>
-            )}
           </>
         )}
       </div>

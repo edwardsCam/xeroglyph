@@ -59,6 +59,8 @@ declare global {
     ) => any
     rect: (x: number, y: number, width: number, height: number) => any
     ellipse: (x: number, y: number, width: number, height: number) => any
+    mouseX: number
+    mouseY: number
     WEBGL: WEBGL
     P2D: P2D
     CLOSE: CLOSE

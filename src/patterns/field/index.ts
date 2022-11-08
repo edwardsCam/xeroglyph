@@ -524,7 +524,7 @@ export default (s) => {
         sliced.forEach((p, i) => {
           cursor = i + 1
           if (breakFlag) return
-          if (avoidanceRadius >= 0 && isClaimed(p, i, strokeWeight, line)) {
+          if (avoidanceRadius > 0 && isClaimed(p, i, strokeWeight, line)) {
             breakFlag = true
             return
           }
