@@ -1,6 +1,7 @@
 export const _COLOR_SCHEMES_ = [
-  'oceanscape',
+  'tangerine',
   'iceland',
+  'oceanscape',
   'fiery furnace',
 ] as const
 export const _NOISE_MODE_ = [
@@ -11,12 +12,12 @@ export const _NOISE_MODE_ = [
   'perlin',
   'image',
 ] as const
-export const _DRAW_MODE_ = ['dots', 'streams', 'outlines', 'fluid'] as const
+export const _DRAW_MODE_ = ['streams', 'dots', 'outlines', 'fluid'] as const
 export const _CONSTRAINT_MODE_ = ['rect', 'circle'] as const
 export const _COLOR_MODE_ = [
+  'random from scheme',
   'sectors',
   'angular',
-  'random from scheme',
   'random',
   'monochrome',
   'gradual',
@@ -38,14 +39,12 @@ export type ColorMode = typeof _COLOR_MODE_[number]
 export type LineSort = typeof _LINE_SORT_[number]
 
 export type Props = {
-  allowGrowthOutsideRadius: boolean
   avoidanceRadius: number
   background: string
   colorMode: ColorMode
   colorScheme: ColorScheme
   constraintMode: ConstraintMode
   constraintRadius: number
-  continuation: number
   distortion: number
   dotSkip: number
   drawMode: DrawMode
@@ -63,7 +62,7 @@ export type Props = {
   rectXSize: number
   rectYSize: number
   showImage: boolean
-  squareCap: boolean
+  squareCapPercent: number
   vortexStrength: number
   simplexStrength: number
 }
