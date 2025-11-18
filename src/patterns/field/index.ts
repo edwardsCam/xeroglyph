@@ -42,8 +42,27 @@ type NoiseFn = (
 }
 type NumberConversionFn = (n: number) => number
 
-const coolColors = ['#314B99', '#058FE6', '#0FFFCF', '#0296BF', '#FFF8DB']
-const hotColors = ['#801100', '#D73502', '#FAC000', '#A8A9AD', '#CB4446']
+const tangerineColors = [
+  '#8fb78f',
+  '#cbe6c7',
+  '#b4cccf',
+  '#28536b',
+  '#f3a5bc',
+  '#ffc49b',
+]
+const icelandColors = [
+  '#4661B3',
+  '#4F81C9',
+  '#058FE6',
+  '#029CFA',
+  '#0FFFCF',
+  '#17EBC1',
+  '#0296BF',
+  '#13A5CF',
+  '#FFF8DB',
+  '#FAFFF0',
+]
+const fieryColors = ['#801100', '#D73502', '#FAC000', '#A8A9AD', '#CB4446']
 const oceanScapeColors = [
   '#FF1CAC',
   '#9F63FF',
@@ -90,10 +109,12 @@ const getWidth = (
 
 const getColors = (colorScheme: ColorScheme): string[] => {
   switch (colorScheme) {
+    case 'tangerine':
+      return tangerineColors
     case 'iceland':
-      return coolColors
+      return icelandColors
     case 'fiery furnace':
-      return hotColors
+      return fieryColors
     case 'oceanscape':
       return oceanScapeColors
   }
@@ -101,12 +122,12 @@ const getColors = (colorScheme: ColorScheme): string[] => {
 
 const randomColor = (colorScheme: ColorScheme): string => {
   const colors = getColors(colorScheme)
-  return colors[Math.floor(Math.random() * (colors.length - 1))]
+  return colors[Math.floor(Math.random() * colors.length)]
 }
 
 type ImgBoundaries = { x: number; y: number; width: number; height: number }
 
-const imageBoundaries = (img: any): ImgBoundaries => {
+const getImageBoundaries = (img: any): ImgBoundaries => {
   const height = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)
   const aspect = img.width / img.height
   const width = height * aspect
@@ -119,17 +140,17 @@ export default (s) => {
   initProps('field', {
     restart: {
       type: 'func',
-      label: 'Restart',
+      label: 'Regenerate',
       callback: initialize,
     },
     n: {
       type: 'number',
-      default: 120,
+      default: 200,
       min: 3,
     },
     Noise: {
       type: 'number',
-      default: 2,
+      default: 0.5,
       min: Number.NEGATIVE_INFINITY,
       step: 0.01,
       when: () => get('Noise Mode') !== 'vortex',
@@ -146,7 +167,7 @@ export default (s) => {
     },
     'Simplex Strength': {
       type: 'number',
-      default: 0.25,
+      default: 0.05,
       min: Number.NEGATIVE_INFINITY,
       step: 0.05,
       when: () => get('Noise Mode') === 'wavy',
@@ -168,37 +189,26 @@ export default (s) => {
       min: 0,
       step: 0.01,
     },
-    Continuation: {
-      type: 'number',
-      default: 1,
-      min: 0,
-      max: 1,
-      step: 0.025,
-      when: () => {
-        const drawMode = get('Draw Mode')
-        return drawMode === 'streams' || drawMode === 'outlines'
-      },
-    },
     'Min Width': {
       type: 'number',
-      default: 2,
+      default: 3,
       min: 1,
     },
     'Max Width': {
       type: 'number',
-      default: 6,
+      default: 40,
       min: 1,
     },
     'Random Width': {
       type: 'boolean',
       default: true,
     },
-    'Square Cap': {
-      type: 'boolean',
-      default: false,
+    'Square Cap %': {
+      type: 'number',
+      default: 65,
       when: () => get('Draw Mode') === 'streams',
     },
-    'Avoidance Radius': {
+    Avoidance: {
       type: 'number',
       default: 2,
       step: 0.5,
@@ -221,19 +231,15 @@ export default (s) => {
       min: 1,
       when: () => get('Constraint Mode') === 'circle',
     },
-    'Allow growth outside constraint': {
-      type: 'boolean',
-      default: false,
-    },
     'Rect X size': {
       type: 'number',
-      default: CANVAS_WIDTH,
+      default: CANVAS_WIDTH - 25,
       min: 1,
       when: () => get('Constraint Mode') === 'rect',
     },
     'Rect Y size': {
       type: 'number',
-      default: CANVAS_HEIGHT,
+      default: CANVAS_HEIGHT - 25,
       min: 1,
       when: () => get('Constraint Mode') === 'rect',
     },
@@ -268,12 +274,12 @@ export default (s) => {
     },
     'Line Length': {
       type: 'number',
-      default: 4,
+      default: 8,
       min: 1,
     },
     'Min Line Length': {
       type: 'number',
-      default: 4,
+      default: 0,
       min: 0,
     },
     'Line Sort': {
@@ -283,19 +289,17 @@ export default (s) => {
     },
     Background: {
       type: 'string',
-      default: '#fffff7',
+      default: '#0d0d0d',
     },
   })
   const get = (prop: string) => getProp('field', prop)
   const getProps = (): Props => ({
-    allowGrowthOutsideRadius: get('Allow growth outside constraint'),
-    avoidanceRadius: get('Avoidance Radius'),
+    avoidanceRadius: get('Avoidance'),
     background: get('Background'),
     colorMode: get('Color Mode'),
     colorScheme: get('Color Scheme'),
     constraintMode: get('Constraint Mode'),
     constraintRadius: get('Constraint Radius'),
-    continuation: get('Continuation'),
     distortion: get('Distortion'),
     dotSkip: get('Dot Skip'),
     drawMode: get('Draw Mode'),
@@ -315,7 +319,7 @@ export default (s) => {
     rectXSize: get('Rect X size'),
     rectYSize: get('Rect Y size'),
     showImage: get('Show Image'),
-    squareCap: get('Square Cap'),
+    squareCapPercent: get('Square Cap %'),
   })
 
   let points: Point[]
@@ -335,13 +339,12 @@ export default (s) => {
       rectXSize,
       rectYSize,
       lineLength,
-      continuation,
       minLineLength,
     } = props
 
     const xVariance = CANVAS_WIDTH / (n - 1)
     const yVariance = CANVAS_HEIGHT / (n - 1)
-    const imgBoundaries = imageBoundaries(img)
+    const imgBoundaries = getImageBoundaries(img)
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         const p = getPointFromRC(
@@ -368,10 +371,7 @@ export default (s) => {
 
         lines.push([])
         const last = lines.length - 1
-        while (
-          Math.random() < continuation - 0.01 &&
-          inBounds(p, imgBoundaries, props)
-        ) {
+        while (Math.random() < 0.975 && inBounds(p, imgBoundaries, props)) {
           const { angle, color } = noiseFn(p.x, p.y)
           if (angle == null) break
 
@@ -474,7 +474,9 @@ export default (s) => {
       lineSort,
       minLineLength,
       randomWidths,
+      squareCapPercent: _squareCapPercent,
     } = props
+    const squareCapPercent = _squareCapPercent / 100
 
     const drawnPoints: {
       point: Point
@@ -499,7 +501,7 @@ export default (s) => {
         const dist = distance(p, otherPoint)
         const avgWidth = (pointWidth + otherPointWidth) / 2
         const trueDist = dist - avgWidth
-        if (trueDist > avoidanceRadius) return false
+        if (trueDist >= avoidanceRadius) return false
 
         const found = line.findIndex(
           ({ x, y }) => x === otherPoint.x && y === otherPoint.y
@@ -588,6 +590,7 @@ export default (s) => {
           progress
         )
         if (drawMode !== 'dots') s.strokeWeight(strokeWeight)
+        s.strokeCap(Math.random() < squareCapPercent ? s.SQUARE : s.ROUND)
         setColor(
           props,
           firstPoint.x,
@@ -713,18 +716,8 @@ export default (s) => {
   const inBounds = (
     p: Point,
     imgBoundaries: ImgBoundaries,
-    {
-      constraintMode,
-      constraintRadius,
-      rectXSize,
-      rectYSize,
-      allowGrowthOutsideRadius,
-      noiseMode,
-    }: Props
+    { constraintMode, constraintRadius, rectXSize, rectYSize, noiseMode }: Props
   ): boolean => {
-    if (allowGrowthOutsideRadius) {
-      return p.x >= 0 && p.x <= CANVAS_WIDTH && p.y >= 0 && p.y <= CANVAS_HEIGHT
-    }
     if (noiseMode === 'image') {
       if (p.x < imgBoundaries.x) return false
       if (p.x > imgBoundaries.x + imgBoundaries.width) return false
@@ -869,7 +862,7 @@ export default (s) => {
     if (drawMode === 'fluid') {
       const xVariance = CANVAS_WIDTH / (n - 1)
       const yVariance = CANVAS_HEIGHT / (n - 1)
-      const imgBoundaries = imageBoundaries(img)
+      const imgBoundaries = getImageBoundaries(img)
       for (let r = 0; r < n; r++) {
         for (let c = 0; c < n; c++) {
           const p = getPointFromRC(
@@ -920,7 +913,6 @@ export default (s) => {
       noise,
       noiseMode,
       drawMode,
-      squareCap,
       vortexStrength,
       simplexStrength,
     } = props
@@ -931,7 +923,6 @@ export default (s) => {
       s.clear()
     }
     s.noFill()
-    s.strokeCap(squareCap ? s.SQUARE : s.ROUND)
     s.strokeJoin(s.ROUND)
     switch (noiseMode) {
       case 'perlin': {
@@ -947,7 +938,7 @@ export default (s) => {
         break
       }
       case 'image': {
-        const { x, y, width, height } = imageBoundaries(img)
+        const { x, y, width, height } = getImageBoundaries(img)
         s.image(img, x, y, width, height)
         noiseFn = imageNoiseFn(distortionFn, noise)
         break
