@@ -43,33 +43,44 @@ type NoiseFn = (
 type NumberConversionFn = (n: number) => number
 
 const tangerineColors = [
-  '#8fb78f',
-  '#cbe6c7',
-  '#b4cccf',
   '#28536b',
+  '#8fb78f',
+  '#b4cccf',
+  '#cbe6c7',
   '#f3a5bc',
   '#ffc49b',
 ]
 const icelandColors = [
+  '#0296BF',
+  '#029CFA',
+  '#058FE6',
+  '#0FFFCF',
+  '#13A5CF',
+  '#17EBC1',
   '#4661B3',
   '#4F81C9',
-  '#058FE6',
-  '#029CFA',
-  '#0FFFCF',
-  '#17EBC1',
-  '#0296BF',
-  '#13A5CF',
-  '#FFF8DB',
   '#FAFFF0',
+  '#FFF8DB',
 ]
-const fieryColors = ['#801100', '#D73502', '#FAC000', '#A8A9AD', '#CB4446']
+const fieryColors = [
+  '#801100',
+  '#A8A59E',
+  '#A8A9AD',
+  '#B8B7AD',
+  '#CB4446',
+  '#D73502',
+  '#DE643E',
+  '#FAC000',
+  '#FFD747',
+  '#FFDA82',
+]
 const oceanScapeColors = [
-  '#FF1CAC',
-  '#9F63FF',
-  '#6696FF',
-  '#ff6edf',
   '#0FFFF3',
+  '#6696FF',
+  '#9F63FF',
   '#DEFFFC',
+  '#FF1CAC',
+  '#ff6edf',
 ]
 
 const getPointFromRC = (
@@ -438,11 +449,11 @@ export default (s) => {
       setFn(randomColor(colorScheme))
     } else if (colorMode === 'sectors') {
       const colors = getColors(colorScheme)
-      const colorNoise: number = s.noise(x / 200, y / 100)
+      const colorNoise: number = s.noise(x / 100, y / 50)
       const quadrant = Math.floor(
-        interpolate([0, 1], [0, colors.length - 1], colorNoise)
+        interpolate([0, 0.85], [0, colors.length], colorNoise)
       )
-      setFn(`${colors[quadrant]}`)
+      setFn(colors[quadrant] || colors[0] /* just in case it's out of bounds */)
     } else if (colorMode === 'angular' && angle != null) {
       interpolateColor(Math.sin(angle / 2 + Math.PI / 2))
     } else if (colorMode === 'gradual' && progress != null) {
@@ -696,7 +707,7 @@ export default (s) => {
   const drawFluid = (props: Props, noiseFn: NoiseFn): void => {
     const { lineLength, minWidth, maxWidth, randomWidths } = props
     points.forEach((p, i) => {
-      const angle = noiseFn(p.x, p.y)
+      const { angle } = noiseFn(p.x, p.y)
       if (angle == null) return
 
       const nextP = coordWithAngleAndDistance(p, angle, lineLength)
