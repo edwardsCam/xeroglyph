@@ -3,7 +3,7 @@
 
 My collection of algorithmically generated artwork.
 
-https://xeroglyph.com
+[xeroglyph.com](https://xeroglyph.com)
 
 ## Help
 In any piece:
