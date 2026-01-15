@@ -3,7 +3,7 @@
 
 My collection of algorithmically generated artwork.
 
-https://edwardscam.github.io/xeroglyph
+xeroglyph.com
 
 ## Help
 In any piece:
