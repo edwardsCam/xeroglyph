@@ -168,6 +168,57 @@ Speech.prototype.speak = function (_phrase) {
   this.synth.speak(this.utterance)
 }
 
+// split text into speakable chunks at sentence boundaries:
+Speech.prototype._splitPhrase = function (_phrase) {
+  const MAX_CHUNK = 200
+  if (_phrase.length <= MAX_CHUNK) return [_phrase]
+
+  const chunks = []
+  const sentences = _phrase.match(/[^.!?]+[.!?]*/g) || [_phrase]
+  let current = ''
+
+  for (const sentence of sentences) {
+    if ((current + sentence).length > MAX_CHUNK && current.length > 0) {
+      chunks.push(current.trim())
+      current = sentence
+    } else {
+      current += sentence
+    }
+  }
+  if (current.trim()) chunks.push(current.trim())
+  return chunks
+}
+
+// speak a long phrase by splitting it into sentence-boundary chunks and queuing them.
+// fires onStart on the first chunk and onEnd on the last chunk:
+Speech.prototype.speakLong = function (_phrase) {
+  if (this.interrupt) this.synth.cancel()
+  const chunks = this._splitPhrase(_phrase)
+  const that = this
+
+  chunks.forEach(function (chunk, i) {
+    const utt = new SpeechSynthesisUtterance(chunk)
+    utt.voice = that.utterance.voice
+    utt.volume = that.utterance.volume
+    utt.rate = that.utterance.rate
+    utt.pitch = that.utterance.pitch
+    utt.lang = that.utterance.lang
+
+    if (i === 0) {
+      utt.onstart = function (e) {
+        if (that.onStart != undefined) that.onStart(e)
+      }
+    }
+    if (i === chunks.length - 1) {
+      utt.onend = function (e) {
+        if (that.onEnd != undefined) that.onEnd(e)
+      }
+    }
+
+    that.synth.speak(utt)
+  })
+}
+
 // not working...
 Speech.prototype.pause = function () {
   this.synth.pause()
@@ -348,7 +399,6 @@ todo:
 * fix callbacks (pause, resume) in synthesizer.
 * support speech grammar models for scoped auditory UI.
 * support markdown, boundaries, etc for better synthesis tracking.
-* support utterance parser for long phrases.
 */
 
 // EOF
