@@ -109,7 +109,7 @@ export default (s) => {
       window.innerWidth / 5,
       window.innerHeight / 5,
       200,
-      props.bg || 'white'
+      (props as typeof props & { bg?: string }).bg || 'white'
     )
   }
 
