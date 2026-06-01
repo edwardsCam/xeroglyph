@@ -1,7 +1,7 @@
 
 # Xeroglyph
 
-My collection of algorithmically generated artwork.
+My collection of algorithmically generated artwork. All written by me, no AI.
 
 [xeroglyph.com](https://xeroglyph.com)
 
