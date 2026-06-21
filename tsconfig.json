@@ -13,6 +13,8 @@
 		"allowSyntheticDefaultImports": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
+		"types": ["node", "react"],
+		"skipLibCheck": true,
 		"baseUrl": "./",
     "paths": {
       "*": ["*", "src/*"]

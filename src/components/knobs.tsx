@@ -123,6 +123,7 @@ export default class Knobs extends React.Component<{ pattern: string }> {
             ) as HTMLCanvasElement
             const time = Date.now()
             canvas.toBlob((blob) => {
+              if (!blob) return
               const downloadLink = document.createElement('a')
               downloadLink.href = URL.createObjectURL(blob)
               downloadLink.download = `xeroglyph_${time}_${pattern}.png`
